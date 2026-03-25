@@ -43,6 +43,36 @@ create_exception!(
     "HTTP 502/503 – service unavailable."
 );
 create_exception!(_internal_bindings, BadRequestError, LlmError, "HTTP 400 – bad request.");
+create_exception!(
+    _internal_bindings,
+    ContextWindowExceededError,
+    BadRequestError,
+    "HTTP 400 – prompt exceeds the model's context window."
+);
+create_exception!(
+    _internal_bindings,
+    ContentPolicyError,
+    BadRequestError,
+    "HTTP 400 – request was rejected by the provider's content policy."
+);
+create_exception!(
+    _internal_bindings,
+    LlmTimeoutError,
+    LlmError,
+    "Request timed out before the provider responded."
+);
+create_exception!(
+    _internal_bindings,
+    NetworkError,
+    LlmError,
+    "Network-level error communicating with the provider."
+);
+create_exception!(
+    _internal_bindings,
+    StreamingError,
+    LlmError,
+    "Error while reading a streaming response from the provider."
+);
 
 /// Convert a [`LiterLmError`] into the matching Python exception.
 pub fn to_py_err(e: LiterLmError) -> PyErr {
@@ -53,9 +83,12 @@ pub fn to_py_err(e: LiterLmError) -> PyErr {
         LiterLmError::ServerError { .. } => PyErr::new::<ServerError, _>(msg),
         LiterLmError::NotFound { .. } => PyErr::new::<NotFoundError, _>(msg),
         LiterLmError::ServiceUnavailable { .. } => PyErr::new::<ServiceUnavailableError, _>(msg),
-        LiterLmError::BadRequest { .. }
-        | LiterLmError::ContextWindowExceeded { .. }
-        | LiterLmError::ContentPolicy { .. } => PyErr::new::<BadRequestError, _>(msg),
+        LiterLmError::BadRequest { .. } => PyErr::new::<BadRequestError, _>(msg),
+        LiterLmError::ContextWindowExceeded { .. } => PyErr::new::<ContextWindowExceededError, _>(msg),
+        LiterLmError::ContentPolicy { .. } => PyErr::new::<ContentPolicyError, _>(msg),
+        LiterLmError::Timeout => PyErr::new::<LlmTimeoutError, _>(msg),
+        LiterLmError::Network(_) => PyErr::new::<NetworkError, _>(msg),
+        LiterLmError::Streaming { .. } => PyErr::new::<StreamingError, _>(msg),
         _ => PyErr::new::<LlmError, _>(msg),
     }
 }
@@ -69,5 +102,13 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("NotFoundError", m.py().get_type::<NotFoundError>())?;
     m.add("ServiceUnavailableError", m.py().get_type::<ServiceUnavailableError>())?;
     m.add("BadRequestError", m.py().get_type::<BadRequestError>())?;
+    m.add(
+        "ContextWindowExceededError",
+        m.py().get_type::<ContextWindowExceededError>(),
+    )?;
+    m.add("ContentPolicyError", m.py().get_type::<ContentPolicyError>())?;
+    m.add("LlmTimeoutError", m.py().get_type::<LlmTimeoutError>())?;
+    m.add("NetworkError", m.py().get_type::<NetworkError>())?;
+    m.add("StreamingError", m.py().get_type::<StreamingError>())?;
     Ok(())
 }

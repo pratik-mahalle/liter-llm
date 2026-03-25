@@ -3,6 +3,7 @@ use std::task::{Context, Poll};
 
 use bytes::Bytes;
 use futures_core::Stream;
+use memchr::memchr;
 use pin_project_lite::pin_project;
 
 use crate::error::{LiterLmError, Result};
@@ -66,7 +67,7 @@ pub async fn post_stream(
             .text()
             .await
             .unwrap_or_else(|e| format!("(failed to read body: {e})"));
-        return Err(LiterLmError::from_status(status, &text));
+        return Err(LiterLmError::from_status(status, &text, None));
     }
 }
 
@@ -106,7 +107,8 @@ where
 
         loop {
             // --- Process any complete lines already in the buffer ---
-            if let Some(newline_pos) = this.buffer.find('\n') {
+            // Use memchr for fast newline scanning on the hot streaming path.
+            if let Some(newline_pos) = memchr(b'\n', this.buffer.as_bytes()) {
                 // Extract the line in-place using drain to avoid a clone.
                 // We include the '\n' in the drain so the buffer advances past
                 // it; we then trim the extracted slice.
@@ -155,6 +157,8 @@ where
                 Poll::Ready(Some(Ok(bytes))) => {
                     // Guard against unbounded growth.
                     if this.buffer.len() + bytes.len() > MAX_BUFFER_BYTES {
+                        // Mark done so subsequent polls don't continue reading.
+                        *this.done = true;
                         return Poll::Ready(Some(Err(LiterLmError::Streaming {
                             message: format!("SSE buffer exceeded {MAX_BUFFER_BYTES} bytes; stream aborted"),
                         })));
@@ -191,7 +195,11 @@ where
 /// Parse a single SSE `data:` line into a `ChatCompletionChunk`.
 ///
 /// Returns `None` for the terminal `[DONE]` sentinel.
-pub fn parse_sse_line(line: &str) -> Option<Result<ChatCompletionChunk>> {
+///
+/// Only used in crate-internal tests; external consumers should use the
+/// streaming API instead.
+#[cfg(test)]
+pub(crate) fn parse_sse_line(line: &str) -> Option<Result<ChatCompletionChunk>> {
     // Strip "data:" then optionally one leading space (RFC 8895 §3.3).
     let raw = line.strip_prefix("data:")?;
     let data = raw.strip_prefix(' ').unwrap_or(raw).trim();

@@ -1,35 +1,21 @@
 use serde::{Deserialize, Serialize};
 
-// ─── Object discriminators ────────────────────────────────────────────────────
-
-/// The `object` field of a [`ModelsListResponse`]. Always `"list"`.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
-pub enum ModelsListObject {
-    #[default]
-    #[serde(rename = "list")]
-    List,
-}
-
-/// The `object` field of a [`ModelObject`]. Always `"model"`.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
-pub enum ModelObjectType {
-    #[default]
-    #[serde(rename = "model")]
-    Model,
-}
-
 // ─── Responses ────────────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModelsListResponse {
-    pub object: ModelsListObject,
+    /// Always `"list"` from OpenAI-compatible APIs.  Stored as a plain
+    /// `String` so non-standard provider values do not break deserialization.
+    pub object: String,
     pub data: Vec<ModelObject>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModelObject {
     pub id: String,
-    pub object: ModelObjectType,
+    /// Always `"model"` from OpenAI-compatible APIs.  Stored as a plain
+    /// `String` so non-standard provider values do not break deserialization.
+    pub object: String,
     pub created: u64,
     pub owned_by: String,
 }

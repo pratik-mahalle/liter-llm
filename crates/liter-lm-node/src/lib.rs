@@ -10,10 +10,26 @@ use napi_derive::napi;
 // ─── camelCase conversion ─────────────────────────────────────────────────────
 
 /// Convert a snake_case identifier to camelCase.
+///
+/// Edge cases handled correctly:
+/// - Leading underscores are preserved: `__foo` → `__foo`
+/// - Consecutive underscores collapse: `foo__bar` → `fooBar` (second `_`
+///   triggers capitalisation; the extra underscore is consumed, not doubled)
+/// - A leading single underscore is preserved: `_foo` → `_foo`
 fn snake_to_camel(s: &str) -> String {
     let mut result = String::with_capacity(s.len());
+    let mut chars = s.chars().peekable();
     let mut next_upper = false;
-    for ch in s.chars() {
+
+    // Preserve any leading underscores verbatim — they signal internal / dunder
+    // names that should not be title-cased.
+    while chars.peek() == Some(&'_') {
+        result.push('_');
+        chars.next();
+        next_upper = false; // reset so the first real char is lower-cased
+    }
+
+    for ch in chars {
         if ch == '_' {
             next_upper = true;
         } else if next_upper {
@@ -48,8 +64,34 @@ fn to_js_value<T: serde::Serialize>(value: T) -> napi::Result<serde_json::Value>
 }
 
 /// Convert a `liter_lm::LiterLmError` into a NAPI `Error`.
+///
+/// The error kind is embedded in the message so that JS callers can inspect it
+/// even though NAPI-RS only exposes a single `Status::GenericFailure` code.
 fn to_napi_err(e: liter_lm::LiterLmError) -> napi::Error {
-    napi::Error::new(Status::GenericFailure, e.to_string())
+    // Include the variant name for programmatic inspection in JS-land.
+    let msg = format!("[{}] {}", error_kind_label(&e), e);
+    napi::Error::new(Status::GenericFailure, msg)
+}
+
+/// Return a short, stable label for each error variant.
+fn error_kind_label(e: &liter_lm::LiterLmError) -> &'static str {
+    match e {
+        liter_lm::LiterLmError::Authentication { .. } => "Authentication",
+        liter_lm::LiterLmError::RateLimited { .. } => "RateLimited",
+        liter_lm::LiterLmError::BadRequest { .. } => "BadRequest",
+        liter_lm::LiterLmError::ContextWindowExceeded { .. } => "ContextWindowExceeded",
+        liter_lm::LiterLmError::ContentPolicy { .. } => "ContentPolicy",
+        liter_lm::LiterLmError::NotFound { .. } => "NotFound",
+        liter_lm::LiterLmError::ServerError { .. } => "ServerError",
+        liter_lm::LiterLmError::ServiceUnavailable { .. } => "ServiceUnavailable",
+        liter_lm::LiterLmError::Timeout => "Timeout",
+        liter_lm::LiterLmError::Network(_) => "Network",
+        liter_lm::LiterLmError::Streaming { .. } => "Streaming",
+        liter_lm::LiterLmError::EndpointNotSupported { .. } => "EndpointNotSupported",
+        liter_lm::LiterLmError::InvalidHeader { .. } => "InvalidHeader",
+        liter_lm::LiterLmError::Serialization(_) => "Serialization",
+        _ => "Unknown",
+    }
 }
 
 // ─── JS config object ─────────────────────────────────────────────────────────
@@ -119,6 +161,37 @@ impl LlmClient {
         to_js_value(result)
     }
 
+    /// Send a streaming chat completion request.
+    ///
+    /// This is a pragmatic MVP implementation: the full stream is collected
+    /// server-side and the resolved Promise contains a JS array of chunk
+    /// objects.  A full `AsyncIterable` interface can be layered on top later.
+    ///
+    /// ```js
+    /// const chunks = await client.chatStream({ model: "gpt-4", messages: [...], stream: true });
+    /// for (const chunk of chunks) {
+    ///   process.stdout.write(chunk.choices[0]?.delta?.content ?? "");
+    /// }
+    /// ```
+    #[napi(js_name = "chatStream")]
+    pub async fn chat_stream(&self, request: serde_json::Value) -> napi::Result<Vec<serde_json::Value>> {
+        let mut req: liter_lm::ChatCompletionRequest =
+            serde_json::from_value(request).map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
+
+        // Ensure the streaming flag is set so the core client opens an SSE stream.
+        req.stream = Some(true);
+
+        let client = Arc::clone(&self.inner);
+
+        // Collect all SSE chunks into a Vec before returning to JavaScript.
+        // This avoids the complexity of AsyncIterable bindings in NAPI-RS while
+        // still exercising the full streaming code path end-to-end.
+        let stream = client.chat_stream(req).await.map_err(to_napi_err)?;
+        let chunks = collect_chunk_stream(stream).await.map_err(to_napi_err)?;
+
+        chunks.into_iter().map(to_js_value).collect::<napi::Result<Vec<_>>>()
+    }
+
     /// Send an embedding request.
     ///
     /// Accepts a plain JS object matching the OpenAI Embeddings API.
@@ -158,4 +231,89 @@ impl LlmClient {
 #[napi]
 pub fn version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
+}
+
+// ─── Stream helpers ───────────────────────────────────────────────────────────
+
+/// Drain a `BoxStream` of `ChatCompletionChunk`s into a `Vec`, short-circuiting
+/// on the first error.
+async fn collect_chunk_stream(
+    stream: liter_lm::BoxStream<'_, liter_lm::ChatCompletionChunk>,
+) -> liter_lm::Result<Vec<liter_lm::ChatCompletionChunk>> {
+    use std::future::Future;
+    use std::pin::Pin;
+    use std::task::{Context, Poll};
+
+    // Drive the stream to completion using a simple poll loop bridged to async.
+    // We use `tokio::pin!` via the async block to avoid lifetime issues.
+    struct StreamCollector<'a> {
+        stream: liter_lm::BoxStream<'a, liter_lm::ChatCompletionChunk>,
+        items: Vec<liter_lm::ChatCompletionChunk>,
+    }
+
+    impl Future for StreamCollector<'_> {
+        type Output = liter_lm::Result<Vec<liter_lm::ChatCompletionChunk>>;
+
+        fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+            use futures_core::Stream as FStream;
+            loop {
+                match FStream::poll_next(self.stream.as_mut(), cx) {
+                    Poll::Ready(Some(Ok(chunk))) => self.items.push(chunk),
+                    Poll::Ready(Some(Err(e))) => return Poll::Ready(Err(e)),
+                    Poll::Ready(None) => {
+                        // Clone items out — can't move out of `self` easily via Pin.
+                        let items = std::mem::take(&mut self.items);
+                        return Poll::Ready(Ok(items));
+                    }
+                    Poll::Pending => return Poll::Pending,
+                }
+            }
+        }
+    }
+
+    StreamCollector {
+        stream,
+        items: Vec::new(),
+    }
+    .await
+}
+
+// ─── Tests ────────────────────────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::snake_to_camel;
+
+    #[test]
+    fn snake_to_camel_basic() {
+        assert_eq!(snake_to_camel("foo_bar"), "fooBar");
+        assert_eq!(snake_to_camel("foo_bar_baz"), "fooBarBaz");
+    }
+
+    #[test]
+    fn snake_to_camel_no_underscores() {
+        assert_eq!(snake_to_camel("foobar"), "foobar");
+    }
+
+    #[test]
+    fn snake_to_camel_leading_single_underscore_preserved() {
+        assert_eq!(snake_to_camel("_foo"), "_foo");
+    }
+
+    #[test]
+    fn snake_to_camel_leading_double_underscore_preserved() {
+        assert_eq!(snake_to_camel("__foo"), "__foo");
+        assert_eq!(snake_to_camel("__init__"), "__init__");
+    }
+
+    #[test]
+    fn snake_to_camel_consecutive_underscores_in_middle() {
+        // Extra underscores collapse: `foo__bar` → `fooBar`
+        assert_eq!(snake_to_camel("foo__bar"), "fooBar");
+    }
+
+    #[test]
+    fn snake_to_camel_empty() {
+        assert_eq!(snake_to_camel(""), "");
+    }
 }

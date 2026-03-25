@@ -31,18 +31,28 @@
 
 use ext_php_rs::prelude::*;
 use liter_lm::{ClientConfigBuilder, DefaultClient, LlmClient};
-use once_cell::sync::Lazy;
 
 // ─── Tokio runtime ────────────────────────────────────────────────────────────
 
 /// Shared Tokio runtime for blocking on async calls.
 ///
 /// PHP workers are long-lived processes (FPM), so we create one runtime per
-/// process and keep it alive.  Construction errors are stored as a string and
-/// surfaced as PHP exceptions at call time rather than panicking at startup.
-static RUNTIME: Lazy<Result<tokio::runtime::Runtime, String>> = Lazy::new(|| {
-    tokio::runtime::Builder::new_multi_thread()
-        .worker_threads(2)
+/// process and keep it alive.  A `current_thread` runtime is sufficient
+/// because PHP's concurrency model is single-threaded per worker — there is
+/// no benefit to a thread pool here, and `current_thread` avoids spawning
+/// extra OS threads.
+///
+/// Construction errors are stored as a string and surfaced as PHP exceptions
+/// at call time rather than panicking at startup.
+///
+/// ## Guard against calling from within an existing Tokio runtime
+///
+/// `block_on` panics if called from within an async context.  Although PHP
+/// itself is synchronous, ext-php-rs could theoretically be embedded in a
+/// context where a runtime is already active.  The `runtime()` helper checks
+/// for this case and prefers `Handle::block_on` when a handle is available.
+static RUNTIME: std::sync::LazyLock<Result<tokio::runtime::Runtime, String>> = std::sync::LazyLock::new(|| {
+    tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .thread_name("liter-lm-php")
         .build()
@@ -50,8 +60,25 @@ static RUNTIME: Lazy<Result<tokio::runtime::Runtime, String>> = Lazy::new(|| {
 });
 
 /// Obtain a reference to the global runtime, or return a PHP exception.
-fn runtime() -> PhpResult<&'static tokio::runtime::Runtime> {
-    RUNTIME.as_ref().map_err(|e| PhpException::from(e.clone()))
+///
+/// If a Tokio runtime is already active on the current thread (e.g. when
+/// this code is called from within an async test harness), this helper reuses
+/// the existing runtime handle via `Handle::block_on` rather than creating a
+/// nested runtime, which would panic.
+fn block_on_future<F, T>(future: F) -> PhpResult<T>
+where
+    F: std::future::Future<Output = T>,
+{
+    // Fast path: if we're already inside a Tokio runtime, reuse its handle.
+    if let Ok(handle) = tokio::runtime::Handle::try_current() {
+        // `block_in_place` yields the current OS thread to Tokio while
+        // blocking on the future, avoiding a nested-runtime panic.
+        return Ok(tokio::task::block_in_place(|| handle.block_on(future)));
+    }
+
+    // Normal path: drive the future on our own runtime.
+    let rt = RUNTIME.as_ref().map_err(|e| PhpException::from(e.clone()))?;
+    Ok(rt.block_on(future))
 }
 
 // ─── LlmClient PHP class ──────────────────────────────────────────────────────
@@ -106,10 +133,7 @@ impl PhpLlmClient {
         let req: liter_lm::ChatCompletionRequest = serde_json::from_str(&request_json)
             .map_err(|e| PhpException::from(format!("invalid chat request JSON: {e}")))?;
 
-        let rt = runtime()?;
-        let response = rt
-            .block_on(self.inner.chat(req))
-            .map_err(|e| PhpException::from(e.to_string()))?;
+        let response = block_on_future(self.inner.chat(req))?.map_err(|e| PhpException::from(e.to_string()))?;
 
         serde_json::to_string(&response).map_err(|e| PhpException::from(format!("serialization error: {e}")))
     }
@@ -122,10 +146,7 @@ impl PhpLlmClient {
         let req: liter_lm::EmbeddingRequest = serde_json::from_str(&request_json)
             .map_err(|e| PhpException::from(format!("invalid embed request JSON: {e}")))?;
 
-        let rt = runtime()?;
-        let response = rt
-            .block_on(self.inner.embed(req))
-            .map_err(|e| PhpException::from(e.to_string()))?;
+        let response = block_on_future(self.inner.embed(req))?.map_err(|e| PhpException::from(e.to_string()))?;
 
         serde_json::to_string(&response).map_err(|e| PhpException::from(format!("serialization error: {e}")))
     }
@@ -135,10 +156,7 @@ impl PhpLlmClient {
     /// @return string JSON-encoded models list response.
     #[php(name = "listModels")]
     pub fn list_models(&self) -> PhpResult<String> {
-        let rt = runtime()?;
-        let response = rt
-            .block_on(self.inner.list_models())
-            .map_err(|e| PhpException::from(e.to_string()))?;
+        let response = block_on_future(self.inner.list_models())?.map_err(|e| PhpException::from(e.to_string()))?;
 
         serde_json::to_string(&response).map_err(|e| PhpException::from(format!("serialization error: {e}")))
     }

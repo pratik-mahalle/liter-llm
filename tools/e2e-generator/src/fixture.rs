@@ -51,39 +51,67 @@ pub struct MockResponse {
 }
 
 /// Assertions to verify on the API response.
+///
+/// Field names match the JSON fixture files exactly.  All fields are optional
+/// so that fixtures only need to declare the assertions they care about.
 #[allow(dead_code)]
 #[derive(Debug, Clone, Default, Deserialize)]
 pub struct Assertions {
+    // ── General ─────────────────────────────────────────────────────────────
     /// Whether the call is expected to succeed (default: true).
+    /// Generators use this alongside `status >= 400` to detect error scenarios.
     #[serde(default = "default_true")]
     pub expect_success: bool,
-    /// Expected error message substring (when expect_success is false).
+
+    /// Whether the response object is non-null (always true for successful calls).
     #[serde(default)]
-    pub expect_error_contains: Option<String>,
-    /// Minimum number of choices/completions in response.
+    pub response_not_null: Option<bool>,
+
+    // ── Chat completion ──────────────────────────────────────────────────────
+    /// Expected exact number of choices in the response.
     #[serde(default)]
-    pub min_choices: Option<usize>,
-    /// Expected content substring in the first choice.
+    pub choices_count: Option<usize>,
+    /// Expected content of the first choice's message.
     #[serde(default)]
-    pub content_contains: Option<String>,
-    /// Whether the response should include a usage object.
+    pub first_choice_content: Option<String>,
+    /// Expected `finish_reason` of the first choice.
     #[serde(default)]
-    pub has_usage: Option<bool>,
+    pub first_choice_finish_reason: Option<String>,
+    /// Expected total token count from the usage object.
+    #[serde(default)]
+    pub usage_total_tokens: Option<u64>,
     /// Expected model identifier in the response.
     #[serde(default)]
-    pub model_equals: Option<String>,
-    /// Minimum number of embedding vectors returned.
+    pub model: Option<String>,
+
+    // ── Embeddings ───────────────────────────────────────────────────────────
+    /// Expected number of embedding vectors in the response.
     #[serde(default)]
-    pub min_embeddings: Option<usize>,
-    /// Whether the embeddings should be non-empty vectors.
+    pub embedding_count: Option<usize>,
+    /// Expected number of dimensions in each embedding vector.
     #[serde(default)]
-    pub embeddings_non_empty: Option<bool>,
-    /// Minimum number of models in list_models response.
+    pub embedding_dimensions: Option<usize>,
+
+    // ── Models list ──────────────────────────────────────────────────────────
+    /// Minimum number of models returned by `list_models`.
     #[serde(default)]
-    pub min_models: Option<usize>,
-    /// Whether streaming chunks were received (for chat_stream).
+    pub models_count_min: Option<usize>,
+
+    // ── Streaming ────────────────────────────────────────────────────────────
+    /// Minimum number of SSE chunks expected in a streaming response.
     #[serde(default)]
-    pub received_stream_chunks: Option<bool>,
+    pub stream_chunk_count_min: Option<usize>,
+    /// Expected concatenated content across all streaming chunks.
+    #[serde(default)]
+    pub stream_final_content: Option<String>,
+
+    // ── Error handling ───────────────────────────────────────────────────────
+    /// Expected error variant name (e.g. "Authentication", "RateLimited").
+    #[serde(default)]
+    pub error_type: Option<String>,
+    /// Expected HTTP status code that triggered the error.
+    #[serde(default)]
+    pub error_status_code: Option<u16>,
 }
 
 fn default_true() -> bool {

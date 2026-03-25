@@ -339,13 +339,18 @@ mod error_tests {
         let err = LiterLmError::from_status(
             401,
             r#"{"error":{"message":"Invalid API key","type":"invalid_request_error"}}"#,
+            None,
         );
         assert!(matches!(err, LiterLmError::Authentication { .. }));
     }
 
     #[test]
     fn error_from_429() {
-        let err = LiterLmError::from_status(429, r#"{"error":{"message":"Rate limited","type":"rate_limit_error"}}"#);
+        let err = LiterLmError::from_status(
+            429,
+            r#"{"error":{"message":"Rate limited","type":"rate_limit_error"}}"#,
+            None,
+        );
         assert!(matches!(err, LiterLmError::RateLimited { .. }));
     }
 
@@ -354,13 +359,14 @@ mod error_tests {
         let err = LiterLmError::from_status(
             400,
             r#"{"error":{"message":"maximum context length exceeded","type":"invalid_request_error"}}"#,
+            None,
         );
         assert!(matches!(err, LiterLmError::ContextWindowExceeded { .. }));
     }
 
     #[test]
     fn error_from_plain_text() {
-        let err = LiterLmError::from_status(500, "Internal Server Error");
+        let err = LiterLmError::from_status(500, "Internal Server Error", None);
         assert!(matches!(err, LiterLmError::ServerError { .. }));
     }
 }

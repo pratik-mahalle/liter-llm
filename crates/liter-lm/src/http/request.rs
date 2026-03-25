@@ -63,7 +63,7 @@ pub async fn post_json<T: DeserializeOwned>(
             .text()
             .await
             .unwrap_or_else(|e| format!("(failed to read body: {e})"));
-        return Err(LiterLmError::from_status(status, &text));
+        return Err(LiterLmError::from_status(status, &text, server_retry_after));
     }
 }
 
@@ -105,6 +105,6 @@ pub async fn get_json<T: DeserializeOwned>(
             .text()
             .await
             .unwrap_or_else(|e| format!("(failed to read body: {e})"));
-        return Err(LiterLmError::from_status(status, &text));
+        return Err(LiterLmError::from_status(status, &text, server_retry_after));
     }
 }

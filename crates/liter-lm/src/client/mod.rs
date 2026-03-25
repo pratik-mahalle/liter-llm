@@ -4,15 +4,22 @@ use std::future::Future;
 use std::pin::Pin;
 
 use futures_core::Stream;
-use secrecy::ExposeSecret;
 
-use crate::error::{LiterLmError, Result};
-use crate::http;
-use crate::provider::{self, OpenAiCompatibleProvider, OpenAiProvider, Provider};
+use crate::error::Result;
 use crate::types::{
     ChatCompletionChunk, ChatCompletionRequest, ChatCompletionResponse, EmbeddingRequest, EmbeddingResponse,
     ModelsListResponse,
 };
+
+// DefaultClient and its LlmClient impl require reqwest + tokio.
+#[cfg(feature = "native-http")]
+use crate::error::LiterLmError;
+#[cfg(feature = "native-http")]
+use crate::http;
+#[cfg(feature = "native-http")]
+use crate::provider::{self, OpenAiCompatibleProvider, OpenAiProvider, Provider};
+#[cfg(feature = "native-http")]
+use secrecy::ExposeSecret;
 
 pub use config::{ClientConfig, ClientConfigBuilder};
 
@@ -46,6 +53,7 @@ pub trait LlmClient: Send + Sync {
 ///
 /// If you need to talk to multiple providers, create one `DefaultClient` per
 /// provider.
+#[cfg(feature = "native-http")]
 pub struct DefaultClient {
     config: ClientConfig,
     http: reqwest::Client,
@@ -53,6 +61,7 @@ pub struct DefaultClient {
     provider: Box<dyn Provider>,
 }
 
+#[cfg(feature = "native-http")]
 impl DefaultClient {
     /// Build a client.
     ///
@@ -94,8 +103,36 @@ impl DefaultClient {
 
         Ok(Self { config, http, provider })
     }
+
+    /// Shared helper: build the URL, resolve auth header strings, strip model
+    /// prefix from the request body, apply provider transform, and return
+    /// everything needed to fire a request.
+    ///
+    /// Returns `(url, header_name, header_value, body_value)`.
+    fn prepare_request(
+        &self,
+        serializable: &impl serde::Serialize,
+        endpoint_path: &str,
+        model: &str,
+    ) -> Result<(String, String, String, serde_json::Value)> {
+        let url = format!("{}{}", self.provider.base_url(), endpoint_path);
+        let (header_name_cow, header_value_cow) = self.provider.auth_header(self.config.api_key.expose_secret());
+        let header_name = header_name_cow.into_owned();
+        let header_value = header_value_cow.into_owned();
+
+        let bare_model = self.provider.strip_model_prefix(model).to_owned();
+
+        let mut body = serde_json::to_value(serializable)?;
+        if let Some(obj) = body.as_object_mut() {
+            obj.insert("model".into(), serde_json::Value::String(bare_model));
+        }
+        self.provider.transform_request(&mut body)?;
+
+        Ok((url, header_name, header_value, body))
+    }
 }
 
+#[cfg(feature = "native-http")]
 /// Resolve the provider to use for all requests on this client.
 ///
 /// Priority:
@@ -121,22 +158,20 @@ fn build_provider(config: &ClientConfig, model_hint: Option<&str>) -> Box<dyn Pr
     Box::new(OpenAiProvider)
 }
 
+#[cfg(feature = "native-http")]
 impl LlmClient for DefaultClient {
     fn chat(&self, req: ChatCompletionRequest) -> BoxFuture<'_, ChatCompletionResponse> {
         Box::pin(async move {
-            let url = format!("{}{}", self.provider.base_url(), self.provider.chat_completions_path());
-            let (header_name, header_value) = self.provider.auth_header(self.config.api_key.expose_secret());
+            let model = req.model.clone();
+            let (url, header_name, header_value, mut body) =
+                self.prepare_request(&req, self.provider.chat_completions_path(), &model)?;
 
-            // Strip the provider routing prefix from the model name before
-            // putting it in the request body (e.g. "groq/llama3-70b" → "llama3-70b").
-            let bare_model = self.provider.strip_model_prefix(&req.model).to_owned();
-
-            let mut body = serde_json::to_value(&req)?;
+            // Ensure stream is false for non-streaming requests.
             if let Some(obj) = body.as_object_mut() {
-                obj.insert("model".into(), serde_json::Value::String(bare_model));
-                // Ensure stream is false for non-streaming requests.
                 obj.insert("stream".into(), serde_json::Value::Bool(false));
             }
+            // Re-run transform after inserting stream=false so providers can
+            // inspect the final body state.
             self.provider.transform_request(&mut body)?;
 
             http::request::post_json(
@@ -153,17 +188,15 @@ impl LlmClient for DefaultClient {
 
     fn chat_stream(&self, req: ChatCompletionRequest) -> BoxFuture<'_, BoxStream<'_, ChatCompletionChunk>> {
         Box::pin(async move {
-            let url = format!("{}{}", self.provider.base_url(), self.provider.chat_completions_path());
-            let (header_name, header_value) = self.provider.auth_header(self.config.api_key.expose_secret());
+            let model = req.model.clone();
+            let (url, header_name, header_value, mut body) =
+                self.prepare_request(&req, self.provider.chat_completions_path(), &model)?;
 
-            let bare_model = self.provider.strip_model_prefix(&req.model).to_owned();
-
-            let mut body = serde_json::to_value(&req)?;
+            // Force stream = true.
             if let Some(obj) = body.as_object_mut() {
-                obj.insert("model".into(), serde_json::Value::String(bare_model));
-                // Force stream = true.
                 obj.insert("stream".into(), serde_json::Value::Bool(true));
             }
+            // Re-run transform after inserting stream=true.
             self.provider.transform_request(&mut body)?;
 
             let stream = http::streaming::post_stream(
@@ -181,15 +214,10 @@ impl LlmClient for DefaultClient {
 
     fn embed(&self, req: EmbeddingRequest) -> BoxFuture<'_, EmbeddingResponse> {
         Box::pin(async move {
-            let url = format!("{}{}", self.provider.base_url(), self.provider.embeddings_path());
-            let (header_name, header_value) = self.provider.auth_header(self.config.api_key.expose_secret());
-
-            let bare_model = self.provider.strip_model_prefix(&req.model).to_owned();
-
-            let mut body = serde_json::to_value(&req)?;
-            if let Some(obj) = body.as_object_mut() {
-                obj.insert("model".into(), serde_json::Value::String(bare_model));
-            }
+            let model = req.model.clone();
+            // prepare_request calls transform_request — fix for missing call in embed.
+            let (url, header_name, header_value, body) =
+                self.prepare_request(&req, self.provider.embeddings_path(), &model)?;
 
             http::request::post_json(
                 &self.http,
@@ -207,9 +235,11 @@ impl LlmClient for DefaultClient {
         Box::pin(async move {
             // Use the stored provider — no more hardcoded "gpt-4" fallback.
             let url = format!("{}{}", self.provider.base_url(), self.provider.models_path());
-            let (header_name, header_value) = self.provider.auth_header(self.config.api_key.expose_secret());
+            let (header_name_cow, header_value_cow) = self.provider.auth_header(self.config.api_key.expose_secret());
+            let header_name = header_name_cow.as_ref();
+            let header_value = header_value_cow.as_ref();
 
-            http::request::get_json(&self.http, &url, &header_name, &header_value, self.config.max_retries).await
+            http::request::get_json(&self.http, &url, header_name, header_value, self.config.max_retries).await
         })
     }
 }

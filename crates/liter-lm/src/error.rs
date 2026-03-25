@@ -54,6 +54,7 @@ pub enum LiterLmError {
     #[error("request timeout")]
     Timeout,
 
+    #[cfg(feature = "native-http")]
     #[error(transparent)]
     Network(#[from] reqwest::Error),
 
@@ -71,18 +72,20 @@ pub enum LiterLmError {
 }
 
 impl LiterLmError {
-    /// Create from an HTTP status code and an API error response body.
-    pub fn from_status(status: u16, body: &str) -> Self {
+    /// Create from an HTTP status code, an API error response body, and an
+    /// optional `Retry-After` duration already parsed from the response header.
+    ///
+    /// The `retry_after` value is forwarded into [`LiterLmError::RateLimited`]
+    /// so callers can honour the server-requested delay without re-parsing the
+    /// header.
+    pub fn from_status(status: u16, body: &str, retry_after: Option<Duration>) -> Self {
         let message = serde_json::from_str::<ErrorResponse>(body)
             .map(|r| r.error.message)
             .unwrap_or_else(|_| body.to_string());
 
         match status {
             401 => Self::Authentication { message },
-            429 => Self::RateLimited {
-                message,
-                retry_after: None,
-            },
+            429 => Self::RateLimited { message, retry_after },
             400 => {
                 if message.contains("context_length_exceeded")
                     || message.contains("context window")
@@ -97,7 +100,7 @@ impl LiterLmError {
             }
             404 => Self::NotFound { message },
             500 => Self::ServerError { message },
-            502 | 503 => Self::ServiceUnavailable { message },
+            502..=504 => Self::ServiceUnavailable { message },
             _ => Self::ServerError { message },
         }
     }

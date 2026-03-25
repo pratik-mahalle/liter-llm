@@ -77,6 +77,11 @@ async fn basic_embed() {
 
     let response = client.embed(req).await.expect("embed call failed");
 
+    assert!(
+        response.data.len() >= 1,
+        "Expected at least 1 embedding(s), got {}",
+        response.data.len()
+    );
     assert_eq!(response.data.len(), 1, "Embedding count mismatch");
     assert_eq!(response.data[0].embedding.len(), 5, "Embedding dimension mismatch");
 
@@ -104,6 +109,11 @@ async fn basic_list_models() {
 
     let response = client.list_models().await.expect("list_models call failed");
 
+    assert!(
+        response.data.len() >= 1,
+        "Expected at least 1 model(s), got {}",
+        response.data.len()
+    );
     assert_eq!(response.data.len(), 3, "Model count mismatch");
 
     server.shutdown();

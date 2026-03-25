@@ -14,6 +14,7 @@ categories = ["api-bindings"]
 crate-type = ["cdylib"]
 
 [dependencies]
+futures-core = { workspace = true }
 liter-lm = { path = "../liter-lm" }
 napi = { version = "3", features = ["napi4", "serde-json", "async"] }
 napi-derive = { workspace = true }

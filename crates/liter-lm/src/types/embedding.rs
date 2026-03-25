@@ -2,24 +2,6 @@ use serde::{Deserialize, Serialize};
 
 use super::common::Usage;
 
-// ─── Object discriminators ────────────────────────────────────────────────────
-
-/// The `object` field of an [`EmbeddingResponse`]. Always `"list"`.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
-pub enum EmbeddingListObject {
-    #[default]
-    #[serde(rename = "list")]
-    List,
-}
-
-/// The `object` field of an [`EmbeddingObject`]. Always `"embedding"`.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
-pub enum EmbeddingObjectType {
-    #[default]
-    #[serde(rename = "embedding")]
-    Embedding,
-}
-
 // ─── Request ──────────────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -45,7 +27,9 @@ pub enum EmbeddingInput {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EmbeddingResponse {
-    pub object: EmbeddingListObject,
+    /// Always `"list"` from OpenAI-compatible APIs.  Stored as a plain
+    /// `String` so non-standard provider values do not break deserialization.
+    pub object: String,
     pub data: Vec<EmbeddingObject>,
     pub model: String,
     pub usage: Usage,
@@ -53,7 +37,9 @@ pub struct EmbeddingResponse {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EmbeddingObject {
-    pub object: EmbeddingObjectType,
+    /// Always `"embedding"` from OpenAI-compatible APIs.  Stored as a plain
+    /// `String` so non-standard provider values do not break deserialization.
+    pub object: String,
     pub embedding: Vec<f64>,
     pub index: u32,
 }

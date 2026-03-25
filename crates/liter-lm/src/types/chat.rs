@@ -4,24 +4,6 @@ use super::common::{
     AssistantMessage, ChatCompletionTool, Message, ResponseFormat, StopSequence, ToolChoice, ToolType, Usage,
 };
 
-// ─── Object discriminators ────────────────────────────────────────────────────
-
-/// The `object` field of a [`ChatCompletionResponse`]. Always `"chat.completion"`.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
-pub enum ChatCompletionObject {
-    #[default]
-    #[serde(rename = "chat.completion")]
-    ChatCompletion,
-}
-
-/// The `object` field of a [`ChatCompletionChunk`]. Always `"chat.completion.chunk"`.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
-pub enum ChatCompletionChunkObject {
-    #[default]
-    #[serde(rename = "chat.completion.chunk")]
-    ChatCompletionChunk,
-}
-
 // ─── Finish Reason ────────────────────────────────────────────────────────────
 
 /// Why a choice stopped generating tokens.
@@ -35,6 +17,9 @@ pub enum FinishReason {
     /// Deprecated legacy finish reason; retained for API compatibility.
     #[serde(rename = "function_call")]
     FunctionCall,
+    /// Catch-all for unknown finish reasons returned by non-OpenAI providers.
+    #[serde(other)]
+    Other,
 }
 
 // ─── Request ─────────────────────────────────────────────────────────────────
@@ -77,6 +62,33 @@ pub struct ChatCompletionRequest {
     pub seed: Option<i64>,
 }
 
+impl Default for ChatCompletionRequest {
+    /// Create a minimal request with empty model and messages.  Callers must
+    /// set `model` and `messages` before sending.
+    fn default() -> Self {
+        Self {
+            model: String::new(),
+            messages: Vec::new(),
+            temperature: None,
+            top_p: None,
+            n: None,
+            stream: None,
+            stop: None,
+            max_tokens: None,
+            presence_penalty: None,
+            frequency_penalty: None,
+            logit_bias: None,
+            user: None,
+            tools: None,
+            tool_choice: None,
+            parallel_tool_calls: None,
+            response_format: None,
+            stream_options: None,
+            seed: None,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StreamOptions {
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -88,7 +100,9 @@ pub struct StreamOptions {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChatCompletionResponse {
     pub id: String,
-    pub object: ChatCompletionObject,
+    /// Always `"chat.completion"` from OpenAI-compatible APIs.  Stored as a
+    /// plain `String` so non-standard provider values do not break deserialization.
+    pub object: String,
     pub created: u64,
     pub model: String,
     pub choices: Vec<Choice>,
@@ -112,7 +126,9 @@ pub struct Choice {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChatCompletionChunk {
     pub id: String,
-    pub object: ChatCompletionChunkObject,
+    /// Always `"chat.completion.chunk"` from OpenAI-compatible APIs.  Stored
+    /// as a plain `String` so non-standard provider values do not fail parsing.
+    pub object: String,
     pub created: u64,
     pub model: String,
     pub choices: Vec<StreamChoice>,

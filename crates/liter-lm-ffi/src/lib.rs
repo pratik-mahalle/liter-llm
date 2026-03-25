@@ -64,14 +64,30 @@ pub struct LiterLmClient {
 /// Tokio runtime used for blocking on async operations from synchronous C callers.
 ///
 /// A single runtime is created on first use and shared across all threads.
-fn runtime() -> &'static tokio::runtime::Runtime {
-    static RT: std::sync::OnceLock<tokio::runtime::Runtime> = std::sync::OnceLock::new();
+///
+/// # Thread safety
+///
+/// `LiterLmClient` holds a `DefaultClient`, which is `Send + Sync`.  The
+/// shared runtime is likewise `Send + Sync`.  All calls into this crate are
+/// therefore safe to make from multiple threads concurrently.
+// Compile-time assertion: DefaultClient must be Send + Sync so that the
+// opaque handle can be used from multiple C threads without data races.
+const _: () = {
+    const fn _assert_send_sync<T: Send + Sync>() {}
+    // Called at compile time — zero run-time cost.
+    let _ = _assert_send_sync::<DefaultClient>;
+};
+
+fn runtime() -> Result<&'static tokio::runtime::Runtime, String> {
+    static RT: std::sync::OnceLock<Result<tokio::runtime::Runtime, String>> = std::sync::OnceLock::new();
     RT.get_or_init(|| {
         tokio::runtime::Builder::new_multi_thread()
             .enable_all()
             .build()
-            .expect("failed to build tokio runtime")
+            .map_err(|e| format!("failed to build tokio runtime: {e}"))
     })
+    .as_ref()
+    .map_err(|e| e.clone())
 }
 
 // ---------------------------------------------------------------------------
@@ -217,7 +233,14 @@ pub unsafe extern "C" fn literlm_chat(client: *const LiterLmClient, request_json
         }
     };
 
-    let result = runtime().block_on(client_ref.chat(request));
+    let rt = match runtime() {
+        Ok(rt) => rt,
+        Err(e) => {
+            set_last_error(format!("literlm_chat: {e}"));
+            return std::ptr::null_mut();
+        }
+    };
+    let result = rt.block_on(client_ref.chat(request));
 
     match result {
         Ok(response) => match serde_json::to_string(&response) {
@@ -292,7 +315,14 @@ pub unsafe extern "C" fn literlm_embed(client: *const LiterLmClient, request_jso
         }
     };
 
-    let result = runtime().block_on(client_ref.embed(request));
+    let rt = match runtime() {
+        Ok(rt) => rt,
+        Err(e) => {
+            set_last_error(format!("literlm_embed: {e}"));
+            return std::ptr::null_mut();
+        }
+    };
+    let result = rt.block_on(client_ref.embed(request));
 
     match result {
         Ok(response) => match serde_json::to_string(&response) {
@@ -346,7 +376,14 @@ pub unsafe extern "C" fn literlm_list_models(client: *const LiterLmClient) -> *m
     // of this call.
     let client_ref = unsafe { &(*client).inner };
 
-    let result = runtime().block_on(client_ref.list_models());
+    let rt = match runtime() {
+        Ok(rt) => rt,
+        Err(e) => {
+            set_last_error(format!("literlm_list_models: {e}"));
+            return std::ptr::null_mut();
+        }
+    };
+    let result = rt.block_on(client_ref.list_models());
 
     match result {
         Ok(response) => match serde_json::to_string(&response) {
@@ -418,8 +455,16 @@ pub unsafe extern "C" fn literlm_free_string(s: *mut c_char) {
 /// Always safe to call.
 #[unsafe(no_mangle)]
 pub extern "C" fn liter_lm_version() -> *const c_char {
-    // SAFETY: This string literal is 'static and NUL-terminated.
-    c"0.1.0".as_ptr()
+    // SAFETY: VERSION is 'static, NUL-terminated, and lives for the duration
+    // of the program.  It is initialised exactly once via OnceLock on first
+    // call.  The raw pointer is never freed by the caller (documented above).
+    static VERSION: std::sync::OnceLock<CString> = std::sync::OnceLock::new();
+    VERSION
+        .get_or_init(|| {
+            CString::new(env!("CARGO_PKG_VERSION"))
+                .unwrap_or_else(|_| CString::new("unknown").expect("fallback is valid"))
+        })
+        .as_ptr()
 }
 
 // ---------------------------------------------------------------------------

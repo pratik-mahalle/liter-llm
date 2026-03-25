@@ -11,8 +11,8 @@ pub fn should_retry(status: u16, attempt: u32, max_retries: u32, retry_after: Op
         return None;
     }
 
-    // Only retry on rate limit (429) and server errors (500, 502, 503).
-    if !matches!(status, 429 | 500 | 502 | 503) {
+    // Only retry on rate limit (429) and server errors (500, 502, 503, 504).
+    if !matches!(status, 429 | 500 | 502 | 503 | 504) {
         return None;
     }
 

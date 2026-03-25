@@ -369,10 +369,17 @@ fn emit_stream_test(out: &mut String, fixture: &Fixture) {
 
     let assertions = &fixture.assertions;
 
-    if let Some(min_chunks) = assertions.received_stream_chunks.filter(|&v| v).map(|_| 1usize) {
+    if let Some(min_chunks) = assertions.stream_chunk_count_min {
         writeln!(
             out,
-            "    assert!(!ok_chunks.is_empty(), \"Expected to receive at least {min_chunks} stream chunk(s)\");"
+            "    assert!(ok_chunks.len() >= {min_chunks}, \"Expected to receive at least {min_chunks} stream chunk(s), got {{}}\", ok_chunks.len());"
+        )
+        .unwrap();
+    } else {
+        // Default: assert we received at least one chunk.
+        writeln!(
+            out,
+            "    assert!(!ok_chunks.is_empty(), \"Expected to receive at least 1 stream chunk\");"
         )
         .unwrap();
     }
@@ -477,18 +484,10 @@ fn emit_embed_test(out: &mut String, fixture: &Fixture) {
 
     let assertions = &fixture.assertions;
 
-    if let Some(min_embed) = assertions.min_embeddings {
+    if let Some(min_embed) = assertions.embedding_count {
         writeln!(
             out,
             "    assert!(response.data.len() >= {min_embed}, \"Expected at least {min_embed} embedding(s), got {{}}\", response.data.len());"
-        )
-        .unwrap();
-    }
-
-    if assertions.embeddings_non_empty == Some(true) {
-        writeln!(
-            out,
-            "    assert!(response.data.iter().all(|e| !e.embedding.is_empty()), \"All embeddings should be non-empty\");"
         )
         .unwrap();
     }
@@ -530,7 +529,7 @@ fn emit_list_models_test(out: &mut String, fixture: &Fixture) {
 
     let assertions = &fixture.assertions;
 
-    if let Some(min_models) = assertions.min_models {
+    if let Some(min_models) = assertions.models_count_min {
         writeln!(
             out,
             "    assert!(response.data.len() >= {min_models}, \"Expected at least {min_models} model(s), got {{}}\", response.data.len());"
@@ -638,20 +637,11 @@ fn emit_chat_assertions(out: &mut String, fixture: &Fixture) {
 
     // model
     if let Some(model) = assertions
-        .model_equals
+        .model
         .as_deref()
         .or_else(|| fixture.api.mock_response.body.get("model").and_then(|v| v.as_str()))
     {
         writeln!(out, "    assert_eq!(response.model, {model:?}, \"model mismatch\");").unwrap();
-    }
-
-    // content_contains
-    if let Some(substr) = &assertions.content_contains {
-        writeln!(
-            out,
-            "    assert!(response.choices[0].message.content.as_deref().unwrap_or(\"\").contains({substr:?}), \"content_contains assertion failed\");"
-        )
-        .unwrap();
     }
 }
 

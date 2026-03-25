@@ -40,6 +40,11 @@ async fn basic_stream() {
     use tokio_stream::StreamExt as _;
     let chunks: Vec<_> = stream.collect::<Vec<_>>().await;
     let ok_chunks: Vec<_> = chunks.iter().filter_map(|c| c.as_ref().ok()).collect();
+    assert!(
+        ok_chunks.len() >= 3,
+        "Expected to receive at least 3 stream chunk(s), got {}",
+        ok_chunks.len()
+    );
     let content: String = ok_chunks
         .iter()
         .flat_map(|c| c.choices.iter())
@@ -87,6 +92,7 @@ async fn stream_done_signal() {
     use tokio_stream::StreamExt as _;
     let chunks: Vec<_> = stream.collect::<Vec<_>>().await;
     let ok_chunks: Vec<_> = chunks.iter().filter_map(|c| c.as_ref().ok()).collect();
+    assert!(!ok_chunks.is_empty(), "Expected to receive at least 1 stream chunk");
     let content: String = ok_chunks
         .iter()
         .flat_map(|c| c.choices.iter())

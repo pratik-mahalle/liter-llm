@@ -1291,6 +1291,7 @@ version = "0.1.0"
 dependencies = [
  "bytes",
  "futures-core",
+ "memchr",
  "pin-project-lite",
  "reqwest",
  "secrecy",
@@ -1314,6 +1315,7 @@ dependencies = [
 name = "liter-lm-node"
 version = "0.1.0"
 dependencies = [
+ "futures-core",
  "liter-lm",
  "napi",
  "napi-build",
@@ -1328,7 +1330,6 @@ version = "0.1.0"
 dependencies = [
  "ext-php-rs",
  "liter-lm",
- "once_cell",
  "serde_json",
  "tokio",
 ]

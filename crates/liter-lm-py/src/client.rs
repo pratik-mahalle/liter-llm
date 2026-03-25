@@ -1,9 +1,12 @@
-use std::sync::Arc;
+use std::sync::{
+    Arc,
+    atomic::{AtomicBool, Ordering},
+};
 
 use liter_lm::{ClientConfigBuilder, DefaultClient, LlmClient};
-use pyo3::exceptions::PyStopAsyncIteration;
+use pyo3::exceptions::{PyStopAsyncIteration, PyValueError};
 use pyo3::prelude::*;
-use pyo3::types::PyDict;
+use pyo3::types::{PyDict, PyList};
 use tokio::sync::{Mutex, mpsc};
 
 use crate::error::to_py_err;
@@ -11,14 +14,68 @@ use crate::types::{PyChatCompletionChunk, PyChatCompletionResponse, PyEmbeddingR
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-/// Convert a Python dict (kwargs) into a `serde_json::Value`.
-///
-/// Round-trips through the Python `json` module to handle all JSON-serialisable
-/// Python types (nested dicts, lists, None, etc.) without manual translation.
-fn kwargs_to_json(py: Python<'_>, kwargs: &Bound<'_, PyDict>) -> PyResult<serde_json::Value> {
-    let json_mod = py.import("json")?;
-    let json_str: String = json_mod.call_method1("dumps", (kwargs.as_unbound(),))?.extract()?;
-    serde_json::from_str(&json_str).map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))
+/// Convert a Python dict (kwargs) into a `serde_json::Value` without importing
+/// the Python `json` module.  This avoids holding the GIL for a round-trip
+/// through Python's json.dumps and is safe across all JSON-serialisable Python
+/// types (nested dicts, lists, scalars, None).
+fn py_to_json(ob: &Bound<'_, PyAny>) -> PyResult<serde_json::Value> {
+    // None → null
+    if ob.is_none() {
+        return Ok(serde_json::Value::Null);
+    }
+    // bool must be checked before int because Python bool is a subclass of int.
+    if let Ok(b) = ob.extract::<bool>() {
+        return Ok(serde_json::Value::Bool(b));
+    }
+    if let Ok(i) = ob.extract::<i64>() {
+        return Ok(serde_json::Value::Number(i.into()));
+    }
+    if let Ok(f) = ob.extract::<f64>() {
+        let n = serde_json::Number::from_f64(f)
+            .ok_or_else(|| PyValueError::new_err(format!("non-finite float {f} cannot be serialised to JSON")))?;
+        return Ok(serde_json::Value::Number(n));
+    }
+    if let Ok(s) = ob.extract::<String>() {
+        return Ok(serde_json::Value::String(s));
+    }
+    // dict → object
+    if let Ok(d) = ob.cast::<PyDict>() {
+        let mut map = serde_json::Map::new();
+        for (k, v) in d.iter() {
+            let key: String = k
+                .extract()
+                .map_err(|_| PyValueError::new_err("dict keys must be strings for JSON serialisation"))?;
+            map.insert(key, py_to_json(&v)?);
+        }
+        return Ok(serde_json::Value::Object(map));
+    }
+    // list / tuple → array
+    if let Ok(list) = ob.cast::<PyList>() {
+        let items: PyResult<Vec<_>> = list.iter().map(|item| py_to_json(&item)).collect();
+        return Ok(serde_json::Value::Array(items?));
+    }
+    if let Ok(seq) = ob.try_iter() {
+        let items: PyResult<Vec<_>> = seq.map(|item| py_to_json(&item?)).collect();
+        return Ok(serde_json::Value::Array(items?));
+    }
+    Err(PyValueError::new_err(format!(
+        "cannot serialise object of type {} to JSON",
+        ob.get_type()
+            .name()
+            .map(|s| s.to_string())
+            .unwrap_or_else(|_| "<unknown>".to_owned())
+    )))
+}
+
+fn kwargs_to_json(kwargs: &Bound<'_, PyDict>) -> PyResult<serde_json::Value> {
+    let mut map = serde_json::Map::new();
+    for (k, v) in kwargs.iter() {
+        let key: String = k
+            .extract()
+            .map_err(|_| PyValueError::new_err("keyword argument names must be strings"))?;
+        map.insert(key, py_to_json(&v)?);
+    }
+    Ok(serde_json::Value::Object(map))
 }
 
 // ─── LlmClient Python class ───────────────────────────────────────────────────
@@ -27,7 +84,9 @@ fn kwargs_to_json(py: Python<'_>, kwargs: &Bound<'_, PyDict>) -> PyResult<serde_
 ///
 /// Wraps `liter_lm::DefaultClient` and exposes async methods that return Python
 /// coroutines via `pyo3-async-runtimes`.
-#[pyclass(name = "LlmClient")]
+///
+/// `LlmClient` is immutable after construction and safe to share across threads.
+#[pyclass(frozen, name = "LlmClient")]
 pub struct PyLlmClient {
     inner: Arc<DefaultClient>,
 }
@@ -64,12 +123,11 @@ impl PyLlmClient {
     /// Returns a coroutine that resolves to a ``ChatCompletionResponse``.
     #[pyo3(signature = (**kwargs))]
     fn chat<'py>(&self, py: Python<'py>, kwargs: Option<Bound<'py, PyDict>>) -> PyResult<Bound<'py, PyAny>> {
-        let dict = kwargs.ok_or_else(|| {
-            pyo3::exceptions::PyValueError::new_err("chat() requires keyword arguments (model, messages, ...)")
-        })?;
-        let value = kwargs_to_json(py, &dict)?;
+        let dict =
+            kwargs.ok_or_else(|| PyValueError::new_err("chat() requires keyword arguments (model, messages, ...)"))?;
+        let value = kwargs_to_json(&dict)?;
         let req: liter_lm::ChatCompletionRequest =
-            serde_json::from_value(value).map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+            serde_json::from_value(value).map_err(|e| PyValueError::new_err(e.to_string()))?;
 
         let client = Arc::clone(&self.inner);
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
@@ -80,22 +138,64 @@ impl PyLlmClient {
 
     /// Start a streaming chat completion.
     ///
-    /// Returns an async iterator that yields ``ChatCompletionChunk`` objects.
+    /// Returns an async iterator (``ChatStreamIterator``) that yields
+    /// ``ChatCompletionChunk`` objects.  The HTTP request is issued immediately
+    /// when this method is called, not on first iteration.
+    ///
     /// Use with ``async for chunk in client.chat_stream(**kwargs)``.
     ///
-    /// The stream setup (HTTP request) is initiated on the first iteration.
+    /// The iterator supports ``async with`` for deterministic resource cleanup:
+    /// early exit via ``break`` will signal the background task to stop.
     #[pyo3(signature = (**kwargs))]
-    fn chat_stream(&self, py: Python<'_>, kwargs: Option<Bound<'_, PyDict>>) -> PyResult<PyAsyncChunkIterator> {
-        let dict = kwargs
-            .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("chat_stream() requires keyword arguments"))?;
-        let value = kwargs_to_json(py, &dict)?;
+    fn chat_stream<'py>(&self, py: Python<'py>, kwargs: Option<Bound<'py, PyDict>>) -> PyResult<Bound<'py, PyAny>> {
+        let dict = kwargs.ok_or_else(|| PyValueError::new_err("chat_stream() requires keyword arguments"))?;
+        let value = kwargs_to_json(&dict)?;
         let req: liter_lm::ChatCompletionRequest =
-            serde_json::from_value(value).map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+            serde_json::from_value(value).map_err(|e| PyValueError::new_err(e.to_string()))?;
 
-        Ok(PyAsyncChunkIterator {
-            client: Arc::clone(&self.inner),
-            req: std::sync::Mutex::new(Some(req)),
-            rx: Arc::new(Mutex::new(None)),
+        let client = Arc::clone(&self.inner);
+        let cancelled = Arc::new(AtomicBool::new(false));
+        let cancelled_bg = Arc::clone(&cancelled);
+
+        // Create the channel before spawning so the receiver is ready before
+        // the first __anext__ call.
+        let (tx, rx) = mpsc::channel::<liter_lm::Result<liter_lm::ChatCompletionChunk>>(32);
+        let rx = Arc::new(Mutex::new(Some(rx)));
+
+        // Spawn the background stream task inside a running Tokio context.
+        // future_into_py provides that context; we use a one-shot future here
+        // purely to get into the runtime, then immediately return the iterator.
+        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+            tokio::spawn(async move {
+                use std::pin::Pin;
+                use std::task::Context;
+
+                match client.chat_stream(req).await {
+                    Err(e) => {
+                        let _ = tx.send(Err(e)).await;
+                    }
+                    Ok(mut stream) => loop {
+                        if cancelled_bg.load(Ordering::Relaxed) {
+                            break;
+                        }
+                        let next = std::future::poll_fn(|cx: &mut Context<'_>| {
+                            use futures_core::stream::Stream;
+                            Pin::new(&mut stream).poll_next(cx)
+                        })
+                        .await;
+                        match next {
+                            Some(item) => {
+                                if tx.send(item).await.is_err() {
+                                    break;
+                                }
+                            }
+                            None => break,
+                        }
+                    },
+                }
+            });
+
+            Ok(PyAsyncChunkIterator { rx, cancelled })
         })
     }
 
@@ -105,12 +205,11 @@ impl PyLlmClient {
     /// Returns a coroutine that resolves to an ``EmbeddingResponse``.
     #[pyo3(signature = (**kwargs))]
     fn embed<'py>(&self, py: Python<'py>, kwargs: Option<Bound<'py, PyDict>>) -> PyResult<Bound<'py, PyAny>> {
-        let dict = kwargs.ok_or_else(|| {
-            pyo3::exceptions::PyValueError::new_err("embed() requires keyword arguments (model, input, ...)")
-        })?;
-        let value = kwargs_to_json(py, &dict)?;
+        let dict =
+            kwargs.ok_or_else(|| PyValueError::new_err("embed() requires keyword arguments (model, input, ...)"))?;
+        let value = kwargs_to_json(&dict)?;
         let req: liter_lm::EmbeddingRequest =
-            serde_json::from_value(value).map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+            serde_json::from_value(value).map_err(|e| PyValueError::new_err(e.to_string()))?;
 
         let client = Arc::clone(&self.inner);
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
@@ -141,17 +240,19 @@ type ChunkRx = mpsc::Receiver<liter_lm::Result<liter_lm::ChatCompletionChunk>>;
 
 /// Async iterator that yields `ChatCompletionChunk` objects.
 ///
-/// The underlying stream is started lazily on the first `__anext__` call so
-/// that the iterator can be constructed synchronously without requiring an
-/// active Tokio runtime.
+/// Obtain via `LlmClient.chat_stream(**kwargs)`.  The underlying HTTP stream is
+/// started immediately when `chat_stream` is called; this object is the consumer
+/// side of the channel.
+///
+/// Supports ``async with`` for deterministic cleanup: the context manager
+/// signals the background producer task to stop on exit.
 #[pyclass(name = "ChatStreamIterator")]
 pub struct PyAsyncChunkIterator {
-    /// The client used to start the stream.
-    client: Arc<DefaultClient>,
-    /// The request; taken once when the stream is first started.
-    req: std::sync::Mutex<Option<liter_lm::ChatCompletionRequest>>,
-    /// The channel receiver once the stream has been started.
-    rx: Arc<Mutex<Option<ChunkRx>>>,
+    /// The channel receiver.  Wrapped in `Option` so we can take it out on
+    /// first call without holding a lock across await points.
+    pub(crate) rx: Arc<Mutex<Option<ChunkRx>>>,
+    /// Set to `true` to ask the background task to stop.
+    cancelled: Arc<AtomicBool>,
 }
 
 #[pymethods]
@@ -162,57 +263,10 @@ impl PyAsyncChunkIterator {
 
     fn __anext__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         let rx = Arc::clone(&self.rx);
-        let client = Arc::clone(&self.client);
-
-        // Take the request out of the Option.  This is Some only on the first
-        // call; subsequent calls get None and the already-running background
-        // task keeps feeding the channel.
-        let maybe_req = self.req.lock().expect("req mutex poisoned").take();
 
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
-            // Start the background stream task on the first call.
-            if let Some(req) = maybe_req {
-                let (tx, new_rx) = mpsc::channel::<liter_lm::Result<liter_lm::ChatCompletionChunk>>(32);
-
-                // Store the receiver before spawning so that subsequent
-                // `__anext__` calls can find it.
-                *rx.lock().await = Some(new_rx);
-
-                // Spawn the background task now that we are inside a Tokio
-                // runtime (provided by `future_into_py`).
-                tokio::spawn(async move {
-                    use std::pin::Pin;
-                    use std::task::Context;
-
-                    match client.chat_stream(req).await {
-                        Err(e) => {
-                            let _ = tx.send(Err(e)).await;
-                        }
-                        Ok(mut stream) => loop {
-                            let next = std::future::poll_fn(|cx: &mut Context<'_>| {
-                                use futures_core::stream::Stream;
-                                Pin::new(&mut stream).poll_next(cx)
-                            })
-                            .await;
-                            match next {
-                                Some(item) => {
-                                    if tx.send(item).await.is_err() {
-                                        break;
-                                    }
-                                }
-                                None => break,
-                            }
-                        },
-                    }
-                });
-            }
-
-            // Receive the next chunk from the channel.
             let mut guard = rx.lock().await;
-            let receiver = guard.as_mut().ok_or_else(|| {
-                // This shouldn't happen in normal usage.
-                PyStopAsyncIteration::new_err(())
-            })?;
+            let receiver = guard.as_mut().ok_or_else(|| PyStopAsyncIteration::new_err(()))?;
 
             match receiver.recv().await {
                 Some(Ok(chunk)) => Ok(PyChatCompletionChunk::from(chunk)),
@@ -220,5 +274,50 @@ impl PyAsyncChunkIterator {
                 None => Err(PyStopAsyncIteration::new_err(())),
             }
         })
+    }
+
+    /// Enter the async context manager.  Returns `self`.
+    fn __aenter__<'py>(slf: PyRef<'py, Self>, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        // Convert to an unbound `Py<T>` (which is `Send`) before entering the
+        // async future.  The future re-attaches the GIL on return.
+        let pyobj: Py<PyAsyncChunkIterator> = slf.into_pyobject(py)?.unbind();
+        pyo3_async_runtimes::tokio::future_into_py(py, async move { Ok(pyobj) })
+    }
+
+    /// Exit the async context manager.  Signals the background task to stop.
+    #[pyo3(signature = (_exc_type=None, _exc_val=None, _exc_tb=None))]
+    fn __aexit__<'py>(
+        &self,
+        py: Python<'py>,
+        _exc_type: Option<Bound<'py, PyAny>>,
+        _exc_val: Option<Bound<'py, PyAny>>,
+        _exc_tb: Option<Bound<'py, PyAny>>,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        // Signal the producer to stop and drain/close the receiver so the
+        // background task's sends fail fast.
+        self.cancelled.store(true, Ordering::Relaxed);
+        let rx = Arc::clone(&self.rx);
+        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+            // Drop the receiver to unblock any pending send in the background task.
+            *rx.lock().await = None;
+            Ok(false) // do not suppress exceptions
+        })
+    }
+
+    /// Signal the background stream task to stop.
+    ///
+    /// Called automatically by ``__aexit__``.  Can also be called manually
+    /// when the iterator is discarded early.
+    fn cancel(&self) {
+        self.cancelled.store(true, Ordering::Relaxed);
+    }
+}
+
+impl Drop for PyAsyncChunkIterator {
+    fn drop(&mut self) {
+        // Best-effort cancellation signal when the Python object is GC'd
+        // without going through __aexit__.  The background task checks this
+        // flag on every iteration and will stop on its next loop.
+        self.cancelled.store(true, Ordering::Relaxed);
     }
 }

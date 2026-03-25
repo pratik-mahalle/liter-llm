@@ -440,7 +440,7 @@ fn emit_elixir_assertions(out: &mut String, fixture: &Fixture, method: &str) {
 
             let model = fixture
                 .assertions
-                .model_equals
+                .model
                 .as_deref()
                 .or_else(|| fixture.api.mock_response.body.get("model").and_then(|v| v.as_str()));
             if let Some(model) = model {

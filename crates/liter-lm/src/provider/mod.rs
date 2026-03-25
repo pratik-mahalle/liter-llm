@@ -1,17 +1,27 @@
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
 use serde::Deserialize;
 
-use crate::error::Result;
+use crate::error::{LiterLmError, Result};
 
 // Embed the generated providers registry at compile time.
 // Path: crates/liter-lm/src/provider/mod.rs → ../../../../schemas/providers.json
 const PROVIDERS_JSON: &str = include_str!("../../../../schemas/providers.json");
 
 /// Lazy-initialised registry parsed from the embedded JSON.
-static REGISTRY: LazyLock<ProviderRegistry> =
-    LazyLock::new(|| serde_json::from_str(PROVIDERS_JSON).expect("embedded schemas/providers.json is valid JSON"));
+/// Stores a `Result` so that parse failures surface at call time rather than
+/// panicking the process (fix for the `.expect()` on LazyLock).
+static REGISTRY: LazyLock<std::result::Result<ProviderRegistry, String>> =
+    LazyLock::new(|| serde_json::from_str(PROVIDERS_JSON).map_err(|e| e.to_string()));
+
+/// Access the registry, returning an error if the embedded JSON was invalid.
+fn registry() -> Result<&'static ProviderRegistry> {
+    REGISTRY.as_ref().map_err(|e| LiterLmError::ServerError {
+        message: format!("embedded schemas/providers.json is invalid: {e}"),
+    })
+}
 
 // ── Registry types (deserialised from providers.json) ────────────────────────
 
@@ -53,7 +63,10 @@ pub trait Provider: Send + Sync {
     fn base_url(&self) -> &str;
 
     /// Build the authorization header as (header-name, header-value).
-    fn auth_header(&self, api_key: &str) -> (String, String);
+    ///
+    /// Returns a static header name and a borrowed-or-owned value to avoid
+    /// allocating the header name string on every request.
+    fn auth_header<'a>(&'a self, api_key: &'a str) -> (Cow<'static, str>, Cow<'a, str>);
 
     /// Whether this provider matches a given model string.
     fn matches_model(&self, model: &str) -> bool;
@@ -114,8 +127,8 @@ impl Provider for OpenAiProvider {
         "https://api.openai.com/v1"
     }
 
-    fn auth_header(&self, api_key: &str) -> (String, String) {
-        ("Authorization".into(), format!("Bearer {api_key}"))
+    fn auth_header<'a>(&'a self, api_key: &'a str) -> (Cow<'static, str>, Cow<'a, str>) {
+        (Cow::Borrowed("Authorization"), Cow::Owned(format!("Bearer {api_key}")))
     }
 
     fn matches_model(&self, model: &str) -> bool {
@@ -153,8 +166,8 @@ impl Provider for OpenAiCompatibleProvider {
         &self.base_url
     }
 
-    fn auth_header(&self, api_key: &str) -> (String, String) {
-        ("Authorization".into(), format!("Bearer {api_key}"))
+    fn auth_header<'a>(&'a self, api_key: &'a str) -> (Cow<'static, str>, Cow<'a, str>) {
+        (Cow::Borrowed("Authorization"), Cow::Owned(format!("Bearer {api_key}")))
     }
 
     fn matches_model(&self, model: &str) -> bool {
@@ -170,13 +183,14 @@ impl Provider for OpenAiCompatibleProvider {
 /// Complex providers (AWS Bedrock, Vertex AI, etc.) use dedicated implementations.
 pub struct ConfigDrivenProvider {
     config: ProviderConfig,
-    // Resolved base_url — falls back to empty string when none is configured.
-    resolved_base_url: String,
+    // Resolved base_url — `None` when not configured; request will fail at
+    // send time with a clear error rather than silently sending to an empty URL.
+    resolved_base_url: Option<String>,
 }
 
 impl ConfigDrivenProvider {
     fn new(config: ProviderConfig) -> Self {
-        let resolved_base_url = config.base_url.clone().unwrap_or_default();
+        let resolved_base_url = config.base_url.clone();
         Self {
             config,
             resolved_base_url,
@@ -190,13 +204,29 @@ impl Provider for ConfigDrivenProvider {
     }
 
     fn base_url(&self) -> &str {
-        &self.resolved_base_url
+        // Return an empty string when unconfigured; `transform_request` or the
+        // HTTP layer will surface a useful error before any network call goes out.
+        self.resolved_base_url.as_deref().unwrap_or("")
     }
 
-    fn auth_header(&self, api_key: &str) -> (String, String) {
-        // All providers in providers.json currently use bearer auth or no auth.
-        // When auth_type is "none" or missing, still send the key if provided.
-        ("Authorization".into(), format!("Bearer {api_key}"))
+    fn auth_header<'a>(&'a self, api_key: &'a str) -> (Cow<'static, str>, Cow<'a, str>) {
+        let auth_type = self
+            .config
+            .auth
+            .as_ref()
+            .map(|a| a.auth_type.as_str())
+            .unwrap_or("bearer");
+
+        match auth_type {
+            "none" => {
+                // No auth header required; return empty values that the HTTP
+                // layer will ignore when the key is also empty.
+                (Cow::Borrowed(""), Cow::Borrowed(""))
+            }
+            "api-key" | "header" | "x-api-key" => (Cow::Borrowed("x-api-key"), Cow::Borrowed(api_key)),
+            // "bearer" and anything else defaults to Bearer token.
+            _ => (Cow::Borrowed("Authorization"), Cow::Owned(format!("Bearer {api_key}"))),
+        }
     }
 
     fn matches_model(&self, model: &str) -> bool {
@@ -219,6 +249,10 @@ impl Provider for ConfigDrivenProvider {
 ///
 /// Returns `None` when no built-in provider matches.  The caller should fall
 /// back to a config-specified `base_url` or default to [`OpenAiProvider`].
+///
+/// Complex providers (those listed in `complex_providers` in providers.json)
+/// are excluded from config-driven routing because they require custom
+/// auth/request logic beyond simple bearer tokens.
 pub fn detect_provider(model: &str) -> Option<Box<dyn Provider>> {
     // 1. OpenAI hardcoded patterns.
     let openai = OpenAiProvider;
@@ -226,17 +260,28 @@ pub fn detect_provider(model: &str) -> Option<Box<dyn Provider>> {
         return Some(Box::new(openai));
     }
 
+    // Grab the registry; if it failed to parse we cannot route.
+    let reg = match REGISTRY.as_ref() {
+        Ok(r) => r,
+        Err(_) => return None,
+    };
+
     // 2. Slash-prefix routing (e.g. "groq/llama3-70b").
     if let Some((prefix, _)) = model.split_once('/')
-        && let Some(cfg) = registry_find(prefix)
+        && let Some(cfg) = reg.providers.iter().find(|p| p.name == prefix)
         && cfg.base_url.is_some()
+        && !reg.complex_providers.contains(&cfg.name)
     {
-        // Only use the registry entry if it has a usable base_url.
+        // Only use the registry entry if it has a usable base_url and is not
+        // a complex provider requiring dedicated auth logic.
         return Some(Box::new(ConfigDrivenProvider::new(cfg.clone())));
     }
 
     // 3. Walk registry model_prefixes for unprefixed model names.
-    for cfg in &REGISTRY.providers {
+    for cfg in &reg.providers {
+        if reg.complex_providers.contains(&cfg.name) {
+            continue;
+        }
         if let Some(prefixes) = &cfg.model_prefixes {
             let matches = prefixes
                 .iter()
@@ -250,22 +295,17 @@ pub fn detect_provider(model: &str) -> Option<Box<dyn Provider>> {
     None
 }
 
-/// Look up a provider config by exact name in the registry.
-fn registry_find(name: &str) -> Option<&'static ProviderConfig> {
-    REGISTRY.providers.iter().find(|p| p.name == name)
-}
-
 /// Return all provider configs from the registry.
 ///
 /// Useful for tooling, documentation generation, or runtime enumeration.
-pub fn all_providers() -> &'static [ProviderConfig] {
-    &REGISTRY.providers
+pub fn all_providers() -> Result<&'static [ProviderConfig]> {
+    Ok(&registry()?.providers)
 }
 
 /// Return the list of complex provider names.
 ///
 /// Complex providers require custom auth/routing logic beyond simple bearer
 /// tokens (e.g. AWS Bedrock SigV4, Vertex AI OAuth2).
-pub fn complex_provider_names() -> &'static [String] {
-    &REGISTRY.complex_providers
+pub fn complex_provider_names() -> Result<&'static [String]> {
+    Ok(&registry()?.complex_providers)
 }

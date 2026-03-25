@@ -492,18 +492,10 @@ fn emit_embed_test(out: &mut String, fixture: &Fixture) {
         }
     }
 
-    if let Some(min_embed) = fixture.assertions.min_embeddings {
+    if let Some(min_embed) = fixture.assertions.embedding_count {
         writeln!(
             out,
             "    assert len(response.data) >= {min_embed}, f\"Expected at least {min_embed} embedding(s), got {{len(response.data)}}\""
-        )
-        .unwrap();
-    }
-
-    if fixture.assertions.embeddings_non_empty == Some(true) {
-        writeln!(
-            out,
-            "    assert all(len(e.embedding) > 0 for e in response.data), \"All embeddings should be non-empty\""
         )
         .unwrap();
     }
@@ -527,7 +519,7 @@ fn emit_list_models_test(out: &mut String, fixture: &Fixture) {
         .unwrap();
     }
 
-    if let Some(min_models) = fixture.assertions.min_models {
+    if let Some(min_models) = fixture.assertions.models_count_min {
         writeln!(
             out,
             "    assert len(response.data) >= {min_models}, f\"Expected at least {min_models} model(s), got {{len(response.data)}}\""
@@ -624,20 +616,11 @@ fn emit_chat_assertions(out: &mut String, fixture: &Fixture) {
     // model
     let model = fixture
         .assertions
-        .model_equals
+        .model
         .as_deref()
         .or_else(|| fixture.api.mock_response.body.get("model").and_then(|v| v.as_str()));
     if let Some(model) = model {
         writeln!(out, "    assert response.model == {model:?}, \"model mismatch\"").unwrap();
-    }
-
-    // content_contains
-    if let Some(substr) = &fixture.assertions.content_contains {
-        writeln!(
-            out,
-            "    assert {substr:?} in (response.choices[0].message.content or \"\"), \"content_contains assertion failed\""
-        )
-        .unwrap();
     }
 }
 

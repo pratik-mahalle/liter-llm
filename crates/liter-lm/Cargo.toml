@@ -9,16 +9,24 @@ authors.workspace = true
 description = "A universal LM API client — fast, type-safe, compiled"
 keywords = ["llm", "openai", "api-client", "ai", "kreuzberg"]
 
+[features]
+# Enable the native HTTP stack (reqwest + tokio).  Disable this feature when
+# compiling for WebAssembly, where the browser / Node.js fetch API is used
+# instead and the tokio multi-thread runtime is unavailable.
+native-http = ["dep:reqwest", "dep:tokio", "dep:memchr"]
+default = ["native-http"]
+
 [dependencies]
 bytes = { workspace = true }
 futures-core = { workspace = true }
+memchr = { workspace = true, optional = true }
 pin-project-lite = { workspace = true }
-reqwest = { workspace = true }
+reqwest = { workspace = true, optional = true }
 secrecy = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
-tokio = { workspace = true }
+tokio = { workspace = true, features = ["time", "rt", "macros"], optional = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util", "macros"] }

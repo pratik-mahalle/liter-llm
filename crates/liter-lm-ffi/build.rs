@@ -10,13 +10,17 @@ fn main() {
 
 fn run() -> Result<(), String> {
     let crate_dir = env::var("CARGO_MANIFEST_DIR").map_err(|_| "CARGO_MANIFEST_DIR not set".to_string())?;
+    let out_dir = env::var("OUT_DIR").map_err(|_| "OUT_DIR not set".to_string())?;
 
     let config =
         cbindgen::Config::from_file("cbindgen.toml").map_err(|e| format!("Failed to load cbindgen config: {}", e))?;
 
+    // Generate the header into OUT_DIR first (build sandbox; never fails due
+    // to read-only source tree on reproducible build systems).
+    let out_header_path = PathBuf::from(&out_dir).join("liter_lm.h");
     cbindgen::generate_with_config(&crate_dir, config)
         .map_err(|e| format!("Failed to generate C bindings: {}", e))?
-        .write_to_file("liter_lm.h");
+        .write_to_file(&out_header_path);
 
     // Inject version constants into generated header
     let version = env::var("CARGO_PKG_VERSION").map_err(|_| "CARGO_PKG_VERSION not set".to_string())?;
@@ -27,9 +31,8 @@ fn run() -> Result<(), String> {
     let raw_patch = version_parts.get(2).unwrap_or(&"0");
     let patch = raw_patch.split('-').next().unwrap_or("0");
 
-    let header_path = PathBuf::from(&crate_dir).join("liter_lm.h");
     let header_content =
-        std::fs::read_to_string(&header_path).map_err(|e| format!("Failed to read generated header: {}", e))?;
+        std::fs::read_to_string(&out_header_path).map_err(|e| format!("Failed to read generated header: {}", e))?;
 
     let version_block = format!(
         r#"
@@ -46,8 +49,15 @@ fn run() -> Result<(), String> {
         return Err("Version injection failed: cbindgen autogen marker not found in generated header".to_string());
     }
     let injected = header_content.replacen(marker, &format!("{}\n{}", marker, version_block), 1);
-    std::fs::write(&header_path, injected)
-        .map_err(|e| format!("Failed to write header with version constants: {}", e))?;
+    std::fs::write(&out_header_path, &injected)
+        .map_err(|e| format!("Failed to write header with version constants to OUT_DIR: {}", e))?;
+
+    // Copy the finalized header back into the source tree so it can be
+    // committed and consumed by downstream consumers (Go, Java, C#) without
+    // needing to locate the Cargo OUT_DIR.
+    let committed_header_path = PathBuf::from(&crate_dir).join("liter_lm.h");
+    std::fs::copy(&out_header_path, &committed_header_path)
+        .map_err(|e| format!("Failed to copy header to source dir: {}", e))?;
 
     println!("cargo:rerun-if-changed=cbindgen.toml");
     println!("cargo:rerun-if-changed=src/lib.rs");

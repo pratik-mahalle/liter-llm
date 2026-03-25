@@ -1,9 +1,26 @@
 use pyo3::prelude::*;
 
+// ─── Shared helper ────────────────────────────────────────────────────────────
+
+/// Convert a [`liter_lm::types::FinishReason`] to its canonical snake_case
+/// string representation.  Extracted to avoid duplicating the match block in
+/// both `PyChoice` and `PyStreamChoice`.
+fn finish_reason_str(r: &liter_lm::types::FinishReason) -> String {
+    match r {
+        liter_lm::types::FinishReason::Stop => "stop".to_owned(),
+        liter_lm::types::FinishReason::Length => "length".to_owned(),
+        liter_lm::types::FinishReason::ToolCalls => "tool_calls".to_owned(),
+        liter_lm::types::FinishReason::ContentFilter => "content_filter".to_owned(),
+        liter_lm::types::FinishReason::FunctionCall => "function_call".to_owned(),
+        liter_lm::types::FinishReason::Other => "other".to_owned(),
+    }
+}
+
 // ─── Usage ────────────────────────────────────────────────────────────────────
 
 /// Token usage information for a request.
-#[pyclass(frozen, name = "Usage")]
+#[pyclass(frozen, skip_from_py_object, name = "Usage")]
+#[derive(Clone)]
 pub struct PyUsage {
     inner: liter_lm::types::Usage,
 }
@@ -33,6 +50,12 @@ impl PyUsage {
             "Usage(prompt_tokens={}, completion_tokens={}, total_tokens={})",
             self.inner.prompt_tokens, self.inner.completion_tokens, self.inner.total_tokens
         )
+    }
+
+    fn __eq__(&self, other: &PyUsage) -> bool {
+        self.inner.prompt_tokens == other.inner.prompt_tokens
+            && self.inner.completion_tokens == other.inner.completion_tokens
+            && self.inner.total_tokens == other.inner.total_tokens
     }
 }
 
@@ -68,6 +91,10 @@ impl PyFunctionCall {
             self.inner.name, self.inner.arguments
         )
     }
+
+    fn __eq__(&self, other: &PyFunctionCall) -> bool {
+        self.inner.name == other.inner.name && self.inner.arguments == other.inner.arguments
+    }
 }
 
 /// A tool call made by the assistant.
@@ -91,7 +118,20 @@ impl PyToolCall {
     }
 
     fn __repr__(&self) -> String {
-        format!("ToolCall(id={:?})", self.inner.id)
+        format!(
+            "ToolCall(id={:?}, function={})",
+            self.inner.id,
+            PyFunctionCall {
+                inner: self.inner.function.clone()
+            }
+            .__repr__()
+        )
+    }
+
+    fn __eq__(&self, other: &PyToolCall) -> bool {
+        self.inner.id == other.inner.id
+            && self.inner.function.name == other.inner.function.name
+            && self.inner.function.arguments == other.inner.function.arguments
     }
 }
 
@@ -111,6 +151,18 @@ impl PyAssistantMessage {
         self.inner.content.as_deref()
     }
 
+    /// The assistant's optional display name.
+    #[getter]
+    fn name(&self) -> Option<&str> {
+        self.inner.name.as_deref()
+    }
+
+    /// Refusal message set by the model, or `None`.
+    #[getter]
+    fn refusal(&self) -> Option<&str> {
+        self.inner.refusal.as_deref()
+    }
+
     /// Tool calls made by the assistant, or `None`.
     #[getter]
     fn tool_calls(&self) -> Option<Vec<PyToolCall>> {
@@ -121,7 +173,16 @@ impl PyAssistantMessage {
     }
 
     fn __repr__(&self) -> String {
-        format!("AssistantMessage(content={:?})", self.inner.content)
+        format!(
+            "AssistantMessage(content={:?}, refusal={:?}, name={:?})",
+            self.inner.content, self.inner.refusal, self.inner.name
+        )
+    }
+
+    fn __eq__(&self, other: &PyAssistantMessage) -> bool {
+        self.inner.content == other.inner.content
+            && self.inner.name == other.inner.name
+            && self.inner.refusal == other.inner.refusal
     }
 }
 
@@ -152,16 +213,7 @@ impl PyChoice {
     /// Why the model stopped generating tokens.
     #[getter]
     fn finish_reason(&self) -> Option<String> {
-        self.inner.finish_reason.as_ref().map(|r| {
-            // Serialize back to the snake_case string the API uses.
-            match r {
-                liter_lm::types::FinishReason::Stop => "stop".to_owned(),
-                liter_lm::types::FinishReason::Length => "length".to_owned(),
-                liter_lm::types::FinishReason::ToolCalls => "tool_calls".to_owned(),
-                liter_lm::types::FinishReason::ContentFilter => "content_filter".to_owned(),
-                liter_lm::types::FinishReason::FunctionCall => "function_call".to_owned(),
-            }
-        })
+        self.inner.finish_reason.as_ref().map(finish_reason_str)
     }
 
     /// Zero-based index of this choice.
@@ -176,6 +228,10 @@ impl PyChoice {
             self.inner.index,
             self.finish_reason()
         )
+    }
+
+    fn __eq__(&self, other: &PyChoice) -> bool {
+        self.inner.index == other.inner.index && self.inner.finish_reason == other.inner.finish_reason
     }
 }
 
@@ -207,6 +263,12 @@ impl PyChatCompletionResponse {
         &self.inner.model
     }
 
+    /// Unix timestamp of when the response was created.
+    #[getter]
+    fn created(&self) -> u64 {
+        self.inner.created
+    }
+
     /// List of generated choices.
     #[getter]
     fn choices(&self) -> Vec<PyChoice> {
@@ -223,11 +285,30 @@ impl PyChatCompletionResponse {
         self.inner.usage.clone().map(PyUsage::from)
     }
 
+    /// System fingerprint for reproducibility, if provided by the backend.
+    #[getter]
+    fn system_fingerprint(&self) -> Option<&str> {
+        self.inner.system_fingerprint.as_deref()
+    }
+
+    /// Service tier used for this request, if returned by the backend.
+    #[getter]
+    fn service_tier(&self) -> Option<&str> {
+        self.inner.service_tier.as_deref()
+    }
+
     fn __repr__(&self) -> String {
         format!(
-            "ChatCompletionResponse(id={:?}, model={:?})",
-            self.inner.id, self.inner.model
+            "ChatCompletionResponse(id={:?}, model={:?}, created={}, choices={})",
+            self.inner.id,
+            self.inner.model,
+            self.inner.created,
+            self.inner.choices.len()
         )
+    }
+
+    fn __eq__(&self, other: &PyChatCompletionResponse) -> bool {
+        self.inner.id == other.inner.id && self.inner.model == other.inner.model
     }
 }
 
@@ -259,8 +340,23 @@ impl PyStreamDelta {
         self.inner.role.as_deref()
     }
 
+    /// Refusal text delta, or `None`.
+    #[getter]
+    fn refusal(&self) -> Option<&str> {
+        self.inner.refusal.as_deref()
+    }
+
     fn __repr__(&self) -> String {
-        format!("StreamDelta(content={:?})", self.inner.content)
+        format!(
+            "StreamDelta(role={:?}, content={:?}, refusal={:?})",
+            self.inner.role, self.inner.content, self.inner.refusal
+        )
+    }
+
+    fn __eq__(&self, other: &PyStreamDelta) -> bool {
+        self.inner.role == other.inner.role
+            && self.inner.content == other.inner.content
+            && self.inner.refusal == other.inner.refusal
     }
 }
 
@@ -281,18 +377,24 @@ impl PyStreamChoice {
 
     #[getter]
     fn finish_reason(&self) -> Option<String> {
-        self.inner.finish_reason.as_ref().map(|r| match r {
-            liter_lm::types::FinishReason::Stop => "stop".to_owned(),
-            liter_lm::types::FinishReason::Length => "length".to_owned(),
-            liter_lm::types::FinishReason::ToolCalls => "tool_calls".to_owned(),
-            liter_lm::types::FinishReason::ContentFilter => "content_filter".to_owned(),
-            liter_lm::types::FinishReason::FunctionCall => "function_call".to_owned(),
-        })
+        self.inner.finish_reason.as_ref().map(finish_reason_str)
     }
 
     #[getter]
     fn index(&self) -> u32 {
         self.inner.index
+    }
+
+    fn __repr__(&self) -> String {
+        format!(
+            "StreamChoice(index={}, finish_reason={:?})",
+            self.inner.index,
+            self.finish_reason()
+        )
+    }
+
+    fn __eq__(&self, other: &PyStreamChoice) -> bool {
+        self.inner.index == other.inner.index && self.inner.finish_reason == other.inner.finish_reason
     }
 }
 
@@ -314,6 +416,12 @@ impl PyChatCompletionChunk {
         &self.inner.model
     }
 
+    /// Unix timestamp of when this chunk was created.
+    #[getter]
+    fn created(&self) -> u64 {
+        self.inner.created
+    }
+
     #[getter]
     fn choices(&self) -> Vec<PyStreamChoice> {
         self.inner
@@ -323,11 +431,28 @@ impl PyChatCompletionChunk {
             .collect()
     }
 
+    /// Usage statistics, present only in the final chunk when
+    /// ``stream_options.include_usage`` was set in the request.
+    ///
+    /// Note: accessing this getter clones the `Usage` struct (three `u64`
+    /// fields) — negligible cost, but documented here for completeness.
+    #[getter]
+    fn usage(&self) -> Option<PyUsage> {
+        self.inner.usage.clone().map(PyUsage::from)
+    }
+
     fn __repr__(&self) -> String {
         format!(
-            "ChatCompletionChunk(id={:?}, model={:?})",
-            self.inner.id, self.inner.model
+            "ChatCompletionChunk(id={:?}, model={:?}, created={}, choices={})",
+            self.inner.id,
+            self.inner.model,
+            self.inner.created,
+            self.inner.choices.len()
         )
+    }
+
+    fn __eq__(&self, other: &PyChatCompletionChunk) -> bool {
+        self.inner.id == other.inner.id && self.inner.model == other.inner.model
     }
 }
 
@@ -340,6 +465,9 @@ impl From<liter_lm::types::ChatCompletionChunk> for PyChatCompletionChunk {
 // ─── Embedding types ──────────────────────────────────────────────────────────
 
 /// A single embedding vector.
+///
+/// Note: the `.embedding` getter clones the entire `Vec<f64>` into a Python
+/// list.  For large vectors consider slicing with indexing instead.
 #[pyclass(frozen, name = "EmbeddingObject")]
 pub struct PyEmbeddingObject {
     inner: liter_lm::types::EmbeddingObject,
@@ -348,6 +476,9 @@ pub struct PyEmbeddingObject {
 #[pymethods]
 impl PyEmbeddingObject {
     /// The embedding vector.
+    ///
+    /// This clones the full vector on each access.  Cache the result in Python
+    /// when you need to access it multiple times.
     #[getter]
     fn embedding(&self) -> Vec<f64> {
         self.inner.embedding.clone()
@@ -365,6 +496,10 @@ impl PyEmbeddingObject {
             self.inner.index,
             self.inner.embedding.len()
         )
+    }
+
+    fn __eq__(&self, other: &PyEmbeddingObject) -> bool {
+        self.inner.index == other.inner.index && self.inner.embedding == other.inner.embedding
     }
 }
 
@@ -407,6 +542,10 @@ impl PyEmbeddingResponse {
             self.inner.data.len()
         )
     }
+
+    fn __eq__(&self, other: &PyEmbeddingResponse) -> bool {
+        self.inner.model == other.inner.model
+    }
 }
 
 impl From<liter_lm::types::EmbeddingResponse> for PyEmbeddingResponse {
@@ -441,7 +580,14 @@ impl PyModelObject {
     }
 
     fn __repr__(&self) -> String {
-        format!("ModelObject(id={:?})", self.inner.id)
+        format!(
+            "ModelObject(id={:?}, owned_by={:?}, created={})",
+            self.inner.id, self.inner.owned_by, self.inner.created
+        )
+    }
+
+    fn __eq__(&self, other: &PyModelObject) -> bool {
+        self.inner.id == other.inner.id
     }
 }
 
@@ -465,6 +611,10 @@ impl PyModelsListResponse {
 
     fn __repr__(&self) -> String {
         format!("ModelsListResponse(count={})", self.inner.data.len())
+    }
+
+    fn __eq__(&self, other: &PyModelsListResponse) -> bool {
+        self.inner.data.len() == other.inner.data.len()
     }
 }
 

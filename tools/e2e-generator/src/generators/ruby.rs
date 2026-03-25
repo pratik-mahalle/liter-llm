@@ -50,6 +50,7 @@ fn write_gemfile(dir: &Utf8Path) -> Result<()> {
 
 source "https://rubygems.org"
 
+gem "liter-lm"
 gem "rspec", "~> 3.13"
 gem "webrick", "~> 1.8"
 "#;
