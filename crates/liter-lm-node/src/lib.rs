@@ -167,7 +167,6 @@ impl LlmClient {
     /// const resp = await client.chat({ model: "gpt-4", messages: [{ role: "user", content: "Hi" }] });
     /// console.log(resp.choices[0].message.content);
     /// ```
-    #[napi(ts_return_type = "Promise<import('../../../packages/typescript/src/types').ChatCompletionResponse>")]
     pub async fn chat(&self, request: serde_json::Value) -> napi::Result<serde_json::Value> {
         let req: liter_lm::ChatCompletionRequest =
             serde_json::from_value(request).map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
@@ -191,10 +190,7 @@ impl LlmClient {
     ///   process.stdout.write(chunk.choices[0]?.delta?.content ?? "");
     /// }
     /// ```
-    #[napi(
-        js_name = "chatStream",
-        ts_return_type = "Promise<import('../../../packages/typescript/src/types').ChatCompletionChunk[]>"
-    )]
+    #[napi(js_name = "chatStream")]
     pub async fn chat_stream(&self, request: serde_json::Value) -> napi::Result<Vec<serde_json::Value>> {
         let mut req: liter_lm::ChatCompletionRequest =
             serde_json::from_value(request).map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
@@ -222,7 +218,6 @@ impl LlmClient {
     /// const resp = await client.embed({ model: "text-embedding-3-small", input: "Hello" });
     /// console.log(resp.data[0].embedding);
     /// ```
-    #[napi(ts_return_type = "Promise<import('../../../packages/typescript/src/types').EmbeddingResponse>")]
     pub async fn embed(&self, request: serde_json::Value) -> napi::Result<serde_json::Value> {
         let req: liter_lm::EmbeddingRequest =
             serde_json::from_value(request).map_err(|e| napi::Error::new(Status::InvalidArg, e.to_string()))?;
@@ -240,10 +235,7 @@ impl LlmClient {
     /// const resp = await client.listModels();
     /// console.log(resp.data.map(m => m.id));
     /// ```
-    #[napi(
-        js_name = "listModels",
-        ts_return_type = "Promise<import('../../../packages/typescript/src/types').ModelsListResponse>"
-    )]
+    #[napi(js_name = "listModels")]
     pub async fn list_models(&self) -> napi::Result<serde_json::Value> {
         let client = Arc::clone(&self.inner);
         let result = client.list_models().await.map_err(to_napi_err)?;

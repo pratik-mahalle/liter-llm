@@ -28,7 +28,9 @@ from liter_lm._internal_bindings import (
     ServiceUnavailableError,
     StreamChoice,
     StreamDelta,
+    StreamFunctionCall,
     StreamingError,
+    StreamToolCall,
     ToolCall,
     # Response types
     Usage,
@@ -58,6 +60,7 @@ from liter_lm._types import (
     SpecificFunctionParam,
     SpecificToolChoiceParam,
     StreamOptionsParam,
+    ToolCallParam,
     ToolChoiceParam,
     ToolParam,
 )
@@ -107,7 +110,9 @@ __all__ = [
     "SpecificToolChoiceParam",
     "StreamChoice",
     "StreamDelta",
+    "StreamFunctionCall",
     "StreamOptionsParam",
+    "StreamToolCall",
     "StreamingError",
     "ToolCall",
     "ToolCallParam",

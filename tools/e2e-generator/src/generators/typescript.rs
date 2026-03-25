@@ -9,10 +9,6 @@ use crate::generators::Generator;
 pub struct TypeScriptGenerator;
 
 impl Generator for TypeScriptGenerator {
-    fn name(&self) -> &'static str {
-        "typescript"
-    }
-
     fn generate(&self, fixtures: &[Fixture], output_root: &Utf8Path) -> Result<()> {
         let ts_dir = output_root.join("typescript");
 

@@ -7,6 +7,7 @@ use memchr::memchr;
 use pin_project_lite::pin_project;
 
 use crate::error::{LiterLmError, Result};
+use crate::http::request::retry_after_from_response;
 use crate::http::retry;
 use crate::types::ChatCompletionChunk;
 
@@ -55,11 +56,7 @@ pub async fn post_stream(
         }
 
         // Parse Retry-After before consuming the body.
-        let server_retry_after = resp
-            .headers()
-            .get(reqwest::header::RETRY_AFTER)
-            .and_then(|v| v.to_str().ok())
-            .and_then(retry::parse_retry_after);
+        let server_retry_after = retry_after_from_response(&resp);
 
         if let Some(delay) = retry::should_retry(status, attempt, max_retries, server_retry_after) {
             attempt += 1;

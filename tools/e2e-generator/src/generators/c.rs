@@ -9,10 +9,6 @@ use crate::generators::Generator;
 pub struct CGenerator;
 
 impl Generator for CGenerator {
-    fn name(&self) -> &'static str {
-        "c"
-    }
-
     fn generate(&self, fixtures: &[Fixture], output_root: &Utf8Path) -> Result<()> {
         let c_dir = output_root.join("c");
 

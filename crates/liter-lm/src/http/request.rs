@@ -8,7 +8,7 @@ use crate::http::retry;
 // ---------------------------------------------------------------------------
 
 /// Extract an optional `Retry-After` delay from a response.
-fn retry_after_from_response(resp: &reqwest::Response) -> Option<std::time::Duration> {
+pub(crate) fn retry_after_from_response(resp: &reqwest::Response) -> Option<std::time::Duration> {
     let value = resp.headers().get(reqwest::header::RETRY_AFTER)?.to_str().ok()?;
     retry::parse_retry_after(value)
 }
@@ -16,6 +16,9 @@ fn retry_after_from_response(resp: &reqwest::Response) -> Option<std::time::Dura
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
+
+// TODO: extract a shared `retry_loop` helper used by both `post_json` and
+// `get_json` to eliminate the duplicated retry/backoff logic in each function.
 
 /// Send a POST request with a JSON body and deserialize the JSON response.
 ///

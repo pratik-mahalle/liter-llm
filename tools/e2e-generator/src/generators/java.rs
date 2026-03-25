@@ -11,10 +11,6 @@ pub struct JavaGenerator;
 const JAVA_PKG_PATH: &str = "src/test/java/dev/kreuzberg/literlm/e2e";
 
 impl Generator for JavaGenerator {
-    fn name(&self) -> &'static str {
-        "java"
-    }
-
     fn generate(&self, fixtures: &[Fixture], output_root: &Utf8Path) -> Result<()> {
         let java_dir = output_root.join("java");
 

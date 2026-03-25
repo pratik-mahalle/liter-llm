@@ -85,6 +85,12 @@ create_exception!(
     LlmError,
     "The requested endpoint is not supported by the selected provider."
 );
+create_exception!(
+    _internal_bindings,
+    SerializationError,
+    LlmError,
+    "Failed to serialize or deserialize a request or response."
+);
 
 /// Convert a [`LiterLmError`] into the matching Python exception.
 pub fn to_py_err(e: LiterLmError) -> PyErr {
@@ -103,6 +109,7 @@ pub fn to_py_err(e: LiterLmError) -> PyErr {
         LiterLmError::Streaming { .. } => PyErr::new::<StreamingError, _>(msg),
         LiterLmError::InvalidHeader { .. } => PyErr::new::<InvalidHeaderError, _>(msg),
         LiterLmError::EndpointNotSupported { .. } => PyErr::new::<EndpointNotSupportedError, _>(msg),
+        LiterLmError::Serialization(_) => PyErr::new::<SerializationError, _>(msg),
         _ => PyErr::new::<LlmError, _>(msg),
     }
 }
@@ -129,5 +136,6 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
         "EndpointNotSupportedError",
         m.py().get_type::<EndpointNotSupportedError>(),
     )?;
+    m.add("SerializationError", m.py().get_type::<SerializationError>())?;
     Ok(())
 }

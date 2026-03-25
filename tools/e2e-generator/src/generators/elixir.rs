@@ -9,10 +9,6 @@ use crate::generators::Generator;
 pub struct ElixirGenerator;
 
 impl Generator for ElixirGenerator {
-    fn name(&self) -> &'static str {
-        "elixir"
-    }
-
     fn generate(&self, fixtures: &[Fixture], output_root: &Utf8Path) -> Result<()> {
         let ex_dir = output_root.join("elixir");
 

@@ -616,12 +616,11 @@ impl PyEmbeddingResponse {
             .collect()
     }
 
-    /// Token usage for this request.
+    /// Token usage for this request.  Returns `None` when the provider does not
+    /// include usage data in the response.
     #[getter]
-    fn usage(&self) -> PyUsage {
-        PyUsage {
-            inner: self.inner.usage.clone(),
-        }
+    fn usage(&self) -> Option<PyUsage> {
+        self.inner.usage.clone().map(|u| PyUsage { inner: u })
     }
 
     fn __repr__(&self) -> String {

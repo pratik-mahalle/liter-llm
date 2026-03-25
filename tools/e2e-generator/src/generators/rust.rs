@@ -9,10 +9,6 @@ use crate::generators::Generator;
 pub struct RustGenerator;
 
 impl Generator for RustGenerator {
-    fn name(&self) -> &'static str {
-        "rust"
-    }
-
     fn generate(&self, fixtures: &[Fixture], output_root: &Utf8Path) -> Result<()> {
         let rust_dir = output_root.join("rust");
 

@@ -9,10 +9,6 @@ use crate::generators::Generator;
 pub struct WasmGenerator;
 
 impl Generator for WasmGenerator {
-    fn name(&self) -> &'static str {
-        "wasm"
-    }
-
     fn generate(&self, fixtures: &[Fixture], output_root: &Utf8Path) -> Result<()> {
         let wasm_dir = output_root.join("wasm");
 

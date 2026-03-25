@@ -63,7 +63,7 @@ typedef struct LiterLmClient LiterLmClient;
  *   The callee must **not** free it.
  * - `user_data`: The opaque pointer passed to [`literlm_chat_stream`].
  *
- * Return value is reserved for future use; callers should return `0`.
+ * This callback returns void; there is no return value.
  */
 typedef void (*LiterLmStreamCallback)(const char *chunk_json, void *user_data);
 

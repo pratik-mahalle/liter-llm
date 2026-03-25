@@ -67,27 +67,36 @@ impl std::fmt::Debug for ClientConfig {
 }
 
 /// Builder for [`ClientConfig`].
+///
+/// Construct with [`ClientConfigBuilder::new`] and call builder methods to
+/// customise the configuration, then call [`ClientConfigBuilder::build`] to
+/// obtain a [`ClientConfig`].
+#[must_use]
 pub struct ClientConfigBuilder {
     config: ClientConfig,
 }
 
 impl ClientConfigBuilder {
+    /// Create a new builder with the given API key and sensible defaults.
     pub fn new(api_key: impl Into<String>) -> Self {
         Self {
             config: ClientConfig::new(api_key),
         }
     }
 
+    /// Override the provider base URL for all requests.
     pub fn base_url(mut self, url: impl Into<String>) -> Self {
         self.config.base_url = Some(url.into());
         self
     }
 
+    /// Set the per-request timeout (default: 60 s).
     pub fn timeout(mut self, timeout: Duration) -> Self {
         self.config.timeout = timeout;
         self
     }
 
+    /// Set the maximum number of retries on 429 / 5xx responses (default: 3).
     pub fn max_retries(mut self, retries: u32) -> Self {
         self.config.max_retries = retries;
         self
@@ -117,6 +126,8 @@ impl ClientConfigBuilder {
         Ok(self)
     }
 
+    /// Consume the builder and return the completed [`ClientConfig`].
+    #[must_use]
     pub fn build(self) -> ClientConfig {
         self.config
     }

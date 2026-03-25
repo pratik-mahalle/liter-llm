@@ -9,10 +9,6 @@ use crate::generators::Generator;
 pub struct PythonGenerator;
 
 impl Generator for PythonGenerator {
-    fn name(&self) -> &'static str {
-        "python"
-    }
-
     fn generate(&self, fixtures: &[Fixture], output_root: &Utf8Path) -> Result<()> {
         let py_dir = output_root.join("python");
 

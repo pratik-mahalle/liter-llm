@@ -17,21 +17,8 @@ mod serde_tests {
                 }),
             ],
             temperature: Some(0.7),
-            top_p: None,
-            n: None,
-            stream: None,
-            stop: None,
             max_tokens: Some(100),
-            presence_penalty: None,
-            frequency_penalty: None,
-            logit_bias: None,
-            user: None,
-            tools: None,
-            tool_choice: None,
-            parallel_tool_calls: None,
-            response_format: None,
-            stream_options: None,
-            seed: None,
+            ..Default::default()
         };
 
         let json = serde_json::to_string(&req).unwrap();
@@ -412,6 +399,12 @@ mod error_tests {
     fn error_from_plain_text() {
         let err = LiterLmError::from_status(500, "Internal Server Error", None);
         assert!(matches!(err, LiterLmError::ServerError { .. }));
+    }
+
+    #[test]
+    fn error_from_503() {
+        let err = LiterLmError::from_status(503, "Service Unavailable", None);
+        assert!(matches!(err, LiterLmError::ServiceUnavailable { .. }));
     }
 }
 

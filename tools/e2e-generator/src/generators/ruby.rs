@@ -9,10 +9,6 @@ use crate::generators::Generator;
 pub struct RubyGenerator;
 
 impl Generator for RubyGenerator {
-    fn name(&self) -> &'static str {
-        "ruby"
-    }
-
     fn generate(&self, fixtures: &[Fixture], output_root: &Utf8Path) -> Result<()> {
         let ruby_dir = output_root.join("ruby");
 

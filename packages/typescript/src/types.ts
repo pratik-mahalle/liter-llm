@@ -143,21 +143,21 @@ export interface ChatCompletionRequest {
 	model: string;
 	messages: Message[];
 	temperature?: number;
-	topP?: number;
+	top_p?: number;
 	n?: number;
 	stream?: boolean;
 	/** Single stop string or array of stop strings. */
 	stop?: string | string[];
-	maxTokens?: number;
-	presencePenalty?: number;
-	frequencyPenalty?: number;
-	logitBias?: Record<string, number>;
+	max_tokens?: number;
+	presence_penalty?: number;
+	frequency_penalty?: number;
+	logit_bias?: Record<string, number>;
 	user?: string;
 	tools?: ChatCompletionTool[];
-	toolChoice?: ToolChoice;
-	parallelToolCalls?: boolean;
-	responseFormat?: ResponseFormat;
-	streamOptions?: StreamOptions;
+	tool_choice?: ToolChoice;
+	parallel_tool_calls?: boolean;
+	response_format?: ResponseFormat;
+	stream_options?: StreamOptions;
 	seed?: number;
 }
 

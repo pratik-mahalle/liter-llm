@@ -9,10 +9,6 @@ use crate::generators::Generator;
 pub struct PhpGenerator;
 
 impl Generator for PhpGenerator {
-    fn name(&self) -> &'static str {
-        "php"
-    }
-
     fn generate(&self, fixtures: &[Fixture], output_root: &Utf8Path) -> Result<()> {
         let php_dir = output_root.join("php");
 

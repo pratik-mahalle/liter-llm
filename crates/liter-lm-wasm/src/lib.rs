@@ -449,11 +449,12 @@ impl Drop for LlmClient {
     /// releasing its backing allocation reduces the key's lifetime in the heap
     /// without requiring unsafe code.
     fn drop(&mut self) {
-        // Replace api_key with an empty String and release its backing allocation.
-        // This is the safe, correct way to clear a String's contents; zeroing
-        // individual bytes via as_bytes_mut() is unsafe and risks creating
-        // invalid UTF-8 if interrupted.
+        // Replace api_key and auth_header_override with empty values and release
+        // their backing allocations.  This is the safe, correct way to clear
+        // String contents; zeroing individual bytes via as_bytes_mut() is unsafe
+        // and risks creating invalid UTF-8 if interrupted.
         drop(std::mem::take(&mut self.api_key));
+        drop(std::mem::take(&mut self.auth_header_override));
     }
 }
 
@@ -578,9 +579,8 @@ async fn do_fetch(
     use wasm_bindgen::JsCast;
 
     let headers = js_sys::Object::new();
-    if let Some(b) = body {
+    if body.is_some() {
         Reflect::set(&headers, &"Content-Type".into(), &"application/json".into())?;
-        let _ = b; // used below
     }
     Reflect::set(&headers, &"Authorization".into(), &auth_header.into())?;
 

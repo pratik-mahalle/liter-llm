@@ -9,10 +9,6 @@ use crate::generators::Generator;
 pub struct GoGenerator;
 
 impl Generator for GoGenerator {
-    fn name(&self) -> &'static str {
-        "go"
-    }
-
     fn generate(&self, fixtures: &[Fixture], output_root: &Utf8Path) -> Result<()> {
         let go_dir = output_root.join("go");
 

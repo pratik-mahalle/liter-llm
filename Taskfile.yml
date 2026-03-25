@@ -168,26 +168,13 @@ tasks:
       - task: elixir:clean
 
   # Codegen (run after schema changes)
-  generate:types:
-    desc: Generate types from schemas/api/ for all languages
-    cmds:
-      - cargo run -p e2e-generator -- types --target all
-
-  generate:providers:
-    desc: Generate provider code from schemas/providers.json
-    cmds:
-      - cargo run -p e2e-generator -- providers --target all
-
-  generate:check:
-    desc: Verify generated code matches schemas (CI)
-    cmds:
-      - cargo run -p e2e-generator -- check
+  # TODO: generate:types — requires e2e-generator `types` subcommand (not yet implemented)
+  # TODO: generate:providers — requires e2e-generator `providers` subcommand (not yet implemented)
+  # TODO: generate:check — requires e2e-generator `check` subcommand (not yet implemented)
 
   generate:all:
     desc: Regenerate all code from schemas
     cmds:
-      - task: generate:types
-      - task: generate:providers
       - task: e2e:generate:all
 
   # E2E test generation (delegates to e2e workflow)

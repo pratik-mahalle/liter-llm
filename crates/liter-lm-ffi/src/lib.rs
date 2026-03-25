@@ -293,7 +293,7 @@ pub unsafe extern "C" fn literlm_chat(client: *const LiterLmClient, request_json
 ///   The callee must **not** free it.
 /// - `user_data`: The opaque pointer passed to [`literlm_chat_stream`].
 ///
-/// Return value is reserved for future use; callers should return `0`.
+/// This callback returns void; there is no return value.
 pub type LiterLmStreamCallback = unsafe extern "C" fn(chunk_json: *const c_char, user_data: *mut std::ffi::c_void);
 
 /// Send a streaming chat completion request, invoking a callback for each chunk.
@@ -608,11 +608,15 @@ pub extern "C" fn literlm_version() -> *const c_char {
     // SAFETY: VERSION is 'static, NUL-terminated, and lives for the duration
     // of the program.  It is initialised exactly once via OnceLock on first
     // call.  The raw pointer is never freed by the caller (documented above).
+    //
+    // `CARGO_PKG_VERSION` is set by Cargo at compile time and never contains
+    // interior NUL bytes (semver syntax does not include NUL).
     static VERSION: std::sync::OnceLock<CString> = std::sync::OnceLock::new();
     VERSION
         .get_or_init(|| {
-            CString::new(env!("CARGO_PKG_VERSION"))
-                .unwrap_or_else(|_| CString::new("unknown").expect("fallback is valid"))
+            // SAFETY: semver strings (e.g. "1.0.0") never contain NUL bytes,
+            // so `CString::new` will always succeed here.
+            CString::new(env!("CARGO_PKG_VERSION")).unwrap_or_else(|_| c"unknown".to_owned())
         })
         .as_ptr()
 }

@@ -9,10 +9,6 @@ use crate::generators::Generator;
 pub struct CSharpGenerator;
 
 impl Generator for CSharpGenerator {
-    fn name(&self) -> &'static str {
-        "csharp"
-    }
-
     fn generate(&self, fixtures: &[Fixture], output_root: &Utf8Path) -> Result<()> {
         let cs_dir = output_root.join("csharp");
 
