@@ -6,3 +6,8 @@ gemspec
 
 gem 'pry', '~> 0.14', group: :development
 gem 'pry-byebug', '~> 3.10', group: :development, platforms: %i[ruby mri]
+
+unless Gem.win_platform?
+  gem 'rbs', '~> 3.0', group: :development
+  gem 'steep', '~> 1.8', group: :development
+end

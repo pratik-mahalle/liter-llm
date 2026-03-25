@@ -78,7 +78,7 @@
 			}
 		},
 		{
-			"includes": ["crates/ts-pack-node/index.js"],
+			"includes": ["crates/liter-lm-node/index.js"],
 			"linter": {
 				"rules": {
 					"suspicious": {

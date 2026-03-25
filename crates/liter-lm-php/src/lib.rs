@@ -138,6 +138,54 @@ impl PhpLlmClient {
         serde_json::to_string(&response).map_err(|e| PhpException::from(format!("serialization error: {e}")))
     }
 
+    /// Send a streaming chat completion request and collect all chunks.
+    ///
+    /// **Limitation:** PHP's synchronous execution model does not support true
+    /// incremental streaming.  This method drives the full SSE stream to
+    /// completion on the Rust side and returns all chunks as a JSON array.
+    /// For real-time token-by-token output, consider the Node.js or Python
+    /// bindings which support async iterators.
+    ///
+    /// @param string $requestJson JSON-encoded OpenAI-compatible chat request.
+    ///                            The `"stream"` field is forced to `true`.
+    /// @return string JSON-encoded array of `ChatCompletionChunk` objects.
+    #[php(name = "chatStream")]
+    pub fn chat_stream(&self, request_json: String) -> PhpResult<String> {
+        use futures_core::Stream as FStream;
+        use std::pin::Pin;
+
+        let mut req: liter_lm::ChatCompletionRequest = serde_json::from_str(&request_json)
+            .map_err(|e| PhpException::from(format!("invalid chat stream request JSON: {e}")))?;
+
+        // Force streaming flag.
+        req.stream = Some(true);
+
+        // Collect all SSE chunks by blocking on the async stream.
+        // Returns a PhpResult<Vec<_>> so we can propagate errors and then
+        // serialise the collected chunks outside the async block.
+        let items: Vec<liter_lm::ChatCompletionChunk> = block_on_future(async {
+            let stream = self
+                .inner
+                .chat_stream(req)
+                .await
+                .map_err(|e| PhpException::from(e.to_string()))?;
+
+            let mut collected: Vec<liter_lm::ChatCompletionChunk> = Vec::new();
+            let mut pinned: Pin<Box<_>> = stream;
+            loop {
+                let next = std::future::poll_fn(|cx| FStream::poll_next(pinned.as_mut(), cx)).await;
+                match next {
+                    Some(Ok(chunk)) => collected.push(chunk),
+                    Some(Err(e)) => return Err(PhpException::from(e.to_string())),
+                    None => break,
+                }
+            }
+            Ok(collected)
+        })??;
+
+        serde_json::to_string(&items).map_err(|e| PhpException::from(format!("serialization error: {e}")))
+    }
+
     /// Send an embedding request.
     ///
     /// @param string $requestJson JSON-encoded OpenAI-compatible embeddings request.

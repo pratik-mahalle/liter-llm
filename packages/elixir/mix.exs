@@ -30,6 +30,7 @@ defmodule LiterLm.MixProject do
   defp deps do
     [
       {:jason, "~> 1.4"},
+      {:req, "~> 0.5"},
       {:rustler, "~> 0.34.0", optional: true, runtime: false},
       {:rustler_precompiled, "~> 0.8"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},

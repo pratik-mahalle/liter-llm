@@ -11,7 +11,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.1.0"
+version = "1.0.0-rc.1"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/kreuzberg-dev/liter-lm"
@@ -32,7 +32,7 @@ futures-core = "0.3"
 # Binding frameworks
 magnus = "0.8"
 memchr = "2"
-napi = { version = "3", features = ["napi4", "serde-json"] }
+napi = { version = "3", features = ["napi4", "serde-json", "async"] }
 napi-build = "2"
 napi-derive = "3"
 pin-project-lite = "0.2"
@@ -40,7 +40,7 @@ pyo3 = { version = "0.28", features = ["abi3-py310"] }
 pyo3-async-runtimes = { version = "0.28", features = ["tokio-runtime"] }
 rb-sys = "0.9"
 # Async / HTTP
-reqwest = { version = "0.13", default-features = false, features = ["json", "stream", "rustls", "multipart"] }
+reqwest = { version = "0.13", default-features = false, features = ["json", "stream", "rustls"] }
 rustler = "0.37"
 
 # Security

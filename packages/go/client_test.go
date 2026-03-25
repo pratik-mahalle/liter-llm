@@ -1,0 +1,498 @@
+package literlm_test
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+
+	literlm "github.com/kreuzberg-dev/liter-lm/go"
+)
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+// newTestClient creates a Client pointed at the given test server URL with a
+// dummy API key.
+func newTestClient(serverURL string) *literlm.Client {
+	return literlm.NewClient(
+		literlm.WithAPIKey("test-key"),
+		literlm.WithBaseURL(serverURL),
+	)
+}
+
+// ptr is a generic helper that returns a pointer to v.
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+func TestNewTextMessage(t *testing.T) {
+	t.Parallel()
+	msg := literlm.NewTextMessage(literlm.RoleUser, "hello")
+	if msg.Role != literlm.RoleUser {
+		t.Errorf("expected role %q, got %q", literlm.RoleUser, msg.Role)
+	}
+	var content string
+	if err := json.Unmarshal(msg.Content, &content); err != nil {
+		t.Fatalf("content should be a JSON string: %v", err)
+	}
+	if content != "hello" {
+		t.Errorf("expected content %q, got %q", "hello", content)
+	}
+}
+
+func TestNewPartsMessage(t *testing.T) {
+	t.Parallel()
+	parts := []literlm.ContentPart{
+		{Type: literlm.ContentPartTypeText, Text: "describe this"},
+		{Type: literlm.ContentPartTypeImageURL, ImageURL: &literlm.ImageURL{URL: "https://example.com/img.png"}},
+	}
+	msg := literlm.NewPartsMessage(literlm.RoleUser, parts)
+	var decoded []literlm.ContentPart
+	if err := json.Unmarshal(msg.Content, &decoded); err != nil {
+		t.Fatalf("content should be a JSON array: %v", err)
+	}
+	if len(decoded) != 2 {
+		t.Errorf("expected 2 parts, got %d", len(decoded))
+	}
+}
+
+func TestToolChoiceMarshal(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name  string
+		input literlm.ToolChoice
+		want  string
+	}{
+		{"auto", literlm.ToolChoiceAuto, `"auto"`},
+		{"required", literlm.ToolChoiceRequired, `"required"`},
+		{"none", literlm.ToolChoiceNone, `"none"`},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			got, err := json.Marshal(tc.input)
+			if err != nil {
+				t.Fatalf("marshal error: %v", err)
+			}
+			if string(got) != tc.want {
+				t.Errorf("expected %s, got %s", tc.want, got)
+			}
+		})
+	}
+}
+
+func TestNewSpecificToolChoice(t *testing.T) {
+	t.Parallel()
+	tc := literlm.NewSpecificToolChoice("get_weather")
+	raw, _ := json.Marshal(tc)
+	var obj struct {
+		Type     string `json:"type"`
+		Function struct {
+			Name string `json:"name"`
+		} `json:"function"`
+	}
+	if err := json.Unmarshal(raw, &obj); err != nil {
+		t.Fatalf("unmarshal error: %v", err)
+	}
+	if obj.Type != "function" {
+		t.Errorf("expected type %q, got %q", "function", obj.Type)
+	}
+	if obj.Function.Name != "get_weather" {
+		t.Errorf("expected function name %q, got %q", "get_weather", obj.Function.Name)
+	}
+}
+
+func TestStopSequenceRoundtrip(t *testing.T) {
+	t.Parallel()
+	single := literlm.NewStopString("STOP")
+	b, _ := json.Marshal(single)
+	if string(b) != `"STOP"` {
+		t.Errorf("single stop: expected %q, got %s", `"STOP"`, b)
+	}
+
+	multi := literlm.NewStopStrings([]string{"END", "DONE"})
+	b, _ = json.Marshal(multi)
+	if string(b) != `["END","DONE"]` {
+		t.Errorf("multi stop: expected %q, got %s", `["END","DONE"]`, b)
+	}
+}
+
+func TestEmbeddingInputRoundtrip(t *testing.T) {
+	t.Parallel()
+	single := literlm.NewEmbeddingInputSingle("hello world")
+	b, _ := json.Marshal(single)
+	if string(b) != `"hello world"` {
+		t.Errorf("single input: expected %q, got %s", `"hello world"`, b)
+	}
+
+	multi := literlm.NewEmbeddingInputMultiple([]string{"a", "b"})
+	b, _ = json.Marshal(multi)
+	if string(b) != `["a","b"]` {
+		t.Errorf("multi input: expected %q, got %s", `["a","b"]`, b)
+	}
+}
+
+// ─── Errors ───────────────────────────────────────────────────────────────────
+
+func TestAPIErrorIs(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		statusCode int
+		sentinel   error
+	}{
+		{http.StatusUnauthorized, literlm.ErrAuthentication},
+		{http.StatusForbidden, literlm.ErrAuthentication},
+		{http.StatusTooManyRequests, literlm.ErrRateLimit},
+		{http.StatusNotFound, literlm.ErrNotFound},
+		{http.StatusBadRequest, literlm.ErrInvalidRequest},
+		{http.StatusInternalServerError, literlm.ErrProviderError},
+	}
+	for _, tc := range tests {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(tc.statusCode)
+		}))
+		client := newTestClient(server.URL)
+		req := &literlm.ChatCompletionRequest{
+			Model:    "gpt-4o",
+			Messages: []literlm.Message{literlm.NewTextMessage(literlm.RoleUser, "hi")},
+		}
+		_, err := client.Chat(context.Background(), req)
+		server.Close()
+		if err == nil {
+			t.Errorf("status %d: expected error, got nil", tc.statusCode)
+			continue
+		}
+		if !errors.Is(err, tc.sentinel) {
+			t.Errorf("status %d: expected errors.Is(%v), got %T: %v", tc.statusCode, tc.sentinel, err, err)
+		}
+	}
+}
+
+func TestStreamErrorIs(t *testing.T) {
+	t.Parallel()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+		// Send malformed JSON chunk.
+		w.Write([]byte("data: {not-valid-json}\n\n")) //nolint:errcheck
+	}))
+	defer server.Close()
+
+	client := newTestClient(server.URL)
+	req := &literlm.ChatCompletionRequest{
+		Model:    "gpt-4o",
+		Messages: []literlm.Message{literlm.NewTextMessage(literlm.RoleUser, "hi")},
+	}
+	err := client.ChatStream(context.Background(), req, func(c *literlm.ChatCompletionChunk) error { return nil })
+	if err == nil {
+		t.Fatal("expected error for malformed chunk, got nil")
+	}
+	if !errors.Is(err, literlm.ErrStream) {
+		t.Errorf("expected errors.Is(ErrStream), got %T: %v", err, err)
+	}
+}
+
+// ─── Client — validation ──────────────────────────────────────────────────────
+
+func TestChat_NilRequest(t *testing.T) {
+	t.Parallel()
+	client := literlm.NewClient(literlm.WithAPIKey("k"))
+	_, err := client.Chat(context.Background(), nil)
+	if !errors.Is(err, literlm.ErrInvalidRequest) {
+		t.Errorf("expected ErrInvalidRequest, got %v", err)
+	}
+}
+
+func TestChat_EmptyModel(t *testing.T) {
+	t.Parallel()
+	client := literlm.NewClient(literlm.WithAPIKey("k"))
+	_, err := client.Chat(context.Background(), &literlm.ChatCompletionRequest{
+		Messages: []literlm.Message{literlm.NewTextMessage(literlm.RoleUser, "hi")},
+	})
+	if !errors.Is(err, literlm.ErrInvalidRequest) {
+		t.Errorf("expected ErrInvalidRequest for empty model, got %v", err)
+	}
+}
+
+func TestChat_EmptyMessages(t *testing.T) {
+	t.Parallel()
+	client := literlm.NewClient(literlm.WithAPIKey("k"))
+	_, err := client.Chat(context.Background(), &literlm.ChatCompletionRequest{
+		Model: "gpt-4o",
+	})
+	if !errors.Is(err, literlm.ErrInvalidRequest) {
+		t.Errorf("expected ErrInvalidRequest for empty messages, got %v", err)
+	}
+}
+
+func TestEmbed_NilRequest(t *testing.T) {
+	t.Parallel()
+	client := literlm.NewClient(literlm.WithAPIKey("k"))
+	_, err := client.Embed(context.Background(), nil)
+	if !errors.Is(err, literlm.ErrInvalidRequest) {
+		t.Errorf("expected ErrInvalidRequest, got %v", err)
+	}
+}
+
+func TestEmbed_EmptyModel(t *testing.T) {
+	t.Parallel()
+	client := literlm.NewClient(literlm.WithAPIKey("k"))
+	_, err := client.Embed(context.Background(), &literlm.EmbeddingRequest{
+		Input: literlm.NewEmbeddingInputSingle("text"),
+	})
+	if !errors.Is(err, literlm.ErrInvalidRequest) {
+		t.Errorf("expected ErrInvalidRequest for empty model, got %v", err)
+	}
+}
+
+func TestChatStream_NilHandler(t *testing.T) {
+	t.Parallel()
+	client := literlm.NewClient(literlm.WithAPIKey("k"))
+	err := client.ChatStream(context.Background(), &literlm.ChatCompletionRequest{
+		Model:    "gpt-4o",
+		Messages: []literlm.Message{literlm.NewTextMessage(literlm.RoleUser, "hi")},
+	}, nil)
+	if !errors.Is(err, literlm.ErrInvalidRequest) {
+		t.Errorf("expected ErrInvalidRequest for nil handler, got %v", err)
+	}
+}
+
+// ─── Client — happy path (mock HTTP server) ───────────────────────────────────
+
+func TestChat_Success(t *testing.T) {
+	t.Parallel()
+	respBody := `{
+		"id": "chatcmpl-test",
+		"object": "chat.completion",
+		"created": 1700000000,
+		"model": "gpt-4o",
+		"choices": [{
+			"index": 0,
+			"message": {"role": "assistant", "content": "Hello!"},
+			"finish_reason": "stop"
+		}],
+		"usage": {"prompt_tokens": 5, "completion_tokens": 3, "total_tokens": 8}
+	}`
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Errorf("expected POST, got %s", r.Method)
+		}
+		if !strings.HasSuffix(r.URL.Path, "/chat/completions") {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		if r.Header.Get("Authorization") != "Bearer test-key" {
+			t.Errorf("missing or wrong Authorization header: %q", r.Header.Get("Authorization"))
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(respBody)) //nolint:errcheck
+	}))
+	defer server.Close()
+
+	client := newTestClient(server.URL)
+	resp, err := client.Chat(context.Background(), &literlm.ChatCompletionRequest{
+		Model:    "gpt-4o",
+		Messages: []literlm.Message{literlm.NewTextMessage(literlm.RoleUser, "hi")},
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if resp.ID != "chatcmpl-test" {
+		t.Errorf("expected ID %q, got %q", "chatcmpl-test", resp.ID)
+	}
+	if len(resp.Choices) != 1 {
+		t.Fatalf("expected 1 choice, got %d", len(resp.Choices))
+	}
+	if resp.Usage == nil {
+		t.Fatal("expected non-nil usage")
+	}
+	if resp.Usage.TotalTokens != 8 {
+		t.Errorf("expected total_tokens 8, got %d", resp.Usage.TotalTokens)
+	}
+}
+
+func TestChatStream_Success(t *testing.T) {
+	t.Parallel()
+	sseBody := "data: {\"id\":\"chunk-1\",\"object\":\"chat.completion.chunk\",\"created\":1700000000,\"model\":\"gpt-4o\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\",\"content\":\"Hello\"},\"finish_reason\":null}]}\n\n" +
+		"data: {\"id\":\"chunk-2\",\"object\":\"chat.completion.chunk\",\"created\":1700000000,\"model\":\"gpt-4o\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"!\"},\"finish_reason\":\"stop\"}]}\n\n" +
+		"data: [DONE]\n\n"
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.Write([]byte(sseBody)) //nolint:errcheck
+	}))
+	defer server.Close()
+
+	client := newTestClient(server.URL)
+	var chunks []*literlm.ChatCompletionChunk
+	err := client.ChatStream(context.Background(), &literlm.ChatCompletionRequest{
+		Model:    "gpt-4o",
+		Messages: []literlm.Message{literlm.NewTextMessage(literlm.RoleUser, "hi")},
+	}, func(c *literlm.ChatCompletionChunk) error {
+		chunks = append(chunks, c)
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(chunks) != 2 {
+		t.Fatalf("expected 2 chunks, got %d", len(chunks))
+	}
+	if chunks[0].ID != "chunk-1" {
+		t.Errorf("expected chunk ID %q, got %q", "chunk-1", chunks[0].ID)
+	}
+	if chunks[0].Choices[0].Delta.Content == nil || *chunks[0].Choices[0].Delta.Content != "Hello" {
+		t.Errorf("expected delta content %q", "Hello")
+	}
+}
+
+func TestChatStream_HandlerError(t *testing.T) {
+	t.Parallel()
+	sseBody := "data: {\"id\":\"c1\",\"object\":\"chat.completion.chunk\",\"created\":0,\"model\":\"gpt-4o\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"hi\"},\"finish_reason\":null}]}\n\n" +
+		"data: [DONE]\n\n"
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.Write([]byte(sseBody)) //nolint:errcheck
+	}))
+	defer server.Close()
+
+	sentinel := errors.New("handler abort")
+	client := newTestClient(server.URL)
+	err := client.ChatStream(context.Background(), &literlm.ChatCompletionRequest{
+		Model:    "gpt-4o",
+		Messages: []literlm.Message{literlm.NewTextMessage(literlm.RoleUser, "hi")},
+	}, func(c *literlm.ChatCompletionChunk) error {
+		return sentinel
+	})
+	if !errors.Is(err, sentinel) {
+		t.Errorf("expected sentinel error, got %v", err)
+	}
+}
+
+func TestEmbed_Success(t *testing.T) {
+	t.Parallel()
+	respBody := `{
+		"object": "list",
+		"data": [{"object": "embedding", "embedding": [0.1, 0.2, 0.3], "index": 0}],
+		"model": "text-embedding-3-small",
+		"usage": {"prompt_tokens": 3, "completion_tokens": 0, "total_tokens": 3}
+	}`
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !strings.HasSuffix(r.URL.Path, "/embeddings") {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(respBody)) //nolint:errcheck
+	}))
+	defer server.Close()
+
+	client := newTestClient(server.URL)
+	resp, err := client.Embed(context.Background(), &literlm.EmbeddingRequest{
+		Model: "text-embedding-3-small",
+		Input: literlm.NewEmbeddingInputSingle("hello"),
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(resp.Data) != 1 {
+		t.Fatalf("expected 1 embedding, got %d", len(resp.Data))
+	}
+	if len(resp.Data[0].Embedding) != 3 {
+		t.Errorf("expected embedding length 3, got %d", len(resp.Data[0].Embedding))
+	}
+}
+
+func TestListModels_Success(t *testing.T) {
+	t.Parallel()
+	respBody := `{
+		"object": "list",
+		"data": [
+			{"id": "gpt-4o", "object": "model", "created": 1700000000, "owned_by": "openai"},
+			{"id": "gpt-3.5-turbo", "object": "model", "created": 1690000000, "owned_by": "openai"}
+		]
+	}`
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			t.Errorf("expected GET, got %s", r.Method)
+		}
+		if !strings.HasSuffix(r.URL.Path, "/models") {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(respBody)) //nolint:errcheck
+	}))
+	defer server.Close()
+
+	client := newTestClient(server.URL)
+	resp, err := client.ListModels(context.Background())
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(resp.Data) != 2 {
+		t.Fatalf("expected 2 models, got %d", len(resp.Data))
+	}
+	if resp.Data[0].ID != "gpt-4o" {
+		t.Errorf("expected model ID %q, got %q", "gpt-4o", resp.Data[0].ID)
+	}
+}
+
+func TestListModels_ProviderError(t *testing.T) {
+	t.Parallel()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error":{"message":"internal server error"}}`)) //nolint:errcheck
+	}))
+	defer server.Close()
+
+	client := newTestClient(server.URL)
+	_, err := client.ListModels(context.Background())
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if !errors.Is(err, literlm.ErrProviderError) {
+		t.Errorf("expected ErrProviderError, got %T: %v", err, err)
+	}
+	var apiErr *literlm.APIError
+	switch {
+	case !errors.As(err, &apiErr):
+		t.Errorf("expected *APIError, got %T", err)
+	case apiErr.StatusCode != http.StatusInternalServerError:
+		t.Errorf("expected status 500, got %d", apiErr.StatusCode)
+	case apiErr.Message != "internal server error":
+		t.Errorf("expected message %q, got %q", "internal server error", apiErr.Message)
+	}
+}
+
+func TestNewClient_DefaultBaseURL(t *testing.T) {
+	t.Parallel()
+	// Constructing without a base URL should not panic.
+	client := literlm.NewClient(literlm.WithAPIKey("k"))
+	if client == nil {
+		t.Fatal("expected non-nil client")
+	}
+}
+
+func TestWithBaseURL_TrailingSlashStripped(t *testing.T) {
+	t.Parallel()
+	// A trailing slash on the base URL must not produce double-slash paths.
+	// We verify this by pointing the client at a server and checking the
+	// request path.
+	var gotPath string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotPath = r.URL.Path
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"object":"list","data":[]}`)) //nolint:errcheck
+	}))
+	defer server.Close()
+
+	client := literlm.NewClient(
+		literlm.WithAPIKey("k"),
+		literlm.WithBaseURL(server.URL+"/"),
+	)
+	client.ListModels(context.Background()) //nolint:errcheck
+
+	if strings.Contains(gotPath, "//") {
+		t.Errorf("path contains double slash: %q", gotPath)
+	}
+}

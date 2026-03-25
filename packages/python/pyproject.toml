@@ -42,7 +42,7 @@ classifiers = [
   "Topic :: Software Development :: Libraries :: Python Modules",
   "Typing :: Typed",
 ]
-dependencies = []
+dependencies = [ "typing-extensions>=4.15; python_version<'3.13'" ]
 urls.Changelog = "https://github.com/kreuzberg-dev/liter-lm/blob/main/CHANGELOG.md"
 urls.Homepage = "https://github.com/kreuzberg-dev/liter-lm"
 urls.Issues = "https://github.com/kreuzberg-dev/liter-lm/issues"

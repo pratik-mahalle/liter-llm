@@ -25,7 +25,7 @@ pub enum EmbeddingInput {
 
 // ─── Response ─────────────────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct EmbeddingResponse {
     /// Always `"list"` from OpenAI-compatible APIs.  Stored as a plain
     /// `String` so non-standard provider values do not break deserialization.
@@ -35,7 +35,7 @@ pub struct EmbeddingResponse {
     pub usage: Usage,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct EmbeddingObject {
     /// Always `"embedding"` from OpenAI-compatible APIs.  Stored as a plain
     /// `String` so non-standard provider values do not break deserialization.

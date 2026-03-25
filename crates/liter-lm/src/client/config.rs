@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::time::Duration;
 
 use secrecy::SecretString;
@@ -21,7 +20,12 @@ pub struct ClientConfig {
     /// Maximum number of retries on 429 / 5xx responses.
     pub max_retries: u32,
     /// Extra headers sent on every request.
-    pub extra_headers: HashMap<String, String>,
+    ///
+    /// Use `Vec<(String, String)>` rather than `HashMap` to preserve insertion
+    /// order and avoid non-deterministic iteration when building the reqwest
+    /// `HeaderMap`.  Access via [`ClientConfig::headers`]; do not mutate
+    /// directly from outside this crate.
+    pub(crate) extra_headers: Vec<(String, String)>,
 }
 
 impl ClientConfig {
@@ -32,8 +36,13 @@ impl ClientConfig {
             base_url: None,
             timeout: Duration::from_secs(60),
             max_retries: 3,
-            extra_headers: HashMap::new(),
+            extra_headers: Vec::new(),
         }
+    }
+
+    /// Return the extra headers as an ordered slice of `(name, value)` pairs.
+    pub fn headers(&self) -> &[(String, String)] {
+        &self.extra_headers
     }
 }
 
@@ -98,7 +107,7 @@ impl ClientConfigBuilder {
             reason: e.to_string(),
         })?;
 
-        self.config.extra_headers.insert(key, value);
+        self.config.extra_headers.push((key, value));
         Ok(self)
     }
 

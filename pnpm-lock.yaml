@@ -8,7 +8,7 @@ importers:
 
   .: {}
 
-  crates/ts-pack-node:
+  crates/liter-lm-node:
     devDependencies:
       '@napi-rs/cli':
         specifier: ^3.5.1
@@ -16,9 +16,9 @@ importers:
 
   e2e/typescript:
     dependencies:
-      '@kreuzberg/tree-sitter-language-pack':
+      '@kreuzberg/liter-lm':
         specifier: workspace:*
-        version: link:../../crates/ts-pack-node
+        version: link:../../crates/liter-lm-node
     devDependencies:
       typescript:
         specifier: ^5.9.3

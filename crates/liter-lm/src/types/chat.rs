@@ -97,7 +97,7 @@ pub struct StreamOptions {
 
 // ─── Response ────────────────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ChatCompletionResponse {
     pub id: String,
     /// Always `"chat.completion"` from OpenAI-compatible APIs.  Stored as a
@@ -114,7 +114,7 @@ pub struct ChatCompletionResponse {
     pub service_tier: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Choice {
     pub index: u32,
     pub message: AssistantMessage,
@@ -123,7 +123,7 @@ pub struct Choice {
 
 // ─── Stream Chunk ────────────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ChatCompletionChunk {
     pub id: String,
     /// Always `"chat.completion.chunk"` from OpenAI-compatible APIs.  Stored
@@ -138,14 +138,14 @@ pub struct ChatCompletionChunk {
     pub service_tier: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct StreamChoice {
     pub index: u32,
     pub delta: StreamDelta,
     pub finish_reason: Option<FinishReason>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct StreamDelta {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub role: Option<String>,
@@ -160,7 +160,7 @@ pub struct StreamDelta {
     pub refusal: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct StreamToolCall {
     pub index: u32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -171,7 +171,7 @@ pub struct StreamToolCall {
     pub function: Option<StreamFunctionCall>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct StreamFunctionCall {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,

@@ -23,6 +23,22 @@ after_includes = """
   #endif
 #endif
 
+/* Compiler attribute helpers
+ *
+ * LITER_LM_WARN_UNUSED  — caller must not discard the return value (e.g. an
+ *                         allocated pointer or an error code).
+ * LITER_LM_NONNULL(...) — the listed 1-based argument positions must never be
+ *                         NULL.  Callers that pass NULL trigger UB; annotating
+ *                         this lets GCC/Clang warn at compile time.
+ */
+#if defined(__GNUC__) || defined(__clang__)
+#  define LITER_LM_WARN_UNUSED   __attribute__((warn_unused_result))
+#  define LITER_LM_NONNULL(...)  __attribute__((nonnull(__VA_ARGS__)))
+#else
+#  define LITER_LM_WARN_UNUSED
+#  define LITER_LM_NONNULL(...)
+#endif
+
 /**
  * Opaque handle to a liter-lm client.
  * Create with literlm_client_new(), free with literlm_client_free().

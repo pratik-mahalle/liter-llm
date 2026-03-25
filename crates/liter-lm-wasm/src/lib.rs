@@ -27,6 +27,243 @@ use serde::Deserialize;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 
+// ─── TypeScript type definitions ──────────────────────────────────────────────
+
+/// Injected verbatim into the generated `.d.ts` file so TypeScript consumers
+/// get full structural typing for every request and response object.
+///
+/// These mirror the Rust types in `crates/liter-lm/src/types/` exactly.
+#[wasm_bindgen(typescript_custom_section)]
+const TS_APPEND_CONTENT: &str = r#"
+/** Options accepted by the {@link LlmClient} constructor. */
+export interface LlmClientOptions {
+  /** API key for authentication.  Pass an empty string for providers that
+   *  do not require authentication. */
+  apiKey: string;
+  /** Override the provider base URL.  Omit to use OpenAI-compatible routing
+   *  based on the model-name prefix. */
+  baseUrl?: string;
+  /** Number of retries on 429 / 5xx responses (default: 3). */
+  maxRetries?: number;
+  /** Request timeout in seconds (default: 60). */
+  timeoutSecs?: number;
+}
+
+// ── Shared ────────────────────────────────────────────────────────────────────
+
+/** Token usage counts returned with chat and embedding responses. */
+export interface UsageResponse {
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+}
+
+// ── Content ───────────────────────────────────────────────────────────────────
+
+export interface ImageUrlParam {
+  url: string;
+  detail?: "low" | "high" | "auto";
+}
+
+export type ContentPartParam =
+  | { type: "text"; text: string }
+  | { type: "image_url"; image_url: ImageUrlParam };
+
+// ── Messages ──────────────────────────────────────────────────────────────────
+
+export interface MessageParam {
+  role: "system" | "user" | "assistant" | "tool" | "developer" | "function";
+  content: string | ContentPartParam[];
+  name?: string;
+  tool_call_id?: string;
+}
+
+// ── Tools ─────────────────────────────────────────────────────────────────────
+
+export interface FunctionDefinition {
+  name: string;
+  description?: string;
+  parameters?: Record<string, unknown>;
+  strict?: boolean;
+}
+
+export interface ToolParam {
+  type: "function";
+  function: FunctionDefinition;
+}
+
+export type ToolChoiceParam =
+  | "auto"
+  | "required"
+  | "none"
+  | { type: "function"; function: { name: string } };
+
+export interface FunctionCall {
+  name: string;
+  arguments: string;
+}
+
+export interface ToolCall {
+  id: string;
+  type: "function";
+  function: FunctionCall;
+}
+
+// ── Response format ───────────────────────────────────────────────────────────
+
+export interface JsonSchemaFormat {
+  name: string;
+  description?: string;
+  schema: Record<string, unknown>;
+  strict?: boolean;
+}
+
+export type ResponseFormatParam =
+  | { type: "text" }
+  | { type: "json_object" }
+  | { type: "json_schema"; json_schema: JsonSchemaFormat };
+
+// ── Chat request ─────────────────────────────────────────────────────────────
+
+export interface StreamOptions {
+  include_usage?: boolean;
+}
+
+/** Full OpenAI-compatible chat completion request. */
+export interface ChatCompletionRequest {
+  model: string;
+  messages: MessageParam[];
+  temperature?: number;
+  top_p?: number;
+  n?: number;
+  stream?: boolean;
+  stop?: string | string[];
+  max_tokens?: number;
+  presence_penalty?: number;
+  frequency_penalty?: number;
+  logit_bias?: Record<string, number>;
+  user?: string;
+  tools?: ToolParam[];
+  tool_choice?: ToolChoiceParam;
+  parallel_tool_calls?: boolean;
+  response_format?: ResponseFormatParam;
+  stream_options?: StreamOptions;
+  seed?: number;
+}
+
+// ── Chat response ─────────────────────────────────────────────────────────────
+
+export interface AssistantMessage {
+  content?: string | null;
+  name?: string;
+  tool_calls?: ToolCall[];
+  refusal?: string;
+  function_call?: FunctionCall;
+}
+
+export type FinishReason =
+  | "stop"
+  | "length"
+  | "tool_calls"
+  | "content_filter"
+  | "function_call"
+  | string;
+
+export interface Choice {
+  index: number;
+  message: AssistantMessage;
+  finish_reason: FinishReason | null;
+}
+
+/** Full OpenAI-compatible chat completion response. */
+export interface ChatCompletionResponse {
+  id: string;
+  object: string;
+  created: number;
+  model: string;
+  choices: Choice[];
+  usage?: UsageResponse;
+  system_fingerprint?: string;
+  service_tier?: string;
+}
+
+// ── Streaming chunk ───────────────────────────────────────────────────────────
+
+export interface StreamFunctionCall {
+  name?: string;
+  arguments?: string;
+}
+
+export interface StreamToolCall {
+  index: number;
+  id?: string;
+  type?: "function";
+  function?: StreamFunctionCall;
+}
+
+export interface StreamDelta {
+  role?: string;
+  content?: string | null;
+  tool_calls?: StreamToolCall[];
+  function_call?: StreamFunctionCall;
+  refusal?: string;
+}
+
+export interface StreamChoice {
+  index: number;
+  delta: StreamDelta;
+  finish_reason: string | null;
+}
+
+/** A single SSE chunk from a streaming chat completion. */
+export interface ChatCompletionChunk {
+  id: string;
+  object: string;
+  created: number;
+  model: string;
+  choices: StreamChoice[];
+  usage?: UsageResponse;
+  service_tier?: string;
+}
+
+// ── Embeddings ────────────────────────────────────────────────────────────────
+
+export interface EmbeddingRequest {
+  model: string;
+  input: string | string[];
+  encoding_format?: string;
+  dimensions?: number;
+  user?: string;
+}
+
+export interface EmbeddingObject {
+  object: string;
+  embedding: number[];
+  index: number;
+}
+
+export interface EmbeddingResponse {
+  object: string;
+  data: EmbeddingObject[];
+  model: string;
+  usage: UsageResponse;
+}
+
+// ── Models ────────────────────────────────────────────────────────────────────
+
+export interface ModelObject {
+  id: string;
+  object: string;
+  created: number;
+  owned_by: string;
+}
+
+export interface ModelsListResponse {
+  object: string;
+  data: ModelObject[];
+}
+"#;
+
 // ─── JS interop helpers ───────────────────────────────────────────────────────
 
 fn js_err(msg: impl std::fmt::Display) -> JsValue {

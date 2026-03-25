@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="LiterLm/LiterLm.csproj" />
+  <Project Path="LiterLm.Tests/LiterLm.Tests.csproj" />
+</Solution>

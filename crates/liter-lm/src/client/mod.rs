@@ -82,7 +82,7 @@ impl DefaultClient {
         // Validate and register extra headers on the shared reqwest client so
         // they are sent on every request without per-call overhead.
         let mut header_map = reqwest::header::HeaderMap::new();
-        for (k, v) in &config.extra_headers {
+        for (k, v) in config.headers() {
             let name =
                 reqwest::header::HeaderName::from_bytes(k.as_bytes()).map_err(|e| LiterLmError::InvalidHeader {
                     name: k.clone(),

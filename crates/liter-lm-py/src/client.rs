@@ -8,6 +8,7 @@ use pyo3::exceptions::{PyStopAsyncIteration, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList};
 use tokio::sync::{Mutex, mpsc};
+use tokio::task::JoinHandle;
 
 use crate::error::to_py_err;
 use crate::types::{PyChatCompletionChunk, PyChatCompletionResponse, PyEmbeddingResponse, PyModelsListResponse};
@@ -166,7 +167,7 @@ impl PyLlmClient {
         // future_into_py provides that context; we use a one-shot future here
         // purely to get into the runtime, then immediately return the iterator.
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
-            tokio::spawn(async move {
+            let handle = tokio::spawn(async move {
                 use std::pin::Pin;
                 use std::task::Context;
 
@@ -195,7 +196,11 @@ impl PyLlmClient {
                 }
             });
 
-            Ok(PyAsyncChunkIterator { rx, cancelled })
+            Ok(PyAsyncChunkIterator {
+                rx,
+                cancelled,
+                handle: Arc::new(Mutex::new(Some(handle))),
+            })
         })
     }
 
@@ -237,6 +242,7 @@ impl PyLlmClient {
 // ─── Async iterator for streaming ────────────────────────────────────────────
 
 type ChunkRx = mpsc::Receiver<liter_lm::Result<liter_lm::ChatCompletionChunk>>;
+type StreamHandle = JoinHandle<()>;
 
 /// Async iterator that yields `ChatCompletionChunk` objects.
 ///
@@ -253,6 +259,9 @@ pub struct PyAsyncChunkIterator {
     pub(crate) rx: Arc<Mutex<Option<ChunkRx>>>,
     /// Set to `true` to ask the background task to stop.
     cancelled: Arc<AtomicBool>,
+    /// JoinHandle for the background producer task.  Awaited in `__aexit__`
+    /// to surface any panics that occurred inside the background task.
+    handle: Arc<Mutex<Option<StreamHandle>>>,
 }
 
 #[pymethods]
@@ -293,7 +302,8 @@ impl PyAsyncChunkIterator {
         pyo3_async_runtimes::tokio::future_into_py(py, async move { Ok(pyobj) })
     }
 
-    /// Exit the async context manager.  Signals the background task to stop.
+    /// Exit the async context manager.  Signals the background task to stop
+    /// and awaits the JoinHandle to surface any panics from the background task.
     #[pyo3(signature = (_exc_type=None, _exc_val=None, _exc_tb=None))]
     fn __aexit__<'py>(
         &self,
@@ -306,9 +316,18 @@ impl PyAsyncChunkIterator {
         // background task's sends fail fast.
         self.cancelled.store(true, Ordering::Relaxed);
         let rx = Arc::clone(&self.rx);
+        let handle = Arc::clone(&self.handle);
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
             // Drop the receiver to unblock any pending send in the background task.
             *rx.lock().await = None;
+            // Await the background task to propagate any panics it may have raised.
+            if let Some(jh) = handle.lock().await.take() {
+                // A panic in the background task shows up as Err(JoinError).
+                // Surface it as a Python RuntimeError rather than silently dropping it.
+                jh.await.map_err(|e| {
+                    pyo3::exceptions::PyRuntimeError::new_err(format!("background stream task panicked: {e}"))
+                })?;
+            }
             Ok(false) // do not suppress exceptions
         })
     }

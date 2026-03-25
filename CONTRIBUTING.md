@@ -1,6 +1,6 @@
-# Contributing to Tree-Sitter Language Pack
+# Contributing to liter-lm
 
-Thank you for your interest in contributing to tree-sitter-language-pack! This guide will help you get started with development.
+Thank you for your interest in contributing to liter-lm! This guide will help you get started with development.
 
 ## Table of Contents
 
@@ -10,8 +10,7 @@ Thank you for your interest in contributing to tree-sitter-language-pack! This g
 - [Development Workflow](#development-workflow)
     - [Common Commands](#common-commands)
     - [Language-Specific Tasks](#language-specific-tasks)
-- [Parser Caching](#parser-caching)
-- [Adding Languages](#adding-languages)
+- [Adding Providers](#adding-providers)
 - [E2E Tests](#e2e-tests)
 - [Exploring Tasks](#exploring-tasks)
 - [Code Quality](#code-quality)
@@ -63,10 +62,7 @@ After installing Task, set up your development environment:
 # One-time setup - installs all dependencies
 task setup
 
-# Clone grammar sources
-task clone
-
-# Build in dev mode (a few languages, fast iteration)
+# Build in dev mode (fast iteration)
 task build:dev
 ```
 
@@ -77,10 +73,10 @@ The setup command will install Rust, Python, Node.js, Go, Java, and Elixir tooli
 ### Common Commands
 
 ```bash
-# Build all crates (all languages, dynamic mode)
+# Build all crates
 task build
 
-# Build in dev mode (few languages, fast iteration)
+# Build in dev mode (fast iteration)
 task build:dev
 
 # Build in release mode (optimized)
@@ -195,84 +191,48 @@ task c:e2e:build       # Build C E2E tests
 task c:e2e:test        # Run C E2E tests
 ```
 
-## Parser Caching
-
-Cloning 170+ tree-sitter grammar repositories is slow. The build system includes a multi-layer caching strategy to avoid redundant work.
-
-### How It Works
-
-1. **Cache manifest** (`parsers/.cache_manifest.json`): Tracks a SHA256-based key for each language derived from its full configuration (repo URL, revision, branch, directory, generate flag, ABI version). On subsequent runs, only languages whose configuration has changed — or whose parser files are missing from disk — are re-cloned.
-
-2. **CI cache** (`actions/cache@v4`): All CI workflows cache the `parsers/` directory keyed on `sources/language_definitions.json`. When definitions haven't changed between runs, the clone step completes instantly.
-
-3. **Stale entry cleanup**: If a language is removed from `language_definitions.json`, the next run deletes its parser directory and manifest entry automatically.
-
-### Environment Variables
-
-| Variable | Default | Description |
-| --- | --- | --- |
-| `TSLP_CACHE_DIR` | `<project_root>/parsers` | Override the directory where compiled parser sources are stored |
-| `TSLP_VENDOR_DIR` | `<project_root>/vendor` | Override the directory where grammar repos are cloned |
-| `TSLP_NO_CACHE` | (unset) | Set to `1`, `true`, or `yes` to force a full re-clone, ignoring the cache manifest |
-
-### Common Scenarios
-
-```bash
-# Normal clone (uses cache, only re-clones changed languages)
-task clone
-
-# Force full re-clone (deletes parsers/ and vendor/, re-clones everything)
-TSLP_NO_CACHE=1 task clone
-
-# Use a custom cache directory (useful for shared CI caches)
-TSLP_CACHE_DIR=/tmp/tslp-parsers task clone
-```
-
-## Adding Languages
-
-### License Requirements
-
-All included grammars **must** be released under a permissive open-source license such as MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, or Unlicense. We do **not** accept grammars licensed under GPL, AGPL, LGPL, MPL, or any other copyleft license. This policy ensures that tree-sitter-language-pack can be freely used in any project — commercial or otherwise — without imposing license obligations on downstream users.
-
-Before proposing a new grammar, verify its license by checking the `LICENSE` file in the grammar repository.
+## Adding Providers
 
 ### Steps
 
-1. **Add a language definition** to `sources/language_definitions.json`:
+1. **Add a provider entry** to `schemas/providers.json`:
 
     ```json
     {
-      "language_name": {
-        "repo": "https://github.com/tree-sitter/tree-sitter-language",
-        "rev": "commit-hash",
-        "branch": "main",
-        "directory": "path/to/src",
-        "generate": false
+      "my-provider": {
+        "base_url": "https://api.myprovider.com/v1",
+        "auth_header": "Authorization",
+        "auth_prefix": "Bearer",
+        "model_prefixes": ["my-provider/"],
+        "parameter_mappings": {}
       }
     }
     ```
 
     Fields:
 
-    - `repo` (required): Repository URL
-    - `rev` (required): Specific commit hash for reproducible builds
-    - `branch` (optional): Branch name if not "main"
-    - `directory` (optional): Path to src folder if not in root
-    - `generate` (optional): Run tree-sitter generate command
+    - `base_url` (required): Provider API base URL
+    - `auth_header` (required): Header name for authentication
+    - `auth_prefix` (optional): Prefix for the auth value (e.g. "Bearer")
+    - `model_prefixes` (required): Model name prefixes that route to this provider
+    - `parameter_mappings` (optional): Map OpenAI parameter names to provider-specific names
 
-1. **Add a Cargo feature** for the language in `crates/ts-pack-core/Cargo.toml`
-
-1. **Clone and build**
+1. **Regenerate types**
 
     ```bash
-    task clone
-    task build:dev
+    task generate:types
     ```
 
-1. **Regenerate E2E smoke fixtures and test**
+1. **Build and test**
 
     ```bash
-    task e2e:generate:smoke-fixtures
+    task build:dev
+    task test
+    ```
+
+1. **Regenerate E2E tests**
+
+    ```bash
     task e2e:generate:all
     task test
     ```
@@ -296,9 +256,6 @@ task e2e:generate:c
 
 # Run Rust E2E tests
 task e2e:test:rust
-
-# Auto-generate smoke fixtures from language_definitions.json
-task e2e:generate:smoke-fixtures
 ```
 
 Generated test files in `e2e/` should not be edited directly — modify fixtures or the generator source instead.
@@ -332,18 +289,18 @@ prek run --all-files
 
 We use conventional commits:
 
-- `feat: add support for tree-sitter-language`
-- `fix: correct parser initialization for language`
+- `feat: add support for new-provider`
+- `fix: correct auth header injection`
 - `docs: update installation instructions`
 - `chore: update dependencies`
-- `test: add tests for new language`
+- `test: add tests for streaming`
 
 ## Submitting Changes
 
 1. **Create a feature branch**
 
     ```bash
-    git checkout -b feat/add-language-support
+    git checkout -b feat/add-provider-support
     ```
 
 1. **Make your changes** and run checks locally:
@@ -355,26 +312,13 @@ We use conventional commits:
 1. **Commit and push**
 
     ```bash
-    git commit -m "feat: add support for new language"
-    git push origin feat/add-language-support
+    git commit -m "feat: add support for new provider"
+    git push origin feat/add-provider-support
     ```
 
 1. **Create a Pull Request** — link any related issues and ensure CI passes.
 
 ## Maintenance Tasks
-
-### Updating Language Versions
-
-```bash
-# Update all languages to latest revisions
-uv run --no-sync scripts/pin_vendors.py
-
-# Update only missing revisions
-uv run --no-sync scripts/pin_vendors.py --only-missing
-
-# Update specific languages
-uv run --no-sync scripts/pin_vendors.py --languages=python,rust,go
-```
 
 ### Version Synchronization
 
@@ -386,7 +330,7 @@ task version:sync
 
 ## Questions?
 
-- Check existing [issues](https://github.com/kreuzberg-dev/tree-sitter-language-pack/issues)
+- Check existing [issues](https://github.com/kreuzberg-dev/liter-lm/issues)
 - Join our [Discord community](https://discord.gg/xt9WY3GnKR)
 
-Thank you for contributing to tree-sitter-language-pack!
+Thank you for contributing to liter-lm!

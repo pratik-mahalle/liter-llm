@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 // ─── Responses ────────────────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ModelsListResponse {
     /// Always `"list"` from OpenAI-compatible APIs.  Stored as a plain
     /// `String` so non-standard provider values do not break deserialization.
@@ -10,7 +10,7 @@ pub struct ModelsListResponse {
     pub data: Vec<ModelObject>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ModelObject {
     pub id: String,
     /// Always `"model"` from OpenAI-compatible APIs.  Stored as a plain

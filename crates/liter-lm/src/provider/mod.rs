@@ -44,11 +44,27 @@ pub struct ProviderConfig {
     pub param_mappings: Option<HashMap<String, String>>,
 }
 
+/// Auth scheme used by a provider.
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
+pub enum AuthType {
+    /// Standard `Authorization: Bearer <key>` header.
+    Bearer,
+    /// `x-api-key: <key>` header (also handles `"header"` and `"x-api-key"` aliases).
+    #[serde(alias = "header", alias = "x-api-key")]
+    ApiKey,
+    /// No authentication header required.
+    None,
+    /// Unrecognised auth scheme — falls back to bearer.
+    #[serde(other)]
+    Unknown,
+}
+
 /// Auth configuration block.
 #[derive(Debug, Clone, Deserialize)]
 pub struct AuthConfig {
     #[serde(rename = "type")]
-    pub auth_type: String,
+    pub auth_type: AuthType,
     pub env_var: Option<String>,
 }
 
@@ -229,18 +245,20 @@ impl Provider for ConfigDrivenProvider {
             .config
             .auth
             .as_ref()
-            .map(|a| a.auth_type.as_str())
-            .unwrap_or("bearer");
+            .map(|a| &a.auth_type)
+            .unwrap_or(&AuthType::Bearer);
 
         match auth_type {
-            "none" => {
+            AuthType::None => {
                 // No auth header required; return empty values that the HTTP
                 // layer will ignore when the key is also empty.
                 (Cow::Borrowed(""), Cow::Borrowed(""))
             }
-            "api-key" | "header" | "x-api-key" => (Cow::Borrowed("x-api-key"), Cow::Borrowed(api_key)),
-            // "bearer" and anything else defaults to Bearer token.
-            _ => (Cow::Borrowed("Authorization"), Cow::Owned(format!("Bearer {api_key}"))),
+            AuthType::ApiKey => (Cow::Borrowed("x-api-key"), Cow::Borrowed(api_key)),
+            // Bearer, Unknown, and anything else defaults to Bearer token.
+            AuthType::Bearer | AuthType::Unknown => {
+                (Cow::Borrowed("Authorization"), Cow::Owned(format!("Bearer {api_key}")))
+            }
         }
     }
 

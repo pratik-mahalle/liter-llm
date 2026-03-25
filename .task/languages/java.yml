@@ -1,80 +1,153 @@
 version: "3"
 
 vars:
-  FFI_LIB_PATH: '{{.PROJECT_ROOT}}/target/release/libliter_lm_ffi.{{if eq OS "darwin"}}dylib{{else if eq OS "windows"}}dll{{else}}so{{end}}'
+  JAVA_VERSION: "25"
 
 tasks:
-  deps:
-    desc: Resolve Java/Maven dependencies
-    dir: crates/liter-lm-java
+  install:
+    desc: Install Java dependencies
+    dir: packages/java
     cmds:
-      - mvn dependency:resolve -q
+      - cmd: bash -c 'if [ -f ~/.sdkman/bin/sdkman-init.sh ]; then source ~/.sdkman/bin/sdkman-init.sh && sdk use java 25.0.2-tem && sdk use maven 3.9.11; fi && mvn clean install -DskipTests'
+        platforms: [linux, darwin]
+      - cmd: mvn clean install -DskipTests
+        platforms: [windows]
 
-  build:ffi:
-    desc: Build FFI shared library for Java
-    env:
-      PROJECT_ROOT: "{{.PROJECT_ROOT}}"
+  setup:
+    desc: Setup Java environment (alias for install)
+    dir: packages/java
     cmds:
-      - cargo build -p liter-lm-ffi --release
+      - task: java:install
 
   build:
-    desc: Build FFI library and Java package
-    deps: [build:ffi]
-    dir: crates/liter-lm-java
+    desc: Build Java package (depends on Rust FFI)
     cmds:
-      - mvn package -DskipTests -q
+      - cmd: bash -c 'if [ -f ~/.sdkman/bin/sdkman-init.sh ]; then source ~/.sdkman/bin/sdkman-init.sh && sdk use java 25.0.2-tem && sdk use maven 3.9.11; fi && mvn -f packages/java/pom.xml clean package -DskipTests'
+        platforms: [linux, darwin]
+      - cmd: mvn -f packages/java/pom.xml clean package -DskipTests
+        platforms: [windows]
+
+  build:dev:
+    desc: Build Java package in debug mode
+    dir: packages/java
+    cmds:
+      - cmd: bash -c 'if [ -f ~/.sdkman/bin/sdkman-init.sh ]; then source ~/.sdkman/bin/sdkman-init.sh && sdk use java 25.0.2-tem && sdk use maven 3.9.11; fi && mvn clean package -DskipTests -DdebugMode=true'
+        platforms: [linux, darwin]
+      - cmd: mvn clean package -DskipTests -DdebugMode=true
+        platforms: [windows]
+
+  build:release:
+    desc: Build Java package in release mode (optimized)
+    cmds:
+      - cmd: bash -c 'if [ -f ~/.sdkman/bin/sdkman-init.sh ]; then source ~/.sdkman/bin/sdkman-init.sh && sdk use java 25.0.2-tem && sdk use maven 3.9.11; fi && mvn -f packages/java/pom.xml clean package -DskipTests -Pproduction'
+        platforms: [linux, darwin]
+      - cmd: mvn -f packages/java/pom.xml clean package -DskipTests -Pproduction
+        platforms: [windows]
+
+  build:ci:
+    desc: Build Java package in CI mode
+    cmds:
+      - cmd: bash -c 'if [ -f ~/.sdkman/bin/sdkman-init.sh ]; then source ~/.sdkman/bin/sdkman-init.sh && sdk use java 25.0.2-tem && sdk use maven 3.9.11; fi && mvn -f packages/java/pom.xml clean package -DskipTests'
+        platforms: [linux, darwin]
+      - cmd: mvn -f packages/java/pom.xml clean package -DskipTests
+        platforms: [windows]
 
   test:
-    desc: Run Java tests (requires FFI built first)
-    deps: [build:ffi]
-    dir: crates/liter-lm-java
+    desc: Run Java tests
+    dir: packages/java
+    cmds:
+      - cmd: bash -c 'if [ -f ~/.sdkman/bin/sdkman-init.sh ]; then source ~/.sdkman/bin/sdkman-init.sh && sdk use java 25.0.2-tem && sdk use maven 3.9.11; fi && mvn test -q'
+        platforms: [linux, darwin]
+      - cmd: mvn test -q
+        platforms: [windows]
+
+  test:ci:
+    desc: Run Java tests in CI mode
     env:
-      TSPACK_LIB_PATH: "{{.FFI_LIB_PATH}}"
+      MAVEN_OPTS: "-Xmx1024m"
+    dir: packages/java
     cmds:
-      - mvn test
+      - cmd: bash -c 'if [ -f ~/.sdkman/bin/sdkman-init.sh ]; then source ~/.sdkman/bin/sdkman-init.sh && sdk use java 25.0.2-tem && sdk use maven 3.9.11; fi && mvn test -B -q'
+        platforms: [linux, darwin]
+      - cmd: mvn test -B -q
+        platforms: [windows]
 
-  format:
-    desc: Format Java code
-    dir: crates/liter-lm-java
+  test:verbose:
+    desc: Run Java tests with verbose output
+    dir: packages/java
     cmds:
-      - mvn com.spotify.fmt:fmt-maven-plugin:format
-
-  format:check:
-    desc: Check Java formatting (CI)
-    dir: crates/liter-lm-java
-    cmds:
-      - mvn com.spotify.fmt:fmt-maven-plugin:check
+      - cmd: bash -c 'if [ -f ~/.sdkman/bin/sdkman-init.sh ]; then source ~/.sdkman/bin/sdkman-init.sh && sdk use java 25.0.2-tem && sdk use maven 3.9.11; fi && mvn test -X'
+        platforms: [linux, darwin]
+      - cmd: mvn test -X
+        platforms: [windows]
 
   lint:
-    desc: Lint Java code
-    dir: crates/liter-lm-java
+    desc: Lint all Java code (spotless check + checkstyle + PMD)
+    dir: packages/java
     cmds:
-      - mvn com.spotify.fmt:fmt-maven-plugin:check
+      - cmd: bash -c 'if [ -f ~/.sdkman/bin/sdkman-init.sh ]; then source ~/.sdkman/bin/sdkman-init.sh && sdk use java 25.0.2-tem && sdk use maven 3.9.11; fi && mvn spotless:check && mvn checkstyle:check && mvn pmd:check pmd:cpd-check'
+        platforms: [linux, darwin]
+      - cmd: |
+          mvn spotless:check
+          mvn checkstyle:check
+          mvn pmd:check pmd:cpd-check
+        platforms: [windows]
 
   lint:check:
-    desc: Check Java linting without modifications (CI)
-    dir: crates/liter-lm-java
+    desc: Check all Java code linting without modifications
+    dir: packages/java
     cmds:
-      - mvn com.spotify.fmt:fmt-maven-plugin:check
+      - cmd: bash -c 'if [ -f ~/.sdkman/bin/sdkman-init.sh ]; then source ~/.sdkman/bin/sdkman-init.sh && sdk use java 25.0.2-tem && sdk use maven 3.9.11; fi && mvn spotless:check && mvn checkstyle:check && mvn pmd:check pmd:cpd-check'
+        platforms: [linux, darwin]
+      - cmd: |
+          mvn spotless:check
+          mvn checkstyle:check
+          mvn pmd:check pmd:cpd-check
+        platforms: [windows]
 
-  update:
-    desc: Update Java dependencies and plugins (including linters)
-    dir: crates/liter-lm-java
+  format:
+    desc: Format all Java code (spotless)
+    dir: packages/java
     cmds:
-      - echo "Updating Java dependencies and plugins..."
-      - mvn -DallowSnapshots=false versions:use-latest-releases -DprocessDependencies=true -DprocessParent=false -DgenerateBackupPoms=false
-      - echo "Updating plugin versions in properties..."
-      - mvn -DallowSnapshots=false versions:update-properties -DgenerateBackupPoms=false || true
-      - echo "Displaying final dependency updates..."
-      - mvn -DallowSnapshots=false versions:display-dependency-updates
-      - echo "Displaying final plugin updates..."
-      - mvn -DallowSnapshots=false versions:display-plugin-updates
+      - cmd: bash -c 'if [ -f ~/.sdkman/bin/sdkman-init.sh ]; then source ~/.sdkman/bin/sdkman-init.sh && sdk use java 25.0.2-tem && sdk use maven 3.9.11; fi && mvn spotless:apply'
+        platforms: [linux, darwin]
+      - cmd: mvn spotless:apply
+        platforms: [windows]
+
+  format:check:
+    desc: Check all Java code formatting (spotless)
+    dir: packages/java
+    cmds:
+      - cmd: bash -c 'if [ -f ~/.sdkman/bin/sdkman-init.sh ]; then source ~/.sdkman/bin/sdkman-init.sh && sdk use java 25.0.2-tem && sdk use maven 3.9.11; fi && mvn spotless:check'
+        platforms: [linux, darwin]
+      - cmd: mvn spotless:check
+        platforms: [windows]
 
   clean:
     desc: Clean Java build artifacts
-    dir: crates/liter-lm-java
+    dir: packages/java
     cmds:
-      - mvn clean -q
+      - cmd: bash -c 'if [ -f ~/.sdkman/bin/sdkman-init.sh ]; then source ~/.sdkman/bin/sdkman-init.sh && sdk use java 25.0.2-tem && sdk use maven 3.9.11; fi && mvn clean'
+        platforms: [linux, darwin]
+      - cmd: mvn clean
+        platforms: [windows]
+
+  update:
+    desc: Update Java dependencies and plugins (including linters)
+    dir: packages/java
+    cmds:
+      - cmd: bash -c 'if [ -f ~/.sdkman/bin/sdkman-init.sh ]; then source ~/.sdkman/bin/sdkman-init.sh && sdk use java 25.0.2-tem && sdk use maven 3.9.11; fi && echo "Updating Java dependencies and plugins..." && mvn -DallowSnapshots=false versions:use-latest-releases -DprocessDependencies=true -DprocessParent=false && echo "Updating plugin versions in properties..." && mvn -DallowSnapshots=false versions:update-properties && echo "Displaying final dependency updates..." && mvn -DallowSnapshots=false versions:display-dependency-updates && echo "Displaying final plugin updates..." && mvn -DallowSnapshots=false versions:display-plugin-updates'
+        platforms: [linux, darwin]
+      - cmd: |
+          echo "Updating Java dependencies and plugins..."
+          mvn -DallowSnapshots=false versions:use-latest-releases -DprocessDependencies=true -DprocessParent=false
+          echo "Updating plugin versions in properties..."
+          mvn -DallowSnapshots=false versions:update-properties
+          echo "Displaying final dependency updates..."
+          mvn -DallowSnapshots=false versions:display-dependency-updates
+          echo "Displaying final plugin updates..."
+          mvn -DallowSnapshots=false versions:display-plugin-updates
+        platforms: [windows]
 
   e2e:generate:
     desc: Generate Java E2E tests from fixtures
@@ -82,12 +155,39 @@ tasks:
       PROJECT_ROOT: "{{.PROJECT_ROOT}}"
     cmds:
       - cargo run -p codegen -- generate --lang java
+      - task: e2e:format
+
+  e2e:format:
+    desc: Format Java E2E code
+    dir: e2e/java
+    cmds:
+      - cmd: bash -c 'if [ -f ~/.sdkman/bin/sdkman-init.sh ]; then source ~/.sdkman/bin/sdkman-init.sh && sdk use java 25.0.2-tem && sdk use maven 3.9.11; fi && if grep -q spotless-maven-plugin pom.xml; then mvn -q spotless:apply; fi'
+        platforms: [linux, darwin]
+
+  e2e:lint:
+    desc: Lint Java E2E code
+    dir: e2e/java
+    cmds:
+      - cmd: bash -c 'if [ -f ~/.sdkman/bin/sdkman-init.sh ]; then source ~/.sdkman/bin/sdkman-init.sh && sdk use java 25.0.2-tem && sdk use maven 3.9.11; fi && mvn checkstyle:check && mvn pmd:check pmd:cpd-check'
+        platforms: [linux, darwin]
+      - cmd: |
+          mvn checkstyle:check
+          mvn pmd:check pmd:cpd-check
+        platforms: [windows]
 
   e2e:test:
     desc: Run Java E2E tests
-    deps: [build:ffi]
     dir: e2e/java
-    env:
-      TSPACK_LIB_PATH: "{{.FFI_LIB_PATH}}"
     cmds:
-      - mvn test
+      - cmd: bash -c 'if [ -f ~/.sdkman/bin/sdkman-init.sh ]; then source ~/.sdkman/bin/sdkman-init.sh && sdk use java 25.0.2-tem && sdk use maven 3.9.11; fi && mvn -B -DtrimStackTrace=false -Dsurefire.useFile=false test'
+        platforms: [linux, darwin]
+      - cmd: mvn -B -DtrimStackTrace=false -Dsurefire.useFile=false test
+        platforms: [windows]
+
+  e2e:verify:
+    desc: Regenerate and validate Java E2E suite (build + generate + lint + test)
+    cmds:
+      - task: build
+      - task: e2e:generate
+      - task: e2e:lint
+      - task: e2e:test

@@ -3,17 +3,15 @@ use pyo3::prelude::*;
 // ─── Shared helper ────────────────────────────────────────────────────────────
 
 /// Convert a [`liter_lm::types::FinishReason`] to its canonical snake_case
-/// string representation.  Extracted to avoid duplicating the match block in
-/// both `PyChoice` and `PyStreamChoice`.
+/// string representation, reusing the serde rename metadata so this function
+/// never diverges from the wire format.
 fn finish_reason_str(r: &liter_lm::types::FinishReason) -> String {
-    match r {
-        liter_lm::types::FinishReason::Stop => "stop".to_owned(),
-        liter_lm::types::FinishReason::Length => "length".to_owned(),
-        liter_lm::types::FinishReason::ToolCalls => "tool_calls".to_owned(),
-        liter_lm::types::FinishReason::ContentFilter => "content_filter".to_owned(),
-        liter_lm::types::FinishReason::FunctionCall => "function_call".to_owned(),
-        liter_lm::types::FinishReason::Other => "other".to_owned(),
-    }
+    // serde_json serialises the enum using its `#[serde(rename_all = "snake_case")]`
+    // annotations, so we get the canonical wire string without a manual match.
+    serde_json::to_value(r)
+        .ok()
+        .and_then(|v| v.as_str().map(str::to_owned))
+        .unwrap_or_else(|| "other".to_owned())
 }
 
 // ─── Usage ────────────────────────────────────────────────────────────────────
@@ -183,6 +181,7 @@ impl PyAssistantMessage {
         self.inner.content == other.inner.content
             && self.inner.name == other.inner.name
             && self.inner.refusal == other.inner.refusal
+            && self.inner.tool_calls == other.inner.tool_calls
     }
 }
 
@@ -231,7 +230,9 @@ impl PyChoice {
     }
 
     fn __eq__(&self, other: &PyChoice) -> bool {
-        self.inner.index == other.inner.index && self.inner.finish_reason == other.inner.finish_reason
+        self.inner.index == other.inner.index
+            && self.inner.finish_reason == other.inner.finish_reason
+            && self.inner.message == other.inner.message
     }
 }
 
@@ -308,7 +309,11 @@ impl PyChatCompletionResponse {
     }
 
     fn __eq__(&self, other: &PyChatCompletionResponse) -> bool {
-        self.inner.id == other.inner.id && self.inner.model == other.inner.model
+        self.inner.id == other.inner.id
+            && self.inner.model == other.inner.model
+            && self.inner.created == other.inner.created
+            && self.inner.choices == other.inner.choices
+            && self.inner.usage == other.inner.usage
     }
 }
 
@@ -394,7 +399,9 @@ impl PyStreamChoice {
     }
 
     fn __eq__(&self, other: &PyStreamChoice) -> bool {
-        self.inner.index == other.inner.index && self.inner.finish_reason == other.inner.finish_reason
+        self.inner.index == other.inner.index
+            && self.inner.finish_reason == other.inner.finish_reason
+            && self.inner.delta == other.inner.delta
     }
 }
 
@@ -452,7 +459,10 @@ impl PyChatCompletionChunk {
     }
 
     fn __eq__(&self, other: &PyChatCompletionChunk) -> bool {
-        self.inner.id == other.inner.id && self.inner.model == other.inner.model
+        self.inner.id == other.inner.id
+            && self.inner.model == other.inner.model
+            && self.inner.created == other.inner.created
+            && self.inner.choices == other.inner.choices
     }
 }
 
@@ -545,6 +555,8 @@ impl PyEmbeddingResponse {
 
     fn __eq__(&self, other: &PyEmbeddingResponse) -> bool {
         self.inner.model == other.inner.model
+            && self.inner.data == other.inner.data
+            && self.inner.usage == other.inner.usage
     }
 }
 
@@ -614,7 +626,7 @@ impl PyModelsListResponse {
     }
 
     fn __eq__(&self, other: &PyModelsListResponse) -> bool {
-        self.inner.data.len() == other.inner.data.len()
+        self.inner.data == other.inner.data
     }
 }
 

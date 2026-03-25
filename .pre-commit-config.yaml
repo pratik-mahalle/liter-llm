@@ -75,11 +75,11 @@ repos:
             "--allow-staged",
             "--workspace",
             "--exclude",
-            "ts-pack-ruby",
+            "liter-lm-ruby",
             "--exclude",
-            "ts-pack-php",
+            "liter-lm-php",
             "--exclude",
-            "ts-pack-wasm",
+            "liter-lm-wasm",
             "--all-targets",
             "--",
             "-D",
@@ -147,7 +147,7 @@ repos:
     hooks:
       - id: clang-format
         args: [--style=file]
-        files: (^crates/ts-pack-ffi/)
+        files: (^crates/liter-lm-ffi/)
         exclude: (include/)
       - id: cppcheck
         args:
@@ -156,7 +156,7 @@ repos:
             "--enable=warning,style,performance",
             "--suppress=missingIncludeSystem",
           ]
-        files: (^crates/ts-pack-ffi/)
+        files: (^crates/liter-lm-ffi/)
 
   # Go: formatting and linting via Taskfile
   - repo: local
