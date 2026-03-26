@@ -1,0 +1,30 @@
+{
+	"id": "error_transcribe_auth_401",
+	"category": "transcribe",
+	"description": "401 Unauthorized for transcription with invalid API key",
+	"api": {
+		"method": "transcribe",
+		"request": {
+			"model": "whisper-1",
+			"file": "audio.mp3"
+		},
+		"mock_response": {
+			"status": 401,
+			"body": {
+				"error": {
+					"message": "Incorrect API key provided.",
+					"type": "invalid_request_error",
+					"param": null,
+					"code": "invalid_api_key"
+				}
+			}
+		}
+	},
+	"assertions": {
+		"expect_success": false,
+		"error_type": "Authentication",
+		"error_status_code": 401
+	},
+	"tags": ["error-handling", "transcribe"],
+	"skip": {}
+}

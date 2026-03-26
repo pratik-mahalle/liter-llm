@@ -1,0 +1,24 @@
+{
+	"id": "edge_transcribe_empty_audio",
+	"category": "transcribe",
+	"description": "Transcription of a silent or empty audio file returns empty text",
+	"api": {
+		"method": "transcribe",
+		"request": {
+			"model": "whisper-1",
+			"file": "silence.mp3"
+		},
+		"mock_response": {
+			"status": 200,
+			"body": {
+				"text": ""
+			}
+		}
+	},
+	"assertions": {
+		"response_not_null": true,
+		"transcription_text": ""
+	},
+	"tags": ["edge-case", "transcribe"],
+	"skip": {}
+}

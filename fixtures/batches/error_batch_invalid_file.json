@@ -1,0 +1,31 @@
+{
+	"id": "error_batch_invalid_file",
+	"category": "batches",
+	"description": "400 Bad Request when creating a batch with invalid input file",
+	"api": {
+		"method": "create_batch",
+		"request": {
+			"input_file_id": "file-wrong-purpose",
+			"endpoint": "/v1/chat/completions",
+			"completion_window": "24h"
+		},
+		"mock_response": {
+			"status": 400,
+			"body": {
+				"error": {
+					"message": "The file 'file-wrong-purpose' has purpose 'fine-tune', but batch requires 'batch'.",
+					"type": "invalid_request_error",
+					"param": "input_file_id",
+					"code": null
+				}
+			}
+		}
+	},
+	"assertions": {
+		"expect_success": false,
+		"error_type": "InvalidRequest",
+		"error_status_code": 400
+	},
+	"tags": ["error-handling", "batches"],
+	"skip": {}
+}

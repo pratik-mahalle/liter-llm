@@ -1,0 +1,35 @@
+{
+	"id": "smoke_cancel_response",
+	"category": "responses",
+	"description": "Cancel an in-progress response",
+	"api": {
+		"method": "cancel_response",
+		"request": {
+			"response_id": "resp-def456"
+		},
+		"mock_response": {
+			"status": 200,
+			"body": {
+				"id": "resp-def456",
+				"object": "response",
+				"created_at": 1711000000,
+				"status": "cancelled",
+				"model": "gpt-4o",
+				"output": [],
+				"usage": {
+					"input_tokens": 10,
+					"output_tokens": 0,
+					"total_tokens": 10
+				}
+			}
+		}
+	},
+	"assertions": {
+		"response_not_null": true,
+		"response_id": "resp-def456",
+		"response_status": "cancelled",
+		"response_output_count": 0
+	},
+	"tags": ["smoke", "responses"],
+	"skip": {}
+}

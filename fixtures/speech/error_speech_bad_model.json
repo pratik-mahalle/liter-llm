@@ -1,0 +1,31 @@
+{
+	"id": "error_speech_bad_model",
+	"category": "speech",
+	"description": "400 Bad Request for speech with unsupported model",
+	"api": {
+		"method": "speech",
+		"request": {
+			"model": "tts-nonexistent",
+			"input": "Hello",
+			"voice": "alloy"
+		},
+		"mock_response": {
+			"status": 400,
+			"body": {
+				"error": {
+					"message": "The model 'tts-nonexistent' does not exist.",
+					"type": "invalid_request_error",
+					"param": "model",
+					"code": "model_not_found"
+				}
+			}
+		}
+	},
+	"assertions": {
+		"expect_success": false,
+		"error_type": "InvalidRequest",
+		"error_status_code": 400
+	},
+	"tags": ["error-handling", "speech"],
+	"skip": {}
+}

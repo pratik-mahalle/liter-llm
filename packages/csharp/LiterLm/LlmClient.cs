@@ -129,6 +129,275 @@ public sealed class LlmClient : IDisposable, IAsyncDisposable
         return Deserialize<ModelsListResponse>(responseJson);
     }
 
+    // ─── Inference API ────────────────────────────────────────────────────────
+
+    /// <summary>Generates an image from a text prompt.</summary>
+    /// <param name="request">The image generation request.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The provider's images response.</returns>
+    /// <exception cref="LlmException">Thrown when the request fails for any reason.</exception>
+    public async Task<ImagesResponse> ImageGenerateAsync(
+        CreateImageRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var body = Serialize(request);
+        var responseJson = await PostAsync("images/generations", body, cancellationToken)
+            .ConfigureAwait(false);
+        return Deserialize<ImagesResponse>(responseJson);
+    }
+
+    /// <summary>Generates audio speech from text, returning raw audio bytes.</summary>
+    /// <param name="request">The speech request.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Raw audio bytes.</returns>
+    /// <exception cref="LlmException">Thrown when the request fails for any reason.</exception>
+    public async Task<byte[]> SpeechAsync(
+        CreateSpeechRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var body = Serialize(request);
+        return await PostForBytesAsync("audio/speech", body, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    /// <summary>Transcribes audio to text.</summary>
+    /// <param name="request">The transcription request.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The transcription response.</returns>
+    /// <exception cref="LlmException">Thrown when the request fails for any reason.</exception>
+    public async Task<TranscriptionResponse> TranscribeAsync(
+        CreateTranscriptionRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var body = Serialize(request);
+        var responseJson = await PostAsync("audio/transcriptions", body, cancellationToken)
+            .ConfigureAwait(false);
+        return Deserialize<TranscriptionResponse>(responseJson);
+    }
+
+    /// <summary>Checks content against moderation policies.</summary>
+    /// <param name="request">The moderation request.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The moderation response.</returns>
+    /// <exception cref="LlmException">Thrown when the request fails for any reason.</exception>
+    public async Task<ModerationResponse> ModerateAsync(
+        ModerationRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var body = Serialize(request);
+        var responseJson = await PostAsync("moderations", body, cancellationToken)
+            .ConfigureAwait(false);
+        return Deserialize<ModerationResponse>(responseJson);
+    }
+
+    /// <summary>Reranks documents by relevance to a query.</summary>
+    /// <param name="request">The rerank request.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The rerank response.</returns>
+    /// <exception cref="LlmException">Thrown when the request fails for any reason.</exception>
+    public async Task<RerankResponse> RerankAsync(
+        RerankRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var body = Serialize(request);
+        var responseJson = await PostAsync("rerank", body, cancellationToken)
+            .ConfigureAwait(false);
+        return Deserialize<RerankResponse>(responseJson);
+    }
+
+    // ─── File Management ──────────────────────────────────────────────────────
+
+    /// <summary>Uploads a file.</summary>
+    /// <param name="request">The file upload request.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The created file object.</returns>
+    /// <exception cref="LlmException">Thrown when the request fails for any reason.</exception>
+    public async Task<FileObject> CreateFileAsync(
+        CreateFileRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var body = Serialize(request);
+        var responseJson = await PostAsync("files", body, cancellationToken)
+            .ConfigureAwait(false);
+        return Deserialize<FileObject>(responseJson);
+    }
+
+    /// <summary>Retrieves metadata for a file by ID.</summary>
+    /// <param name="fileId">The file identifier.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The file object.</returns>
+    /// <exception cref="LlmException">Thrown when the request fails for any reason.</exception>
+    public async Task<FileObject> RetrieveFileAsync(
+        string fileId,
+        CancellationToken cancellationToken = default)
+    {
+        var responseJson = await GetAsync($"files/{fileId}", cancellationToken)
+            .ConfigureAwait(false);
+        return Deserialize<FileObject>(responseJson);
+    }
+
+    /// <summary>Deletes a file by ID.</summary>
+    /// <param name="fileId">The file identifier.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The delete confirmation response.</returns>
+    /// <exception cref="LlmException">Thrown when the request fails for any reason.</exception>
+    public async Task<DeleteResponse> DeleteFileAsync(
+        string fileId,
+        CancellationToken cancellationToken = default)
+    {
+        var responseJson = await DeleteAsync($"files/{fileId}", cancellationToken)
+            .ConfigureAwait(false);
+        return Deserialize<DeleteResponse>(responseJson);
+    }
+
+    /// <summary>Lists files, optionally filtered by query parameters.</summary>
+    /// <param name="query">Optional query parameters; may be <c>null</c>.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The file list response.</returns>
+    /// <exception cref="LlmException">Thrown when the request fails for any reason.</exception>
+    public async Task<FileListResponse> ListFilesAsync(
+        FileListQuery? query = null,
+        CancellationToken cancellationToken = default)
+    {
+        var path = "files";
+        if (query is not null)
+        {
+            var parameters = new List<string>();
+            if (query.Purpose is not null) parameters.Add($"purpose={Uri.EscapeDataString(query.Purpose)}");
+            if (query.Limit is not null) parameters.Add($"limit={query.Limit}");
+            if (query.After is not null) parameters.Add($"after={Uri.EscapeDataString(query.After)}");
+            if (parameters.Count > 0) path += "?" + string.Join("&", parameters);
+        }
+
+        var responseJson = await GetAsync(path, cancellationToken).ConfigureAwait(false);
+        return Deserialize<FileListResponse>(responseJson);
+    }
+
+    /// <summary>Retrieves the raw content of a file.</summary>
+    /// <param name="fileId">The file identifier.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Raw file content as bytes.</returns>
+    /// <exception cref="LlmException">Thrown when the request fails for any reason.</exception>
+    public async Task<byte[]> FileContentAsync(
+        string fileId,
+        CancellationToken cancellationToken = default)
+    {
+        return await GetForBytesAsync($"files/{fileId}/content", cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    // ─── Batch Management ─────────────────────────────────────────────────────
+
+    /// <summary>Creates a new batch job.</summary>
+    /// <param name="request">The batch creation request.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The created batch object.</returns>
+    /// <exception cref="LlmException">Thrown when the request fails for any reason.</exception>
+    public async Task<BatchObject> CreateBatchAsync(
+        CreateBatchRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var body = Serialize(request);
+        var responseJson = await PostAsync("batches", body, cancellationToken)
+            .ConfigureAwait(false);
+        return Deserialize<BatchObject>(responseJson);
+    }
+
+    /// <summary>Retrieves a batch by ID.</summary>
+    /// <param name="batchId">The batch identifier.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The batch object.</returns>
+    /// <exception cref="LlmException">Thrown when the request fails for any reason.</exception>
+    public async Task<BatchObject> RetrieveBatchAsync(
+        string batchId,
+        CancellationToken cancellationToken = default)
+    {
+        var responseJson = await GetAsync($"batches/{batchId}", cancellationToken)
+            .ConfigureAwait(false);
+        return Deserialize<BatchObject>(responseJson);
+    }
+
+    /// <summary>Lists batches, optionally filtered by query parameters.</summary>
+    /// <param name="query">Optional query parameters; may be <c>null</c>.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The batch list response.</returns>
+    /// <exception cref="LlmException">Thrown when the request fails for any reason.</exception>
+    public async Task<BatchListResponse> ListBatchesAsync(
+        BatchListQuery? query = null,
+        CancellationToken cancellationToken = default)
+    {
+        var path = "batches";
+        if (query is not null)
+        {
+            var parameters = new List<string>();
+            if (query.Limit is not null) parameters.Add($"limit={query.Limit}");
+            if (query.After is not null) parameters.Add($"after={Uri.EscapeDataString(query.After)}");
+            if (parameters.Count > 0) path += "?" + string.Join("&", parameters);
+        }
+
+        var responseJson = await GetAsync(path, cancellationToken).ConfigureAwait(false);
+        return Deserialize<BatchListResponse>(responseJson);
+    }
+
+    /// <summary>Cancels an in-progress batch.</summary>
+    /// <param name="batchId">The batch identifier.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The updated batch object.</returns>
+    /// <exception cref="LlmException">Thrown when the request fails for any reason.</exception>
+    public async Task<BatchObject> CancelBatchAsync(
+        string batchId,
+        CancellationToken cancellationToken = default)
+    {
+        var responseJson = await PostAsync($"batches/{batchId}/cancel", "", cancellationToken)
+            .ConfigureAwait(false);
+        return Deserialize<BatchObject>(responseJson);
+    }
+
+    // ─── Responses API ────────────────────────────────────────────────────────
+
+    /// <summary>Creates a new response via the Responses API.</summary>
+    /// <param name="request">The response creation request.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The created response object.</returns>
+    /// <exception cref="LlmException">Thrown when the request fails for any reason.</exception>
+    public async Task<ResponseObject> CreateResponseAsync(
+        CreateResponseRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var body = Serialize(request);
+        var responseJson = await PostAsync("responses", body, cancellationToken)
+            .ConfigureAwait(false);
+        return Deserialize<ResponseObject>(responseJson);
+    }
+
+    /// <summary>Retrieves a response by ID.</summary>
+    /// <param name="responseId">The response identifier.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The response object.</returns>
+    /// <exception cref="LlmException">Thrown when the request fails for any reason.</exception>
+    public async Task<ResponseObject> RetrieveResponseAsync(
+        string responseId,
+        CancellationToken cancellationToken = default)
+    {
+        var responseJson = await GetAsync($"responses/{responseId}", cancellationToken)
+            .ConfigureAwait(false);
+        return Deserialize<ResponseObject>(responseJson);
+    }
+
+    /// <summary>Cancels an in-progress response.</summary>
+    /// <param name="responseId">The response identifier.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The updated response object.</returns>
+    /// <exception cref="LlmException">Thrown when the request fails for any reason.</exception>
+    public async Task<ResponseObject> CancelResponseAsync(
+        string responseId,
+        CancellationToken cancellationToken = default)
+    {
+        var responseJson = await PostAsync($"responses/{responseId}/cancel", "", cancellationToken)
+            .ConfigureAwait(false);
+        return Deserialize<ResponseObject>(responseJson);
+    }
+
     // ─── HTTP Internals ───────────────────────────────────────────────────────
 
     private async Task<string> PostAsync(string path, string body, CancellationToken ct)
@@ -177,7 +446,95 @@ public sealed class LlmClient : IDisposable, IAsyncDisposable
             {
                 lastException = ex;
             }
-            catch (LlmException ex)
+            catch (LlmException)
+            {
+                throw;
+            }
+            catch (TaskCanceledException ex) when (!ct.IsCancellationRequested)
+            {
+                throw new ProviderException(0, $"request timed out: {ex.Message}");
+            }
+        }
+
+        throw lastException ?? new LlmException(LlmException.ErrorCodes.Unknown, "liter-lm: unknown error");
+    }
+
+    private async Task<string> DeleteAsync(string path, CancellationToken ct)
+    {
+        LlmException? lastException = null;
+        for (int attempt = 0; attempt <= _maxRetries; attempt++)
+        {
+            try
+            {
+                using var response = await _httpClient
+                    .DeleteAsync(path, ct)
+                    .ConfigureAwait(false);
+                return await HandleResponseAsync(response, ct).ConfigureAwait(false);
+            }
+            catch (LlmException ex) when (IsRetryable(ex) && attempt < _maxRetries)
+            {
+                lastException = ex;
+            }
+            catch (LlmException)
+            {
+                throw;
+            }
+            catch (TaskCanceledException ex) when (!ct.IsCancellationRequested)
+            {
+                throw new ProviderException(0, $"request timed out: {ex.Message}");
+            }
+        }
+
+        throw lastException ?? new LlmException(LlmException.ErrorCodes.Unknown, "liter-lm: unknown error");
+    }
+
+    private async Task<byte[]> PostForBytesAsync(string path, string body, CancellationToken ct)
+    {
+        LlmException? lastException = null;
+        for (int attempt = 0; attempt <= _maxRetries; attempt++)
+        {
+            using var content = new StringContent(body, Encoding.UTF8, "application/json");
+            try
+            {
+                using var response = await _httpClient
+                    .PostAsync(path, content, ct)
+                    .ConfigureAwait(false);
+                return await HandleBytesResponseAsync(response, ct).ConfigureAwait(false);
+            }
+            catch (LlmException ex) when (IsRetryable(ex) && attempt < _maxRetries)
+            {
+                lastException = ex;
+            }
+            catch (LlmException)
+            {
+                throw;
+            }
+            catch (TaskCanceledException ex) when (!ct.IsCancellationRequested)
+            {
+                throw new ProviderException(0, $"request timed out: {ex.Message}");
+            }
+        }
+
+        throw lastException ?? new LlmException(LlmException.ErrorCodes.Unknown, "liter-lm: unknown error");
+    }
+
+    private async Task<byte[]> GetForBytesAsync(string path, CancellationToken ct)
+    {
+        LlmException? lastException = null;
+        for (int attempt = 0; attempt <= _maxRetries; attempt++)
+        {
+            try
+            {
+                using var response = await _httpClient
+                    .GetAsync(path, ct)
+                    .ConfigureAwait(false);
+                return await HandleBytesResponseAsync(response, ct).ConfigureAwait(false);
+            }
+            catch (LlmException ex) when (IsRetryable(ex) && attempt < _maxRetries)
+            {
+                lastException = ex;
+            }
+            catch (LlmException)
             {
                 throw;
             }
@@ -198,6 +555,17 @@ public sealed class LlmClient : IDisposable, IAsyncDisposable
             return responseBody;
         }
 
+        throw ClassifyHttpError((int)response.StatusCode, responseBody);
+    }
+
+    private static async Task<byte[]> HandleBytesResponseAsync(HttpResponseMessage response, CancellationToken ct)
+    {
+        if (response.IsSuccessStatusCode)
+        {
+            return await response.Content.ReadAsByteArrayAsync(ct).ConfigureAwait(false);
+        }
+
+        var responseBody = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
         throw ClassifyHttpError((int)response.StatusCode, responseBody);
     }
 

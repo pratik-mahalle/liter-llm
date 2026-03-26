@@ -1,0 +1,25 @@
+{
+	"id": "smoke_file_content",
+	"category": "files",
+	"description": "Retrieve the content of an uploaded file",
+	"api": {
+		"method": "file_content",
+		"request": {
+			"file_id": "file-abc123"
+		},
+		"mock_response": {
+			"status": 200,
+			"body": {
+				"_binary": true,
+				"_content_type": "application/octet-stream",
+				"_description": "Mock file content bytes"
+			}
+		}
+	},
+	"assertions": {
+		"response_not_null": true,
+		"file_content_not_empty": true
+	},
+	"tags": ["smoke", "files"],
+	"skip": {}
+}

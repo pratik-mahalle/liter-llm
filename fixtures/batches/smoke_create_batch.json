@@ -1,0 +1,37 @@
+{
+	"id": "smoke_create_batch",
+	"category": "batches",
+	"description": "Create a new batch processing job",
+	"api": {
+		"method": "create_batch",
+		"request": {
+			"input_file_id": "file-abc123",
+			"endpoint": "/v1/chat/completions",
+			"completion_window": "24h"
+		},
+		"mock_response": {
+			"status": 200,
+			"body": {
+				"id": "batch-abc123",
+				"object": "batch",
+				"endpoint": "/v1/chat/completions",
+				"input_file_id": "file-abc123",
+				"completion_window": "24h",
+				"status": "validating",
+				"created_at": 1711000000,
+				"request_counts": {
+					"total": 0,
+					"completed": 0,
+					"failed": 0
+				}
+			}
+		}
+	},
+	"assertions": {
+		"response_not_null": true,
+		"batch_id": "batch-abc123",
+		"batch_status": "validating"
+	},
+	"tags": ["smoke", "batches"],
+	"skip": {}
+}

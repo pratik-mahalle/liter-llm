@@ -1,0 +1,34 @@
+{
+	"id": "edge_image_b64_response",
+	"category": "image-generate",
+	"description": "Image generation returning base64-encoded data instead of URL",
+	"api": {
+		"method": "image_generate",
+		"request": {
+			"model": "dall-e-3",
+			"prompt": "A blue circle",
+			"n": 1,
+			"size": "1024x1024",
+			"response_format": "b64_json"
+		},
+		"mock_response": {
+			"status": 200,
+			"body": {
+				"created": 1711000000,
+				"data": [
+					{
+						"b64_json": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+						"revised_prompt": "A perfect blue circle on a white background"
+					}
+				]
+			}
+		}
+	},
+	"assertions": {
+		"response_not_null": true,
+		"image_count": 1,
+		"image_has_b64_data": true
+	},
+	"tags": ["edge-case", "image"],
+	"skip": {}
+}

@@ -1,0 +1,22 @@
+{
+	"id": "edge_file_empty_list",
+	"category": "files",
+	"description": "List files when no files have been uploaded",
+	"api": {
+		"method": "list_files",
+		"request": {},
+		"mock_response": {
+			"status": 200,
+			"body": {
+				"object": "list",
+				"data": []
+			}
+		}
+	},
+	"assertions": {
+		"response_not_null": true,
+		"file_count": 0
+	},
+	"tags": ["edge-case", "files"],
+	"skip": {}
+}

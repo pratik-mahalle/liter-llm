@@ -30,7 +30,7 @@
 
 use std::sync::LazyLock;
 
-use liter_lm::{ClientConfigBuilder, DefaultClient, LlmClient};
+use liter_lm::{BatchClient, ClientConfigBuilder, DefaultClient, FileClient, LlmClient, ResponseClient};
 use magnus::{Error, Ruby, TryConvert, function, method, prelude::*};
 
 // ─── Tokio runtime ────────────────────────────────────────────────────────────
@@ -183,6 +183,430 @@ impl RubyLlmClient {
         })
     }
 
+    /// Generate an image from a text prompt.
+    ///
+    /// @param request_json [String] JSON-encoded image generation request.
+    /// @return [String] JSON-encoded images response.
+    fn image_generate(&self, request_json: String) -> Result<String, Error> {
+        let ruby = unsafe { Ruby::get_unchecked() };
+
+        let req: liter_lm::CreateImageRequest =
+            serde_json::from_str(&request_json).map_err(|e| {
+                Error::new(
+                    ruby.exception_arg_error(),
+                    format!("invalid image request JSON: {e}"),
+                )
+            })?;
+
+        let rt = runtime(&ruby)?;
+        let response = rt.block_on(self.inner.image_generate(req)).map_err(|e| {
+            Error::new(ruby.exception_runtime_error(), e.to_string())
+        })?;
+
+        serde_json::to_string(&response).map_err(|e| {
+            Error::new(
+                ruby.exception_runtime_error(),
+                format!("serialization error: {e}"),
+            )
+        })
+    }
+
+    /// Generate audio speech from text, returning base64-encoded audio bytes.
+    ///
+    /// @param request_json [String] JSON-encoded speech request.
+    /// @return [String] Base64-encoded raw audio bytes.
+    fn speech(&self, request_json: String) -> Result<String, Error> {
+        use base64::Engine;
+
+        let ruby = unsafe { Ruby::get_unchecked() };
+
+        let req: liter_lm::CreateSpeechRequest =
+            serde_json::from_str(&request_json).map_err(|e| {
+                Error::new(
+                    ruby.exception_arg_error(),
+                    format!("invalid speech request JSON: {e}"),
+                )
+            })?;
+
+        let rt = runtime(&ruby)?;
+        let response = rt.block_on(self.inner.speech(req)).map_err(|e| {
+            Error::new(ruby.exception_runtime_error(), e.to_string())
+        })?;
+
+        Ok(base64::engine::general_purpose::STANDARD.encode(&response))
+    }
+
+    /// Transcribe audio to text.
+    ///
+    /// @param request_json [String] JSON-encoded transcription request.
+    /// @return [String] JSON-encoded transcription response.
+    fn transcribe(&self, request_json: String) -> Result<String, Error> {
+        let ruby = unsafe { Ruby::get_unchecked() };
+
+        let req: liter_lm::CreateTranscriptionRequest =
+            serde_json::from_str(&request_json).map_err(|e| {
+                Error::new(
+                    ruby.exception_arg_error(),
+                    format!("invalid transcription request JSON: {e}"),
+                )
+            })?;
+
+        let rt = runtime(&ruby)?;
+        let response = rt.block_on(self.inner.transcribe(req)).map_err(|e| {
+            Error::new(ruby.exception_runtime_error(), e.to_string())
+        })?;
+
+        serde_json::to_string(&response).map_err(|e| {
+            Error::new(
+                ruby.exception_runtime_error(),
+                format!("serialization error: {e}"),
+            )
+        })
+    }
+
+    /// Check content against moderation policies.
+    ///
+    /// @param request_json [String] JSON-encoded moderation request.
+    /// @return [String] JSON-encoded moderation response.
+    fn moderate(&self, request_json: String) -> Result<String, Error> {
+        let ruby = unsafe { Ruby::get_unchecked() };
+
+        let req: liter_lm::ModerationRequest =
+            serde_json::from_str(&request_json).map_err(|e| {
+                Error::new(
+                    ruby.exception_arg_error(),
+                    format!("invalid moderation request JSON: {e}"),
+                )
+            })?;
+
+        let rt = runtime(&ruby)?;
+        let response = rt.block_on(self.inner.moderate(req)).map_err(|e| {
+            Error::new(ruby.exception_runtime_error(), e.to_string())
+        })?;
+
+        serde_json::to_string(&response).map_err(|e| {
+            Error::new(
+                ruby.exception_runtime_error(),
+                format!("serialization error: {e}"),
+            )
+        })
+    }
+
+    /// Rerank documents by relevance to a query.
+    ///
+    /// @param request_json [String] JSON-encoded rerank request.
+    /// @return [String] JSON-encoded rerank response.
+    fn rerank(&self, request_json: String) -> Result<String, Error> {
+        let ruby = unsafe { Ruby::get_unchecked() };
+
+        let req: liter_lm::RerankRequest =
+            serde_json::from_str(&request_json).map_err(|e| {
+                Error::new(
+                    ruby.exception_arg_error(),
+                    format!("invalid rerank request JSON: {e}"),
+                )
+            })?;
+
+        let rt = runtime(&ruby)?;
+        let response = rt.block_on(self.inner.rerank(req)).map_err(|e| {
+            Error::new(ruby.exception_runtime_error(), e.to_string())
+        })?;
+
+        serde_json::to_string(&response).map_err(|e| {
+            Error::new(
+                ruby.exception_runtime_error(),
+                format!("serialization error: {e}"),
+            )
+        })
+    }
+
+    // ─── File Management ──────────────────────────────────────────────────────
+
+    /// Upload a file.
+    ///
+    /// @param request_json [String] JSON-encoded file upload request.
+    /// @return [String] JSON-encoded file object.
+    fn create_file(&self, request_json: String) -> Result<String, Error> {
+        let ruby = unsafe { Ruby::get_unchecked() };
+
+        let req: liter_lm::CreateFileRequest =
+            serde_json::from_str(&request_json).map_err(|e| {
+                Error::new(
+                    ruby.exception_arg_error(),
+                    format!("invalid file request JSON: {e}"),
+                )
+            })?;
+
+        let rt = runtime(&ruby)?;
+        let response = rt.block_on(self.inner.create_file(req)).map_err(|e| {
+            Error::new(ruby.exception_runtime_error(), e.to_string())
+        })?;
+
+        serde_json::to_string(&response).map_err(|e| {
+            Error::new(
+                ruby.exception_runtime_error(),
+                format!("serialization error: {e}"),
+            )
+        })
+    }
+
+    /// Retrieve metadata for a file by ID.
+    ///
+    /// @param file_id [String] The file identifier.
+    /// @return [String] JSON-encoded file object.
+    fn retrieve_file(&self, file_id: String) -> Result<String, Error> {
+        let ruby = unsafe { Ruby::get_unchecked() };
+
+        let rt = runtime(&ruby)?;
+        let response = rt.block_on(self.inner.retrieve_file(&file_id)).map_err(|e| {
+            Error::new(ruby.exception_runtime_error(), e.to_string())
+        })?;
+
+        serde_json::to_string(&response).map_err(|e| {
+            Error::new(
+                ruby.exception_runtime_error(),
+                format!("serialization error: {e}"),
+            )
+        })
+    }
+
+    /// Delete a file by ID.
+    ///
+    /// @param file_id [String] The file identifier.
+    /// @return [String] JSON-encoded delete response.
+    fn delete_file(&self, file_id: String) -> Result<String, Error> {
+        let ruby = unsafe { Ruby::get_unchecked() };
+
+        let rt = runtime(&ruby)?;
+        let response = rt.block_on(self.inner.delete_file(&file_id)).map_err(|e| {
+            Error::new(ruby.exception_runtime_error(), e.to_string())
+        })?;
+
+        serde_json::to_string(&response).map_err(|e| {
+            Error::new(
+                ruby.exception_runtime_error(),
+                format!("serialization error: {e}"),
+            )
+        })
+    }
+
+    /// List files, optionally filtered by query parameters.
+    ///
+    /// @param query_json [String, nil] JSON-encoded file list query parameters, or nil.
+    /// @return [String] JSON-encoded file list response.
+    fn list_files(&self, query_json: Option<String>) -> Result<String, Error> {
+        let ruby = unsafe { Ruby::get_unchecked() };
+
+        let query: Option<liter_lm::FileListQuery> = match query_json {
+            Some(json) => Some(serde_json::from_str(&json).map_err(|e| {
+                Error::new(
+                    ruby.exception_arg_error(),
+                    format!("invalid file list query JSON: {e}"),
+                )
+            })?),
+            None => None,
+        };
+
+        let rt = runtime(&ruby)?;
+        let response = rt.block_on(self.inner.list_files(query)).map_err(|e| {
+            Error::new(ruby.exception_runtime_error(), e.to_string())
+        })?;
+
+        serde_json::to_string(&response).map_err(|e| {
+            Error::new(
+                ruby.exception_runtime_error(),
+                format!("serialization error: {e}"),
+            )
+        })
+    }
+
+    /// Retrieve the raw content of a file.
+    ///
+    /// @param file_id [String] The file identifier.
+    /// @return [String] Base64-encoded raw file content.
+    fn file_content(&self, file_id: String) -> Result<String, Error> {
+        use base64::Engine;
+
+        let ruby = unsafe { Ruby::get_unchecked() };
+
+        let rt = runtime(&ruby)?;
+        let response = rt.block_on(self.inner.file_content(&file_id)).map_err(|e| {
+            Error::new(ruby.exception_runtime_error(), e.to_string())
+        })?;
+
+        Ok(base64::engine::general_purpose::STANDARD.encode(&response))
+    }
+
+    // ─── Batch Management ─────────────────────────────────────────────────────
+
+    /// Create a new batch job.
+    ///
+    /// @param request_json [String] JSON-encoded batch creation request.
+    /// @return [String] JSON-encoded batch object.
+    fn create_batch(&self, request_json: String) -> Result<String, Error> {
+        let ruby = unsafe { Ruby::get_unchecked() };
+
+        let req: liter_lm::CreateBatchRequest =
+            serde_json::from_str(&request_json).map_err(|e| {
+                Error::new(
+                    ruby.exception_arg_error(),
+                    format!("invalid batch request JSON: {e}"),
+                )
+            })?;
+
+        let rt = runtime(&ruby)?;
+        let response = rt.block_on(self.inner.create_batch(req)).map_err(|e| {
+            Error::new(ruby.exception_runtime_error(), e.to_string())
+        })?;
+
+        serde_json::to_string(&response).map_err(|e| {
+            Error::new(
+                ruby.exception_runtime_error(),
+                format!("serialization error: {e}"),
+            )
+        })
+    }
+
+    /// Retrieve a batch by ID.
+    ///
+    /// @param batch_id [String] The batch identifier.
+    /// @return [String] JSON-encoded batch object.
+    fn retrieve_batch(&self, batch_id: String) -> Result<String, Error> {
+        let ruby = unsafe { Ruby::get_unchecked() };
+
+        let rt = runtime(&ruby)?;
+        let response = rt.block_on(self.inner.retrieve_batch(&batch_id)).map_err(|e| {
+            Error::new(ruby.exception_runtime_error(), e.to_string())
+        })?;
+
+        serde_json::to_string(&response).map_err(|e| {
+            Error::new(
+                ruby.exception_runtime_error(),
+                format!("serialization error: {e}"),
+            )
+        })
+    }
+
+    /// List batches, optionally filtered by query parameters.
+    ///
+    /// @param query_json [String, nil] JSON-encoded batch list query parameters, or nil.
+    /// @return [String] JSON-encoded batch list response.
+    fn list_batches(&self, query_json: Option<String>) -> Result<String, Error> {
+        let ruby = unsafe { Ruby::get_unchecked() };
+
+        let query: Option<liter_lm::BatchListQuery> = match query_json {
+            Some(json) => Some(serde_json::from_str(&json).map_err(|e| {
+                Error::new(
+                    ruby.exception_arg_error(),
+                    format!("invalid batch list query JSON: {e}"),
+                )
+            })?),
+            None => None,
+        };
+
+        let rt = runtime(&ruby)?;
+        let response = rt.block_on(self.inner.list_batches(query)).map_err(|e| {
+            Error::new(ruby.exception_runtime_error(), e.to_string())
+        })?;
+
+        serde_json::to_string(&response).map_err(|e| {
+            Error::new(
+                ruby.exception_runtime_error(),
+                format!("serialization error: {e}"),
+            )
+        })
+    }
+
+    /// Cancel an in-progress batch.
+    ///
+    /// @param batch_id [String] The batch identifier.
+    /// @return [String] JSON-encoded batch object.
+    fn cancel_batch(&self, batch_id: String) -> Result<String, Error> {
+        let ruby = unsafe { Ruby::get_unchecked() };
+
+        let rt = runtime(&ruby)?;
+        let response = rt.block_on(self.inner.cancel_batch(&batch_id)).map_err(|e| {
+            Error::new(ruby.exception_runtime_error(), e.to_string())
+        })?;
+
+        serde_json::to_string(&response).map_err(|e| {
+            Error::new(
+                ruby.exception_runtime_error(),
+                format!("serialization error: {e}"),
+            )
+        })
+    }
+
+    // ─── Responses API ────────────────────────────────────────────────────────
+
+    /// Create a new response via the Responses API.
+    ///
+    /// @param request_json [String] JSON-encoded response creation request.
+    /// @return [String] JSON-encoded response object.
+    fn create_response(&self, request_json: String) -> Result<String, Error> {
+        let ruby = unsafe { Ruby::get_unchecked() };
+
+        let req: liter_lm::CreateResponseRequest =
+            serde_json::from_str(&request_json).map_err(|e| {
+                Error::new(
+                    ruby.exception_arg_error(),
+                    format!("invalid response request JSON: {e}"),
+                )
+            })?;
+
+        let rt = runtime(&ruby)?;
+        let response = rt.block_on(self.inner.create_response(req)).map_err(|e| {
+            Error::new(ruby.exception_runtime_error(), e.to_string())
+        })?;
+
+        serde_json::to_string(&response).map_err(|e| {
+            Error::new(
+                ruby.exception_runtime_error(),
+                format!("serialization error: {e}"),
+            )
+        })
+    }
+
+    /// Retrieve a response by ID.
+    ///
+    /// @param response_id [String] The response identifier.
+    /// @return [String] JSON-encoded response object.
+    fn retrieve_response(&self, response_id: String) -> Result<String, Error> {
+        let ruby = unsafe { Ruby::get_unchecked() };
+
+        let rt = runtime(&ruby)?;
+        let response = rt.block_on(self.inner.retrieve_response(&response_id)).map_err(|e| {
+            Error::new(ruby.exception_runtime_error(), e.to_string())
+        })?;
+
+        serde_json::to_string(&response).map_err(|e| {
+            Error::new(
+                ruby.exception_runtime_error(),
+                format!("serialization error: {e}"),
+            )
+        })
+    }
+
+    /// Cancel an in-progress response.
+    ///
+    /// @param response_id [String] The response identifier.
+    /// @return [String] JSON-encoded response object.
+    fn cancel_response(&self, response_id: String) -> Result<String, Error> {
+        let ruby = unsafe { Ruby::get_unchecked() };
+
+        let rt = runtime(&ruby)?;
+        let response = rt.block_on(self.inner.cancel_response(&response_id)).map_err(|e| {
+            Error::new(ruby.exception_runtime_error(), e.to_string())
+        })?;
+
+        serde_json::to_string(&response).map_err(|e| {
+            Error::new(
+                ruby.exception_runtime_error(),
+                format!("serialization error: {e}"),
+            )
+        })
+    }
+
     /// Return a human-readable string representation.
     fn inspect(&self) -> String {
         "#<LiterLm::LlmClient>".to_string()
@@ -207,6 +631,32 @@ fn init(ruby: &Ruby) -> Result<(), Error> {
     client_class.define_method("chat", method!(RubyLlmClient::chat, 1))?;
     client_class.define_method("embed", method!(RubyLlmClient::embed, 1))?;
     client_class.define_method("list_models", method!(RubyLlmClient::list_models, 0))?;
+
+    // Inference methods.
+    client_class.define_method("image_generate", method!(RubyLlmClient::image_generate, 1))?;
+    client_class.define_method("speech", method!(RubyLlmClient::speech, 1))?;
+    client_class.define_method("transcribe", method!(RubyLlmClient::transcribe, 1))?;
+    client_class.define_method("moderate", method!(RubyLlmClient::moderate, 1))?;
+    client_class.define_method("rerank", method!(RubyLlmClient::rerank, 1))?;
+
+    // File management methods.
+    client_class.define_method("create_file", method!(RubyLlmClient::create_file, 1))?;
+    client_class.define_method("retrieve_file", method!(RubyLlmClient::retrieve_file, 1))?;
+    client_class.define_method("delete_file", method!(RubyLlmClient::delete_file, 1))?;
+    client_class.define_method("list_files", method!(RubyLlmClient::list_files, 1))?;
+    client_class.define_method("file_content", method!(RubyLlmClient::file_content, 1))?;
+
+    // Batch management methods.
+    client_class.define_method("create_batch", method!(RubyLlmClient::create_batch, 1))?;
+    client_class.define_method("retrieve_batch", method!(RubyLlmClient::retrieve_batch, 1))?;
+    client_class.define_method("list_batches", method!(RubyLlmClient::list_batches, 1))?;
+    client_class.define_method("cancel_batch", method!(RubyLlmClient::cancel_batch, 1))?;
+
+    // Responses API methods.
+    client_class.define_method("create_response", method!(RubyLlmClient::create_response, 1))?;
+    client_class.define_method("retrieve_response", method!(RubyLlmClient::retrieve_response, 1))?;
+    client_class.define_method("cancel_response", method!(RubyLlmClient::cancel_response, 1))?;
+
     client_class.define_method("inspect", method!(RubyLlmClient::inspect, 0))?;
     client_class.define_method("to_s", method!(RubyLlmClient::inspect, 0))?;
 

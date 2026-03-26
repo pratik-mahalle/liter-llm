@@ -14,7 +14,26 @@
 		},
 		"category": {
 			"type": "string",
-			"enum": ["smoke", "streaming", "error-handling", "tool-calling", "types", "configuration"],
+			"enum": [
+				"smoke",
+				"streaming",
+				"error-handling",
+				"tool-calling",
+				"types",
+				"configuration",
+				"image-generate",
+				"speech",
+				"transcribe",
+				"moderate",
+				"rerank",
+				"files",
+				"batches",
+				"responses",
+				"chat",
+				"embed",
+				"list-models",
+				"providers"
+			],
 			"description": "Category grouping for the fixture"
 		},
 		"description": {
@@ -29,7 +48,29 @@
 			"properties": {
 				"method": {
 					"type": "string",
-					"enum": ["chat", "chat_stream", "embed", "list_models"],
+					"enum": [
+						"chat",
+						"chat_stream",
+						"embed",
+						"list_models",
+						"image_generate",
+						"speech",
+						"transcribe",
+						"moderate",
+						"rerank",
+						"create_file",
+						"retrieve_file",
+						"delete_file",
+						"list_files",
+						"file_content",
+						"create_batch",
+						"retrieve_batch",
+						"list_batches",
+						"cancel_batch",
+						"create_response",
+						"retrieve_response",
+						"cancel_response"
+					],
 					"description": "The API method being tested"
 				},
 				"request": {
@@ -130,6 +171,79 @@
 				},
 				"first_tool_call_function_name": {
 					"type": "string"
+				},
+				"image_count": {
+					"type": "integer",
+					"minimum": 1
+				},
+				"image_has_b64_data": {
+					"type": "boolean"
+				},
+				"image_has_url": {
+					"type": "boolean"
+				},
+				"audio_not_empty": {
+					"type": "boolean"
+				},
+				"transcription_text": {
+					"type": "string"
+				},
+				"moderation_result_count": {
+					"type": "integer",
+					"minimum": 1
+				},
+				"moderation_has_flagged": {
+					"type": "boolean"
+				},
+				"rerank_result_count": {
+					"type": "integer",
+					"minimum": 1
+				},
+				"rerank_has_documents": {
+					"type": "boolean"
+				},
+				"rerank_top_score_min": {
+					"type": "number",
+					"minimum": 0,
+					"maximum": 1
+				},
+				"file_id": {
+					"type": "string"
+				},
+				"file_count": {
+					"type": "integer",
+					"minimum": 0
+				},
+				"file_content_not_empty": {
+					"type": "boolean"
+				},
+				"file_deleted": {
+					"type": "boolean"
+				},
+				"batch_id": {
+					"type": "string"
+				},
+				"batch_status": {
+					"type": "string",
+					"enum": ["validating", "in_progress", "completed", "failed", "expired", "cancelling", "cancelled"]
+				},
+				"batch_count": {
+					"type": "integer",
+					"minimum": 0
+				},
+				"response_id": {
+					"type": "string"
+				},
+				"response_status": {
+					"type": "string",
+					"enum": ["completed", "failed", "in_progress", "incomplete", "cancelled"]
+				},
+				"response_output_count": {
+					"type": "integer",
+					"minimum": 0
+				},
+				"response_has_tool_calls": {
+					"type": "boolean"
 				}
 			}
 		},
@@ -150,12 +264,24 @@
 					"description": "Skip unless the binding under test matches this language"
 				},
 				"platform": {
-					"oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }],
+					"oneOf": [
+						{
+							"type": "string"
+						},
+						{
+							"type": "array",
+							"items": {
+								"type": "string"
+							}
+						}
+					],
 					"description": "Skip on these OS platforms (e.g. 'windows' or ['windows', 'linux'])"
 				},
 				"languages": {
 					"type": "array",
-					"items": { "type": "string" },
+					"items": {
+						"type": "string"
+					},
 					"description": "Skip for these language bindings (e.g. ['wasm', 'php'])"
 				},
 				"reason": {

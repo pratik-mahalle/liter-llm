@@ -172,6 +172,163 @@ module LiterLm
 
   type models_response = { object: String, data: Array[model_object] }
 
+  # ─── Image Generation types ──────────────────────────────────────────────────
+
+  type create_image_request = {
+    prompt: String,
+    model: String?,
+    n: Integer?,
+    quality: String?,
+    response_format: String?,
+    size: String?,
+    style: String?,
+    user: String?
+  }
+
+  type image_data = { url: String?, b64_json: String?, revised_prompt: String? }
+
+  type images_response = { created: Integer, data: Array[image_data] }
+
+  # ─── Speech types ──────────────────────────────────────────────────────────
+
+  type create_speech_request = {
+    model: String,
+    input: String,
+    voice: String,
+    response_format: String?,
+    speed: Float?
+  }
+
+  # ─── Transcription types ───────────────────────────────────────────────────
+
+  type create_transcription_request = {
+    file: String,
+    model: String,
+    language: String?,
+    prompt: String?,
+    response_format: String?,
+    temperature: Float?
+  }
+
+  type transcription_response = { text: String }
+
+  # ─── Moderation types ──────────────────────────────────────────────────────
+
+  type moderation_request = {
+    input: untyped,
+    model: String?
+  }
+
+  type moderation_categories = {
+    sexual: bool,
+    hate: bool,
+    harassment: bool,
+    violence: bool
+  }
+
+  type moderation_category_scores = {
+    sexual: Float,
+    hate: Float,
+    harassment: Float,
+    violence: Float
+  }
+
+  type moderation_result = {
+    flagged: bool,
+    categories: moderation_categories,
+    category_scores: moderation_category_scores
+  }
+
+  type moderation_response = { id: String, model: String, results: Array[moderation_result] }
+
+  # ─── Rerank types ──────────────────────────────────────────────────────────
+
+  type rerank_request = {
+    model: String,
+    query: String,
+    documents: untyped,
+    top_n: Integer?
+  }
+
+  type rerank_result = { index: Integer, relevance_score: Float }
+
+  type rerank_response = { results: Array[rerank_result], model: String, usage: usage_response? }
+
+  # ─── File types ────────────────────────────────────────────────────────────
+
+  type create_file_request = { file: String, purpose: String, filename: String? }
+
+  type file_object = {
+    id: String,
+    object: String,
+    bytes: Integer,
+    created_at: Integer,
+    filename: String,
+    purpose: String,
+    status: String?,
+    status_details: String?
+  }
+
+  type delete_response = { id: String, object: String, deleted: bool }
+
+  type file_list_query = { purpose: String?, limit: Integer?, after: String? }
+
+  type file_list_response = { object: String, data: Array[file_object] }
+
+  # ─── Batch types ───────────────────────────────────────────────────────────
+
+  type create_batch_request = {
+    input_file_id: String,
+    endpoint: String,
+    completion_window: String,
+    metadata: Hash[String, String]?
+  }
+
+  type batch_request_counts = { total: Integer, completed: Integer, failed: Integer }
+
+  type batch_object = {
+    id: String,
+    object: String,
+    endpoint: String,
+    input_file_id: String,
+    completion_window: String,
+    status: String,
+    output_file_id: String?,
+    error_file_id: String?,
+    created_at: Integer,
+    request_counts: batch_request_counts?,
+    metadata: Hash[String, String]?
+  }
+
+  type batch_list_query = { limit: Integer?, after: String? }
+
+  type batch_list_response = { object: String, data: Array[batch_object] }
+
+  # ─── Response types ────────────────────────────────────────────────────────
+
+  type create_response_request = {
+    model: String,
+    input: untyped,
+    instructions: String?,
+    max_output_tokens: Integer?,
+    temperature: Float?,
+    top_p: Float?,
+    stream: bool?,
+    metadata: Hash[String, String]?
+  }
+
+  type response_object = {
+    id: String,
+    object: String,
+    created_at: Integer,
+    status: String,
+    model: String,
+    output: untyped?,
+    usage: usage_response?,
+    metadata: Hash[String, String]?,
+    error: untyped?
+  }
+
   # ─── LlmClient ───────────────────────────────────────────────────────────────
 
   # Unified LLM client backed by the Rust core.
@@ -195,21 +352,64 @@ module LiterLm
     ) -> void
 
     # Send a chat completion request.
-    #
-    # @param request_json JSON-encoded chat_request hash.
-    # @return JSON-encoded chat_response hash.
     def chat: (String request_json) -> String
 
     # Send an embedding request.
-    #
-    # @param request_json JSON-encoded embedding_request hash.
-    # @return JSON-encoded embedding_response hash.
     def embed: (String request_json) -> String
 
     # List models available from the configured provider.
-    #
-    # @return JSON-encoded models_response hash.
     def list_models: () -> String
+
+    # Generate an image from a text prompt.
+    def image_generate: (String request_json) -> String
+
+    # Generate audio speech from text, returning base64-encoded audio bytes.
+    def speech: (String request_json) -> String
+
+    # Transcribe audio to text.
+    def transcribe: (String request_json) -> String
+
+    # Check content against moderation policies.
+    def moderate: (String request_json) -> String
+
+    # Rerank documents by relevance to a query.
+    def rerank: (String request_json) -> String
+
+    # Upload a file.
+    def create_file: (String request_json) -> String
+
+    # Retrieve metadata for a file by ID.
+    def retrieve_file: (String file_id) -> String
+
+    # Delete a file by ID.
+    def delete_file: (String file_id) -> String
+
+    # List files, optionally filtered by query parameters.
+    def list_files: (String? query_json) -> String
+
+    # Retrieve the raw content of a file (base64-encoded).
+    def file_content: (String file_id) -> String
+
+    # Create a new batch job.
+    def create_batch: (String request_json) -> String
+
+    # Retrieve a batch by ID.
+    def retrieve_batch: (String batch_id) -> String
+
+    # List batches, optionally filtered by query parameters.
+    def list_batches: (String? query_json) -> String
+
+    # Cancel an in-progress batch.
+    def cancel_batch: (String batch_id) -> String
+
+    # Create a new response via the Responses API.
+    def create_response: (String request_json) -> String
+
+    # Retrieve a response by ID.
+    def retrieve_response: (String response_id) -> String
+
+    # Cancel an in-progress response.
+    def cancel_response: (String response_id) -> String
 
     def inspect: () -> String
   end

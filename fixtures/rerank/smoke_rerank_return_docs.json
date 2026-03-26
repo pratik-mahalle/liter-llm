@@ -1,0 +1,52 @@
+{
+	"id": "smoke_rerank_return_docs",
+	"category": "rerank",
+	"description": "Reranking with return_documents flag to include document text",
+	"api": {
+		"method": "rerank",
+		"request": {
+			"model": "rerank-v3.5",
+			"query": "What is Rust?",
+			"documents": ["Rust is a systems programming language.", "Iron rusts when exposed to water."],
+			"return_documents": true
+		},
+		"mock_response": {
+			"status": 200,
+			"body": {
+				"id": "rerank-ghi789",
+				"results": [
+					{
+						"index": 0,
+						"relevance_score": 0.96,
+						"document": {
+							"text": "Rust is a systems programming language."
+						}
+					},
+					{
+						"index": 1,
+						"relevance_score": 0.12,
+						"document": {
+							"text": "Iron rusts when exposed to water."
+						}
+					}
+				],
+				"meta": {
+					"api_version": {
+						"version": "2"
+					},
+					"billed_units": {
+						"search_units": 1
+					}
+				}
+			}
+		}
+	},
+	"assertions": {
+		"response_not_null": true,
+		"rerank_result_count": 2,
+		"rerank_has_documents": true,
+		"rerank_top_score_min": 0.9
+	},
+	"tags": ["smoke", "rerank"],
+	"skip": {}
+}

@@ -588,3 +588,250 @@ public record ModelsListResponse(
     /// <summary>Always <c>"list"</c> from OpenAI-compatible APIs.</summary>
     [property: JsonPropertyName("object")] string Object,
     [property: JsonPropertyName("data")] IReadOnlyList<ModelObject> Data);
+
+// ─── Image Generation ─────────────────────────────────────────────────────────
+
+/// <summary>Request body for an image generation API call.</summary>
+public record CreateImageRequest(
+    [property: JsonPropertyName("prompt")] string Prompt,
+    [property: JsonPropertyName("model"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    string? Model = null,
+    [property: JsonPropertyName("n"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    int? N = null,
+    [property: JsonPropertyName("quality"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    string? Quality = null,
+    [property: JsonPropertyName("response_format"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    string? ResponseFormat = null,
+    [property: JsonPropertyName("size"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    string? Size = null,
+    [property: JsonPropertyName("style"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    string? Style = null,
+    [property: JsonPropertyName("user"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    string? User = null);
+
+/// <summary>A single image result returned by the API.</summary>
+public record ImageData(
+    [property: JsonPropertyName("url")] string? Url = null,
+    [property: JsonPropertyName("b64_json")] string? B64Json = null,
+    [property: JsonPropertyName("revised_prompt")] string? RevisedPrompt = null);
+
+/// <summary>Response body for an image generation request.</summary>
+public record ImagesResponse(
+    [property: JsonPropertyName("created")] long Created,
+    [property: JsonPropertyName("data")] IReadOnlyList<ImageData> Data);
+
+// ─── Speech ───────────────────────────────────────────────────────────────────
+
+/// <summary>Request body for a speech generation API call.</summary>
+public record CreateSpeechRequest(
+    [property: JsonPropertyName("model")] string Model,
+    [property: JsonPropertyName("input")] string Input,
+    [property: JsonPropertyName("voice")] string Voice,
+    [property: JsonPropertyName("response_format"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    string? ResponseFormat = null,
+    [property: JsonPropertyName("speed"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    double? Speed = null);
+
+// ─── Transcription ────────────────────────────────────────────────────────────
+
+/// <summary>Request body for an audio transcription API call.</summary>
+public record CreateTranscriptionRequest(
+    [property: JsonPropertyName("file")] string File,
+    [property: JsonPropertyName("model")] string Model,
+    [property: JsonPropertyName("language"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    string? Language = null,
+    [property: JsonPropertyName("prompt"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    string? Prompt = null,
+    [property: JsonPropertyName("response_format"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    string? ResponseFormat = null,
+    [property: JsonPropertyName("temperature"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    double? Temperature = null);
+
+/// <summary>Response body for a transcription request.</summary>
+public record TranscriptionResponse(
+    [property: JsonPropertyName("text")] string Text);
+
+// ─── Moderation ───────────────────────────────────────────────────────────────
+
+/// <summary>Request body for a moderation API call.</summary>
+public record ModerationRequest(
+    [property: JsonPropertyName("input")] JsonNode Input,
+    [property: JsonPropertyName("model"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    string? Model = null);
+
+/// <summary>Per-category boolean flags for a moderation result.</summary>
+public record ModerationCategories(
+    [property: JsonPropertyName("sexual")] bool Sexual,
+    [property: JsonPropertyName("hate")] bool Hate,
+    [property: JsonPropertyName("harassment")] bool Harassment,
+    [property: JsonPropertyName("self-harm")] bool SelfHarm,
+    [property: JsonPropertyName("violence")] bool Violence,
+    [property: JsonPropertyName("sexual/minors")] bool SexualMinors,
+    [property: JsonPropertyName("hate/threatening")] bool HateThreatening,
+    [property: JsonPropertyName("violence/graphic")] bool ViolenceGraphic,
+    [property: JsonPropertyName("self-harm/intent")] bool SelfHarmIntent,
+    [property: JsonPropertyName("self-harm/instructions")] bool SelfHarmInstructions,
+    [property: JsonPropertyName("harassment/threatening")] bool HarassmentThreatening);
+
+/// <summary>Per-category confidence scores for a moderation result.</summary>
+public record ModerationCategoryScores(
+    [property: JsonPropertyName("sexual")] double Sexual,
+    [property: JsonPropertyName("hate")] double Hate,
+    [property: JsonPropertyName("harassment")] double Harassment,
+    [property: JsonPropertyName("self-harm")] double SelfHarm,
+    [property: JsonPropertyName("violence")] double Violence,
+    [property: JsonPropertyName("sexual/minors")] double SexualMinors,
+    [property: JsonPropertyName("hate/threatening")] double HateThreatening,
+    [property: JsonPropertyName("violence/graphic")] double ViolenceGraphic,
+    [property: JsonPropertyName("self-harm/intent")] double SelfHarmIntent,
+    [property: JsonPropertyName("self-harm/instructions")] double SelfHarmInstructions,
+    [property: JsonPropertyName("harassment/threatening")] double HarassmentThreatening);
+
+/// <summary>A single moderation result for one input.</summary>
+public record ModerationResult(
+    [property: JsonPropertyName("flagged")] bool Flagged,
+    [property: JsonPropertyName("categories")] ModerationCategories Categories,
+    [property: JsonPropertyName("category_scores")] ModerationCategoryScores CategoryScores);
+
+/// <summary>Response body for a moderation request.</summary>
+public record ModerationResponse(
+    [property: JsonPropertyName("id")] string Id,
+    [property: JsonPropertyName("model")] string Model,
+    [property: JsonPropertyName("results")] IReadOnlyList<ModerationResult> Results);
+
+// ─── Rerank ───────────────────────────────────────────────────────────────────
+
+/// <summary>Request body for a rerank API call.</summary>
+public record RerankRequest(
+    [property: JsonPropertyName("model")] string Model,
+    [property: JsonPropertyName("query")] string Query,
+    [property: JsonPropertyName("documents")] JsonNode Documents,
+    [property: JsonPropertyName("top_n"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    int? TopN = null);
+
+/// <summary>A single reranked document result.</summary>
+public record RerankResult(
+    [property: JsonPropertyName("index")] int Index,
+    [property: JsonPropertyName("relevance_score")] double RelevanceScore);
+
+/// <summary>Response body for a rerank request.</summary>
+public record RerankResponse(
+    [property: JsonPropertyName("results")] IReadOnlyList<RerankResult> Results,
+    [property: JsonPropertyName("model")] string Model,
+    [property: JsonPropertyName("usage")] Usage? Usage = null);
+
+// ─── Files ────────────────────────────────────────────────────────────────────
+
+/// <summary>Request body for a file upload API call.</summary>
+public record CreateFileRequest(
+    [property: JsonPropertyName("file")] string File,
+    [property: JsonPropertyName("purpose")] string Purpose,
+    [property: JsonPropertyName("filename"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    string? Filename = null);
+
+/// <summary>Metadata for an uploaded file.</summary>
+public record FileObject(
+    [property: JsonPropertyName("id")] string Id,
+    [property: JsonPropertyName("object")] string Object,
+    [property: JsonPropertyName("bytes")] long Bytes,
+    [property: JsonPropertyName("created_at")] long CreatedAt,
+    [property: JsonPropertyName("filename")] string Filename,
+    [property: JsonPropertyName("purpose")] string Purpose,
+    [property: JsonPropertyName("status")] string? Status = null,
+    [property: JsonPropertyName("status_details")] string? StatusDetails = null);
+
+/// <summary>Response body for a delete operation.</summary>
+public record DeleteResponse(
+    [property: JsonPropertyName("id")] string Id,
+    [property: JsonPropertyName("object")] string Object,
+    [property: JsonPropertyName("deleted")] bool Deleted);
+
+/// <summary>Optional query parameters for listing files.</summary>
+public record FileListQuery(
+    string? Purpose = null,
+    int? Limit = null,
+    string? After = null);
+
+/// <summary>Response body for listing files.</summary>
+public record FileListResponse(
+    [property: JsonPropertyName("object")] string Object,
+    [property: JsonPropertyName("data")] IReadOnlyList<FileObject> Data);
+
+// ─── Batches ──────────────────────────────────────────────────────────────────
+
+/// <summary>Request body for creating a batch job.</summary>
+public record CreateBatchRequest(
+    [property: JsonPropertyName("input_file_id")] string InputFileId,
+    [property: JsonPropertyName("endpoint")] string Endpoint,
+    [property: JsonPropertyName("completion_window")] string CompletionWindow,
+    [property: JsonPropertyName("metadata"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    IReadOnlyDictionary<string, string>? Metadata = null);
+
+/// <summary>Counts for a batch job.</summary>
+public record BatchRequestCounts(
+    [property: JsonPropertyName("total")] long Total,
+    [property: JsonPropertyName("completed")] long Completed,
+    [property: JsonPropertyName("failed")] long Failed);
+
+/// <summary>Metadata for a batch processing job.</summary>
+public record BatchObject(
+    [property: JsonPropertyName("id")] string Id,
+    [property: JsonPropertyName("object")] string Object,
+    [property: JsonPropertyName("endpoint")] string Endpoint,
+    [property: JsonPropertyName("input_file_id")] string InputFileId,
+    [property: JsonPropertyName("completion_window")] string CompletionWindow,
+    [property: JsonPropertyName("status")] string Status,
+    [property: JsonPropertyName("output_file_id")] string? OutputFileId = null,
+    [property: JsonPropertyName("error_file_id")] string? ErrorFileId = null,
+    [property: JsonPropertyName("created_at")] long CreatedAt = 0,
+    [property: JsonPropertyName("in_progress_at")] long? InProgressAt = null,
+    [property: JsonPropertyName("expires_at")] long? ExpiresAt = null,
+    [property: JsonPropertyName("finalizing_at")] long? FinalizingAt = null,
+    [property: JsonPropertyName("completed_at")] long? CompletedAt = null,
+    [property: JsonPropertyName("failed_at")] long? FailedAt = null,
+    [property: JsonPropertyName("expired_at")] long? ExpiredAt = null,
+    [property: JsonPropertyName("cancelling_at")] long? CancellingAt = null,
+    [property: JsonPropertyName("cancelled_at")] long? CancelledAt = null,
+    [property: JsonPropertyName("request_counts")] BatchRequestCounts? RequestCounts = null,
+    [property: JsonPropertyName("metadata")] IReadOnlyDictionary<string, string>? Metadata = null);
+
+/// <summary>Optional query parameters for listing batches.</summary>
+public record BatchListQuery(
+    int? Limit = null,
+    string? After = null);
+
+/// <summary>Response body for listing batches.</summary>
+public record BatchListResponse(
+    [property: JsonPropertyName("object")] string Object,
+    [property: JsonPropertyName("data")] IReadOnlyList<BatchObject> Data);
+
+// ─── Responses API ────────────────────────────────────────────────────────────
+
+/// <summary>Request body for creating a response via the Responses API.</summary>
+public record CreateResponseRequest(
+    [property: JsonPropertyName("model")] string Model,
+    [property: JsonPropertyName("input")] JsonNode Input,
+    [property: JsonPropertyName("instructions"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    string? Instructions = null,
+    [property: JsonPropertyName("max_output_tokens"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    long? MaxOutputTokens = null,
+    [property: JsonPropertyName("temperature"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    double? Temperature = null,
+    [property: JsonPropertyName("top_p"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    double? TopP = null,
+    [property: JsonPropertyName("stream"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    bool? Stream = null,
+    [property: JsonPropertyName("metadata"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    IReadOnlyDictionary<string, string>? Metadata = null);
+
+/// <summary>A response object from the Responses API.</summary>
+public record ResponseObject(
+    [property: JsonPropertyName("id")] string Id,
+    [property: JsonPropertyName("object")] string Object,
+    [property: JsonPropertyName("created_at")] long CreatedAt,
+    [property: JsonPropertyName("status")] string Status,
+    [property: JsonPropertyName("model")] string Model,
+    [property: JsonPropertyName("output")] JsonNode? Output = null,
+    [property: JsonPropertyName("usage")] Usage? Usage = null,
+    [property: JsonPropertyName("metadata")] IReadOnlyDictionary<string, string>? Metadata = null,
+    [property: JsonPropertyName("error")] JsonNode? Error = null);

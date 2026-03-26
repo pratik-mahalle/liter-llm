@@ -108,6 +108,287 @@ public final class LlmClient implements AutoCloseable {
 		return deserialize(responseBody, ModelsListResponse.class);
 	}
 
+	// ─── Inference API ────────────────────────────────────────────────────────
+
+	/**
+	 * Generates an image from a text prompt.
+	 *
+	 * @param request
+	 *            the image generation request
+	 * @return the provider's images response
+	 * @throws LlmException
+	 *             if the request fails for any reason
+	 */
+	public ImagesResponse imageGenerate(CreateImageRequest request) throws LlmException {
+		String body = serialize(request);
+		String responseBody = post("/images/generations", body);
+		return deserialize(responseBody, ImagesResponse.class);
+	}
+
+	/**
+	 * Generates audio speech from text, returning raw audio bytes.
+	 *
+	 * @param request
+	 *            the speech request
+	 * @return raw audio bytes
+	 * @throws LlmException
+	 *             if the request fails for any reason
+	 */
+	public byte[] speech(CreateSpeechRequest request) throws LlmException {
+		String body = serialize(request);
+		return postForBytes("/audio/speech", body);
+	}
+
+	/**
+	 * Transcribes audio to text.
+	 *
+	 * @param request
+	 *            the transcription request
+	 * @return the transcription response
+	 * @throws LlmException
+	 *             if the request fails for any reason
+	 */
+	public TranscriptionResponse transcribe(CreateTranscriptionRequest request) throws LlmException {
+		String body = serialize(request);
+		String responseBody = post("/audio/transcriptions", body);
+		return deserialize(responseBody, TranscriptionResponse.class);
+	}
+
+	/**
+	 * Checks content against moderation policies.
+	 *
+	 * @param request
+	 *            the moderation request
+	 * @return the moderation response
+	 * @throws LlmException
+	 *             if the request fails for any reason
+	 */
+	public ModerationResponse moderate(ModerationRequest request) throws LlmException {
+		String body = serialize(request);
+		String responseBody = post("/moderations", body);
+		return deserialize(responseBody, ModerationResponse.class);
+	}
+
+	/**
+	 * Reranks documents by relevance to a query.
+	 *
+	 * @param request
+	 *            the rerank request
+	 * @return the rerank response
+	 * @throws LlmException
+	 *             if the request fails for any reason
+	 */
+	public RerankResponse rerank(RerankRequest request) throws LlmException {
+		String body = serialize(request);
+		String responseBody = post("/rerank", body);
+		return deserialize(responseBody, RerankResponse.class);
+	}
+
+	// ─── File Management ──────────────────────────────────────────────────────
+
+	/**
+	 * Uploads a file.
+	 *
+	 * @param request
+	 *            the file upload request
+	 * @return the created file object
+	 * @throws LlmException
+	 *             if the request fails for any reason
+	 */
+	public FileObject createFile(CreateFileRequest request) throws LlmException {
+		String body = serialize(request);
+		String responseBody = post("/files", body);
+		return deserialize(responseBody, FileObject.class);
+	}
+
+	/**
+	 * Retrieves metadata for a file by ID.
+	 *
+	 * @param fileId
+	 *            the file identifier
+	 * @return the file object
+	 * @throws LlmException
+	 *             if the request fails for any reason
+	 */
+	public FileObject retrieveFile(String fileId) throws LlmException {
+		String responseBody = get("/files/" + fileId);
+		return deserialize(responseBody, FileObject.class);
+	}
+
+	/**
+	 * Deletes a file by ID.
+	 *
+	 * @param fileId
+	 *            the file identifier
+	 * @return the delete confirmation response
+	 * @throws LlmException
+	 *             if the request fails for any reason
+	 */
+	public DeleteResponse deleteFile(String fileId) throws LlmException {
+		String responseBody = delete("/files/" + fileId);
+		return deserialize(responseBody, DeleteResponse.class);
+	}
+
+	/**
+	 * Lists files, optionally filtered by query parameters.
+	 *
+	 * @param query
+	 *            optional query parameters, may be {@code null}
+	 * @return the file list response
+	 * @throws LlmException
+	 *             if the request fails for any reason
+	 */
+	public FileListResponse listFiles(FileListQuery query) throws LlmException {
+		String path = "/files";
+		if (query != null) {
+			var params = new java.util.ArrayList<String>();
+			if (query.purpose() != null) {
+				params.add("purpose=" + query.purpose());
+			}
+			if (query.limit() != null) {
+				params.add("limit=" + query.limit());
+			}
+			if (query.after() != null) {
+				params.add("after=" + query.after());
+			}
+			if (!params.isEmpty()) {
+				path += "?" + String.join("&", params);
+			}
+		}
+		String responseBody = get(path);
+		return deserialize(responseBody, FileListResponse.class);
+	}
+
+	/**
+	 * Retrieves the raw content of a file.
+	 *
+	 * @param fileId
+	 *            the file identifier
+	 * @return raw file content as bytes
+	 * @throws LlmException
+	 *             if the request fails for any reason
+	 */
+	public byte[] fileContent(String fileId) throws LlmException {
+		return getForBytes("/files/" + fileId + "/content");
+	}
+
+	// ─── Batch Management ─────────────────────────────────────────────────────
+
+	/**
+	 * Creates a new batch job.
+	 *
+	 * @param request
+	 *            the batch creation request
+	 * @return the created batch object
+	 * @throws LlmException
+	 *             if the request fails for any reason
+	 */
+	public BatchObject createBatch(CreateBatchRequest request) throws LlmException {
+		String body = serialize(request);
+		String responseBody = post("/batches", body);
+		return deserialize(responseBody, BatchObject.class);
+	}
+
+	/**
+	 * Retrieves a batch by ID.
+	 *
+	 * @param batchId
+	 *            the batch identifier
+	 * @return the batch object
+	 * @throws LlmException
+	 *             if the request fails for any reason
+	 */
+	public BatchObject retrieveBatch(String batchId) throws LlmException {
+		String responseBody = get("/batches/" + batchId);
+		return deserialize(responseBody, BatchObject.class);
+	}
+
+	/**
+	 * Lists batches, optionally filtered by query parameters.
+	 *
+	 * @param query
+	 *            optional query parameters, may be {@code null}
+	 * @return the batch list response
+	 * @throws LlmException
+	 *             if the request fails for any reason
+	 */
+	public BatchListResponse listBatches(BatchListQuery query) throws LlmException {
+		String path = "/batches";
+		if (query != null) {
+			var params = new java.util.ArrayList<String>();
+			if (query.limit() != null) {
+				params.add("limit=" + query.limit());
+			}
+			if (query.after() != null) {
+				params.add("after=" + query.after());
+			}
+			if (!params.isEmpty()) {
+				path += "?" + String.join("&", params);
+			}
+		}
+		String responseBody = get(path);
+		return deserialize(responseBody, BatchListResponse.class);
+	}
+
+	/**
+	 * Cancels an in-progress batch.
+	 *
+	 * @param batchId
+	 *            the batch identifier
+	 * @return the updated batch object
+	 * @throws LlmException
+	 *             if the request fails for any reason
+	 */
+	public BatchObject cancelBatch(String batchId) throws LlmException {
+		String responseBody = post("/batches/" + batchId + "/cancel", "");
+		return deserialize(responseBody, BatchObject.class);
+	}
+
+	// ─── Responses API ────────────────────────────────────────────────────────
+
+	/**
+	 * Creates a new response via the Responses API.
+	 *
+	 * @param request
+	 *            the response creation request
+	 * @return the created response object
+	 * @throws LlmException
+	 *             if the request fails for any reason
+	 */
+	public ResponseObject createResponse(CreateResponseRequest request) throws LlmException {
+		String body = serialize(request);
+		String responseBody = post("/responses", body);
+		return deserialize(responseBody, ResponseObject.class);
+	}
+
+	/**
+	 * Retrieves a response by ID.
+	 *
+	 * @param responseId
+	 *            the response identifier
+	 * @return the response object
+	 * @throws LlmException
+	 *             if the request fails for any reason
+	 */
+	public ResponseObject retrieveResponse(String responseId) throws LlmException {
+		String responseBody = get("/responses/" + responseId);
+		return deserialize(responseBody, ResponseObject.class);
+	}
+
+	/**
+	 * Cancels an in-progress response.
+	 *
+	 * @param responseId
+	 *            the response identifier
+	 * @return the updated response object
+	 * @throws LlmException
+	 *             if the request fails for any reason
+	 */
+	public ResponseObject cancelResponse(String responseId) throws LlmException {
+		String responseBody = post("/responses/" + responseId + "/cancel", "");
+		return deserialize(responseBody, ResponseObject.class);
+	}
+
 	/**
 	 * Closes the underlying HTTP client, releasing resources.
 	 *
@@ -134,17 +415,61 @@ public final class LlmClient implements AutoCloseable {
 		return executeWithRetry(request);
 	}
 
+	private String delete(String path) throws LlmException {
+		var request = HttpRequest.newBuilder().uri(URI.create(baseUrl + path))
+				.header("Authorization", "Bearer " + apiKey).header("Accept", "application/json").DELETE().build();
+		return executeWithRetry(request);
+	}
+
+	private byte[] postForBytes(String path, String body) throws LlmException {
+		var request = HttpRequest.newBuilder().uri(URI.create(baseUrl + path))
+				.header("Authorization", "Bearer " + apiKey).header("Content-Type", "application/json")
+				.POST(HttpRequest.BodyPublishers.ofString(body)).build();
+		return executeWithRetryBytes(request);
+	}
+
+	private byte[] getForBytes(String path) throws LlmException {
+		var request = HttpRequest.newBuilder().uri(URI.create(baseUrl + path))
+				.header("Authorization", "Bearer " + apiKey).GET().build();
+		return executeWithRetryBytes(request);
+	}
+
+	private byte[] executeWithRetryBytes(HttpRequest request) throws LlmException {
+		return executeWithRetry(request, HttpResponse.BodyHandlers.ofByteArray(),
+				body -> new String(body, java.nio.charset.StandardCharsets.UTF_8));
+	}
+
 	private String executeWithRetry(HttpRequest request) throws LlmException {
+		return executeWithRetry(request, HttpResponse.BodyHandlers.ofString(), body -> body);
+	}
+
+	/**
+	 * Generic retry loop for HTTP requests. Retries on 429 (rate limit) and 5xx
+	 * (server error) status codes; all other errors are thrown immediately.
+	 *
+	 * @param <T>
+	 *            the response body type
+	 * @param request
+	 *            the HTTP request to execute
+	 * @param handler
+	 *            the body handler that determines response type
+	 * @param bodyToString
+	 *            converts the typed body to a String for error messages
+	 * @return the response body on success
+	 * @throws LlmException
+	 *             on non-retryable errors or when retries are exhausted
+	 */
+	private <T> T executeWithRetry(HttpRequest request, HttpResponse.BodyHandler<T> handler,
+			java.util.function.Function<T, String> bodyToString) throws LlmException {
 		LlmException lastException = null;
 		for (int attempt = 0; attempt <= maxRetries; attempt++) {
 			try {
-				var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+				var response = httpClient.send(request, handler);
 				int status = response.statusCode();
-				String responseBody = response.body();
 				if (status >= HTTP_OK_MIN && status < HTTP_OK_MAX) {
-					return responseBody;
+					return response.body();
 				}
-				lastException = classifyHttpError(status, responseBody);
+				lastException = classifyHttpError(status, bodyToString.apply(response.body()));
 				// Only retry on 429 and 5xx
 				if (status != HTTP_RATE_LIMIT && status < HTTP_SERVER_ERROR_MIN) {
 					throw lastException;

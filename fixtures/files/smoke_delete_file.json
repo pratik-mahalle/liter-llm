@@ -1,0 +1,26 @@
+{
+	"id": "smoke_delete_file",
+	"category": "files",
+	"description": "Delete an uploaded file",
+	"api": {
+		"method": "delete_file",
+		"request": {
+			"file_id": "file-abc123"
+		},
+		"mock_response": {
+			"status": 200,
+			"body": {
+				"id": "file-abc123",
+				"object": "file",
+				"deleted": true
+			}
+		}
+	},
+	"assertions": {
+		"response_not_null": true,
+		"file_id": "file-abc123",
+		"file_deleted": true
+	},
+	"tags": ["smoke", "files"],
+	"skip": {}
+}

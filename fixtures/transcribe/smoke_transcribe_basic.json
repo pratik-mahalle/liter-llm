@@ -1,0 +1,24 @@
+{
+	"id": "smoke_transcribe_basic",
+	"category": "transcribe",
+	"description": "Basic audio transcription",
+	"api": {
+		"method": "transcribe",
+		"request": {
+			"model": "whisper-1",
+			"file": "audio.mp3"
+		},
+		"mock_response": {
+			"status": 200,
+			"body": {
+				"text": "Hello, this is a test transcription."
+			}
+		}
+	},
+	"assertions": {
+		"response_not_null": true,
+		"transcription_text": "Hello, this is a test transcription."
+	},
+	"tags": ["smoke", "transcribe"],
+	"skip": {}
+}

@@ -1,0 +1,72 @@
+{
+	"id": "smoke_response_with_tools",
+	"category": "responses",
+	"description": "Response that includes tool call output items",
+	"api": {
+		"method": "create_response",
+		"request": {
+			"model": "gpt-4o",
+			"input": "What is the weather in San Francisco?",
+			"tools": [
+				{
+					"type": "function",
+					"name": "get_weather",
+					"description": "Get current weather for a location",
+					"parameters": {
+						"type": "object",
+						"properties": {
+							"location": {
+								"type": "string"
+							}
+						},
+						"required": ["location"]
+					}
+				}
+			]
+		},
+		"mock_response": {
+			"status": 200,
+			"body": {
+				"id": "resp-tool001",
+				"object": "response",
+				"created_at": 1711000000,
+				"status": "completed",
+				"model": "gpt-4o",
+				"output": [
+					{
+						"type": "function_call",
+						"id": "fc-001",
+						"call_id": "call-001",
+						"name": "get_weather",
+						"arguments": "{\"location\": \"San Francisco\"}"
+					},
+					{
+						"type": "message",
+						"id": "msg-002",
+						"role": "assistant",
+						"content": [
+							{
+								"type": "output_text",
+								"text": "The weather in San Francisco is currently 65F and sunny."
+							}
+						]
+					}
+				],
+				"usage": {
+					"input_tokens": 50,
+					"output_tokens": 35,
+					"total_tokens": 85
+				}
+			}
+		}
+	},
+	"assertions": {
+		"response_not_null": true,
+		"response_id": "resp-tool001",
+		"response_status": "completed",
+		"response_output_count": 2,
+		"response_has_tool_calls": true
+	},
+	"tags": ["smoke", "responses"],
+	"skip": {}
+}

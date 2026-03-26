@@ -1,0 +1,46 @@
+{
+	"id": "smoke_retrieve_response",
+	"category": "responses",
+	"description": "Retrieve a previously created response",
+	"api": {
+		"method": "retrieve_response",
+		"request": {
+			"response_id": "resp-abc123"
+		},
+		"mock_response": {
+			"status": 200,
+			"body": {
+				"id": "resp-abc123",
+				"object": "response",
+				"created_at": 1711000000,
+				"status": "completed",
+				"model": "gpt-4o",
+				"output": [
+					{
+						"type": "message",
+						"id": "msg-001",
+						"role": "assistant",
+						"content": [
+							{
+								"type": "output_text",
+								"text": "Quantum computing uses qubits."
+							}
+						]
+					}
+				],
+				"usage": {
+					"input_tokens": 12,
+					"output_tokens": 8,
+					"total_tokens": 20
+				}
+			}
+		}
+	},
+	"assertions": {
+		"response_not_null": true,
+		"response_id": "resp-abc123",
+		"response_status": "completed"
+	},
+	"tags": ["smoke", "responses"],
+	"skip": {}
+}

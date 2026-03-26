@@ -301,7 +301,12 @@ fn write_test_fn(out: &mut String, fixture: &Fixture) {
     let fn_name = sanitize_name(&fixture.id);
     let method = fixture.api.method.as_str();
     let endpoint = endpoint_for_method(method);
-    let http_method = if method == "list_models" { "GET" } else { "POST" };
+    let http_method = match method {
+        "list_models" | "retrieve_file" | "list_files" | "file_content" | "retrieve_batch" | "list_batches"
+        | "retrieve_response" => "GET",
+        "delete_file" | "cancel_batch" | "cancel_response" => "POST",
+        _ => "POST",
+    };
     let status = fixture.api.mock_response.status;
 
     writeln!(out).unwrap();
@@ -657,6 +662,18 @@ fn endpoint_for_method(method: &str) -> &'static str {
         "chat" | "chat_stream" => "/chat/completions",
         "embed" => "/embeddings",
         "list_models" => "/models",
+        "image_generate" => "/images/generations",
+        "speech" => "/audio/speech",
+        "transcribe" => "/audio/transcriptions",
+        "moderate" => "/moderations",
+        "rerank" => "/rerank",
+        "create_file" | "list_files" => "/files",
+        "retrieve_file" | "delete_file" => "/files/file-placeholder",
+        "file_content" => "/files/file-placeholder/content",
+        "create_batch" | "list_batches" => "/batches",
+        "retrieve_batch" | "cancel_batch" => "/batches/batch-placeholder",
+        "create_response" => "/responses",
+        "retrieve_response" | "cancel_response" => "/responses/resp-placeholder",
         _ => "/chat/completions",
     }
 }

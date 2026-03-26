@@ -1,0 +1,23 @@
+{
+	"id": "edge_batch_empty_list",
+	"category": "batches",
+	"description": "List batches when no batches exist",
+	"api": {
+		"method": "list_batches",
+		"request": {},
+		"mock_response": {
+			"status": 200,
+			"body": {
+				"object": "list",
+				"data": [],
+				"has_more": false
+			}
+		}
+	},
+	"assertions": {
+		"response_not_null": true,
+		"batch_count": 0
+	},
+	"tags": ["edge-case", "batches"],
+	"skip": {}
+}

@@ -146,6 +146,387 @@ defmodule LiterLm do
     Client.list_models(client, req_opts)
   end
 
+  # ── Additional inference methods ─────────────────────────────────────────
+
+  @doc """
+  Generates an image from a text prompt.
+
+  ## Parameters
+
+  - `request` — a map with `:prompt`, `:model`, and optional params.
+  - `opts` — client options or extra `Req` options.
+
+  ## Returns
+
+  `{:ok, map()}` or `{:error, LiterLm.Error.t()}`.
+
+  ## Examples
+
+      {:ok, response} = LiterLm.image_generate(%{
+        model: "dall-e-3",
+        prompt: "A sunset over mountains"
+      })
+      hd(response["data"])["url"]
+
+  """
+  @spec image_generate(map(), keyword()) ::
+          {:ok, map()} | {:error, LiterLm.Error.t()}
+  def image_generate(request, opts \\ []) do
+    {client_opts, req_opts} = split_opts(opts)
+    client = build_client(client_opts)
+    Client.image_generate(client, request, req_opts)
+  end
+
+  @doc """
+  Generates speech audio from text.
+
+  ## Parameters
+
+  - `request` — a map with `:model`, `:input`, `:voice`, and optional params.
+  - `opts` — client options or extra `Req` options.
+
+  ## Returns
+
+  `{:ok, binary()}` containing the raw audio bytes, or `{:error, LiterLm.Error.t()}`.
+
+  ## Examples
+
+      {:ok, audio_bytes} = LiterLm.speech(%{
+        model: "tts-1",
+        input: "Hello, world!",
+        voice: "alloy"
+      })
+
+  """
+  @spec speech(map(), keyword()) ::
+          {:ok, binary()} | {:error, LiterLm.Error.t()}
+  def speech(request, opts \\ []) do
+    {client_opts, req_opts} = split_opts(opts)
+    client = build_client(client_opts)
+    Client.speech(client, request, req_opts)
+  end
+
+  @doc """
+  Transcribes audio to text.
+
+  ## Parameters
+
+  - `request` — a map with `:model`, `:file`, and optional params.
+  - `opts` — client options or extra `Req` options.
+
+  ## Returns
+
+  `{:ok, map()}` or `{:error, LiterLm.Error.t()}`.
+
+  """
+  @spec transcribe(map(), keyword()) ::
+          {:ok, map()} | {:error, LiterLm.Error.t()}
+  def transcribe(request, opts \\ []) do
+    {client_opts, req_opts} = split_opts(opts)
+    client = build_client(client_opts)
+    Client.transcribe(client, request, req_opts)
+  end
+
+  @doc """
+  Checks content against moderation policies.
+
+  ## Parameters
+
+  - `request` — a map with `:input` and optional `:model`.
+  - `opts` — client options or extra `Req` options.
+
+  ## Returns
+
+  `{:ok, map()}` or `{:error, LiterLm.Error.t()}`.
+
+  """
+  @spec moderate(map(), keyword()) ::
+          {:ok, map()} | {:error, LiterLm.Error.t()}
+  def moderate(request, opts \\ []) do
+    {client_opts, req_opts} = split_opts(opts)
+    client = build_client(client_opts)
+    Client.moderate(client, request, req_opts)
+  end
+
+  @doc """
+  Reranks documents by relevance to a query.
+
+  ## Parameters
+
+  - `request` — a map with `:model`, `:query`, `:documents`.
+  - `opts` — client options or extra `Req` options.
+
+  ## Returns
+
+  `{:ok, map()}` or `{:error, LiterLm.Error.t()}`.
+
+  """
+  @spec rerank(map(), keyword()) ::
+          {:ok, map()} | {:error, LiterLm.Error.t()}
+  def rerank(request, opts \\ []) do
+    {client_opts, req_opts} = split_opts(opts)
+    client = build_client(client_opts)
+    Client.rerank(client, request, req_opts)
+  end
+
+  # ── File management ────────────────────────────────────────────────────
+
+  @doc """
+  Uploads a file.
+
+  ## Parameters
+
+  - `request` — a map with `:file`, `:purpose`, and optional `:filename`.
+  - `opts` — client options or extra `Req` options.
+
+  ## Returns
+
+  `{:ok, map()}` with file object fields, or `{:error, LiterLm.Error.t()}`.
+
+  """
+  @spec create_file(map(), keyword()) ::
+          {:ok, map()} | {:error, LiterLm.Error.t()}
+  def create_file(request, opts \\ []) do
+    {client_opts, req_opts} = split_opts(opts)
+    client = build_client(client_opts)
+    Client.create_file(client, request, req_opts)
+  end
+
+  @doc """
+  Retrieves metadata for a file by ID.
+
+  ## Parameters
+
+  - `file_id` — the file ID string.
+  - `opts` — client options or extra `Req` options.
+
+  ## Returns
+
+  `{:ok, map()}` with file object fields, or `{:error, LiterLm.Error.t()}`.
+
+  """
+  @spec retrieve_file(String.t(), keyword()) ::
+          {:ok, map()} | {:error, LiterLm.Error.t()}
+  def retrieve_file(file_id, opts \\ []) do
+    {client_opts, req_opts} = split_opts(opts)
+    client = build_client(client_opts)
+    Client.retrieve_file(client, file_id, req_opts)
+  end
+
+  @doc """
+  Deletes a file by ID.
+
+  ## Parameters
+
+  - `file_id` — the file ID string.
+  - `opts` — client options or extra `Req` options.
+
+  ## Returns
+
+  `{:ok, map()}` with deletion status, or `{:error, LiterLm.Error.t()}`.
+
+  """
+  @spec delete_file(String.t(), keyword()) ::
+          {:ok, map()} | {:error, LiterLm.Error.t()}
+  def delete_file(file_id, opts \\ []) do
+    {client_opts, req_opts} = split_opts(opts)
+    client = build_client(client_opts)
+    Client.delete_file(client, file_id, req_opts)
+  end
+
+  @doc """
+  Lists files, optionally filtered by query parameters.
+
+  ## Parameters
+
+  - `query` — optional map of query parameters (`:purpose`, `:limit`, `:after`).
+  - `opts` — client options or extra `Req` options.
+
+  ## Returns
+
+  `{:ok, map()}` with a `"data"` list, or `{:error, LiterLm.Error.t()}`.
+
+  """
+  @spec list_files(map() | nil, keyword()) ::
+          {:ok, map()} | {:error, LiterLm.Error.t()}
+  def list_files(query \\ nil, opts \\ []) do
+    {client_opts, req_opts} = split_opts(opts)
+    client = build_client(client_opts)
+    Client.list_files(client, query, req_opts)
+  end
+
+  @doc """
+  Retrieves the raw content of a file.
+
+  ## Parameters
+
+  - `file_id` — the file ID string.
+  - `opts` — client options or extra `Req` options.
+
+  ## Returns
+
+  `{:ok, binary()}` containing the raw file bytes, or `{:error, LiterLm.Error.t()}`.
+
+  """
+  @spec file_content(String.t(), keyword()) ::
+          {:ok, binary()} | {:error, LiterLm.Error.t()}
+  def file_content(file_id, opts \\ []) do
+    {client_opts, req_opts} = split_opts(opts)
+    client = build_client(client_opts)
+    Client.file_content(client, file_id, req_opts)
+  end
+
+  # ── Batch management ───────────────────────────────────────────────────
+
+  @doc """
+  Creates a new batch job.
+
+  ## Parameters
+
+  - `request` — a map with `:input_file_id`, `:endpoint`, `:completion_window`.
+  - `opts` — client options or extra `Req` options.
+
+  ## Returns
+
+  `{:ok, map()}` with batch object fields, or `{:error, LiterLm.Error.t()}`.
+
+  """
+  @spec create_batch(map(), keyword()) ::
+          {:ok, map()} | {:error, LiterLm.Error.t()}
+  def create_batch(request, opts \\ []) do
+    {client_opts, req_opts} = split_opts(opts)
+    client = build_client(client_opts)
+    Client.create_batch(client, request, req_opts)
+  end
+
+  @doc """
+  Retrieves a batch by ID.
+
+  ## Parameters
+
+  - `batch_id` — the batch ID string.
+  - `opts` — client options or extra `Req` options.
+
+  ## Returns
+
+  `{:ok, map()}` with batch object fields, or `{:error, LiterLm.Error.t()}`.
+
+  """
+  @spec retrieve_batch(String.t(), keyword()) ::
+          {:ok, map()} | {:error, LiterLm.Error.t()}
+  def retrieve_batch(batch_id, opts \\ []) do
+    {client_opts, req_opts} = split_opts(opts)
+    client = build_client(client_opts)
+    Client.retrieve_batch(client, batch_id, req_opts)
+  end
+
+  @doc """
+  Lists batches, optionally filtered by query parameters.
+
+  ## Parameters
+
+  - `query` — optional map of query parameters (`:limit`, `:after`).
+  - `opts` — client options or extra `Req` options.
+
+  ## Returns
+
+  `{:ok, map()}` with a `"data"` list, or `{:error, LiterLm.Error.t()}`.
+
+  """
+  @spec list_batches(map() | nil, keyword()) ::
+          {:ok, map()} | {:error, LiterLm.Error.t()}
+  def list_batches(query \\ nil, opts \\ []) do
+    {client_opts, req_opts} = split_opts(opts)
+    client = build_client(client_opts)
+    Client.list_batches(client, query, req_opts)
+  end
+
+  @doc """
+  Cancels an in-progress batch.
+
+  ## Parameters
+
+  - `batch_id` — the batch ID string.
+  - `opts` — client options or extra `Req` options.
+
+  ## Returns
+
+  `{:ok, map()}` with batch object fields, or `{:error, LiterLm.Error.t()}`.
+
+  """
+  @spec cancel_batch(String.t(), keyword()) ::
+          {:ok, map()} | {:error, LiterLm.Error.t()}
+  def cancel_batch(batch_id, opts \\ []) do
+    {client_opts, req_opts} = split_opts(opts)
+    client = build_client(client_opts)
+    Client.cancel_batch(client, batch_id, req_opts)
+  end
+
+  # ── Response management ────────────────────────────────────────────────
+
+  @doc """
+  Creates a new response.
+
+  ## Parameters
+
+  - `request` — a map with `:model`, `:input`, and optional params.
+  - `opts` — client options or extra `Req` options.
+
+  ## Returns
+
+  `{:ok, map()}` with response object fields, or `{:error, LiterLm.Error.t()}`.
+
+  """
+  @spec create_response(map(), keyword()) ::
+          {:ok, map()} | {:error, LiterLm.Error.t()}
+  def create_response(request, opts \\ []) do
+    {client_opts, req_opts} = split_opts(opts)
+    client = build_client(client_opts)
+    Client.create_response(client, request, req_opts)
+  end
+
+  @doc """
+  Retrieves a response by ID.
+
+  ## Parameters
+
+  - `response_id` — the response ID string.
+  - `opts` — client options or extra `Req` options.
+
+  ## Returns
+
+  `{:ok, map()}` with response object fields, or `{:error, LiterLm.Error.t()}`.
+
+  """
+  @spec retrieve_response(String.t(), keyword()) ::
+          {:ok, map()} | {:error, LiterLm.Error.t()}
+  def retrieve_response(response_id, opts \\ []) do
+    {client_opts, req_opts} = split_opts(opts)
+    client = build_client(client_opts)
+    Client.retrieve_response(client, response_id, req_opts)
+  end
+
+  @doc """
+  Cancels an in-progress response.
+
+  ## Parameters
+
+  - `response_id` — the response ID string.
+  - `opts` — client options or extra `Req` options.
+
+  ## Returns
+
+  `{:ok, map()}` with response object fields, or `{:error, LiterLm.Error.t()}`.
+
+  """
+  @spec cancel_response(String.t(), keyword()) ::
+          {:ok, map()} | {:error, LiterLm.Error.t()}
+  def cancel_response(response_id, opts \\ []) do
+    {client_opts, req_opts} = split_opts(opts)
+    client = build_client(client_opts)
+    Client.cancel_response(client, response_id, req_opts)
+  end
+
   # ─── Helpers ──────────────────────────────────────────────────────────────
 
   # Known client config keys — all others are forwarded to Req.

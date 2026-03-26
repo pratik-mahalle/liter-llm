@@ -1,0 +1,30 @@
+{
+	"id": "error_file_bad_purpose",
+	"category": "files",
+	"description": "400 Bad Request when uploading a file with invalid purpose",
+	"api": {
+		"method": "create_file",
+		"request": {
+			"file": "data.jsonl",
+			"purpose": "invalid-purpose"
+		},
+		"mock_response": {
+			"status": 400,
+			"body": {
+				"error": {
+					"message": "Invalid value for 'purpose': 'invalid-purpose'. Supported values are: 'fine-tune', 'assistants', 'batch'.",
+					"type": "invalid_request_error",
+					"param": "purpose",
+					"code": null
+				}
+			}
+		}
+	},
+	"assertions": {
+		"expect_success": false,
+		"error_type": "InvalidRequest",
+		"error_status_code": 400
+	},
+	"tags": ["error-handling", "files"],
+	"skip": {}
+}

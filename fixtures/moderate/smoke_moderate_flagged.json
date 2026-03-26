@@ -1,0 +1,43 @@
+{
+	"id": "smoke_moderate_flagged",
+	"category": "moderate",
+	"description": "Moderation detects flagged content",
+	"api": {
+		"method": "moderate",
+		"request": {
+			"model": "omni-moderation-latest",
+			"input": "I want to hurt someone very badly"
+		},
+		"mock_response": {
+			"status": 200,
+			"body": {
+				"id": "modr-ghi789",
+				"model": "omni-moderation-latest",
+				"results": [
+					{
+						"flagged": true,
+						"categories": {
+							"sexual": false,
+							"hate": false,
+							"harassment": false,
+							"violence": true
+						},
+						"category_scores": {
+							"sexual": 0.0001,
+							"hate": 0.01,
+							"harassment": 0.15,
+							"violence": 0.92
+						}
+					}
+				]
+			}
+		}
+	},
+	"assertions": {
+		"response_not_null": true,
+		"moderation_result_count": 1,
+		"moderation_has_flagged": true
+	},
+	"tags": ["smoke", "moderate"],
+	"skip": {}
+}

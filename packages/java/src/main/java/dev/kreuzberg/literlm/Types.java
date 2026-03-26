@@ -705,4 +705,255 @@ public final class Types {
 	public record ModelsListResponse(@JsonProperty("object") String object,
 			@JsonProperty("data") List<ModelObject> data) {
 	}
+
+	// ─── Image Generation ─────────────────────────────────────────────────────
+
+	/** Request body for an image generation API call. */
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record CreateImageRequest(@JsonProperty("prompt") String prompt, @JsonProperty("model") String model,
+			@JsonProperty("n") Integer n, @JsonProperty("quality") String quality,
+			@JsonProperty("response_format") String responseFormat, @JsonProperty("size") String size,
+			@JsonProperty("style") String style, @JsonProperty("user") String user) {
+
+		/** Creates an image request with a prompt only. */
+		public CreateImageRequest(String prompt) {
+			this(prompt, null, null, null, null, null, null, null);
+		}
+	}
+
+	/** A single image result returned by the API. */
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record ImageData(@JsonProperty("url") String url, @JsonProperty("b64_json") String b64Json,
+			@JsonProperty("revised_prompt") String revisedPrompt) {
+	}
+
+	/** Response body for an image generation request. */
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record ImagesResponse(@JsonProperty("created") long created, @JsonProperty("data") List<ImageData> data) {
+	}
+
+	// ─── Speech ───────────────────────────────────────────────────────────────
+
+	/** Request body for a speech generation API call. */
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record CreateSpeechRequest(@JsonProperty("model") String model, @JsonProperty("input") String input,
+			@JsonProperty("voice") String voice, @JsonProperty("response_format") String responseFormat,
+			@JsonProperty("speed") Double speed) {
+
+		/** Creates a speech request with model, input, and voice only. */
+		public CreateSpeechRequest(String model, String input, String voice) {
+			this(model, input, voice, null, null);
+		}
+	}
+
+	// ─── Transcription ────────────────────────────────────────────────────────
+
+	/** Request body for an audio transcription API call. */
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record CreateTranscriptionRequest(@JsonProperty("file") String file, @JsonProperty("model") String model,
+			@JsonProperty("language") String language, @JsonProperty("prompt") String prompt,
+			@JsonProperty("response_format") String responseFormat, @JsonProperty("temperature") Double temperature) {
+
+		/** Creates a transcription request with file and model only. */
+		public CreateTranscriptionRequest(String file, String model) {
+			this(file, model, null, null, null, null);
+		}
+	}
+
+	/** Response body for a transcription request. */
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record TranscriptionResponse(@JsonProperty("text") String text) {
+	}
+
+	// ─── Moderation ───────────────────────────────────────────────────────────
+
+	/** Request body for a moderation API call. */
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record ModerationRequest(@JsonProperty("input") JsonNode input, @JsonProperty("model") String model) {
+	}
+
+	/** Per-category boolean flags for a moderation result. */
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record ModerationCategories(@JsonProperty("sexual") boolean sexual, @JsonProperty("hate") boolean hate,
+			@JsonProperty("harassment") boolean harassment, @JsonProperty("self-harm") boolean selfHarm,
+			@JsonProperty("violence") boolean violence, @JsonProperty("sexual/minors") boolean sexualMinors,
+			@JsonProperty("hate/threatening") boolean hateThreatening,
+			@JsonProperty("violence/graphic") boolean violenceGraphic,
+			@JsonProperty("self-harm/intent") boolean selfHarmIntent,
+			@JsonProperty("self-harm/instructions") boolean selfHarmInstructions,
+			@JsonProperty("harassment/threatening") boolean harassmentThreatening) {
+	}
+
+	/** Per-category confidence scores for a moderation result. */
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record ModerationCategoryScores(@JsonProperty("sexual") double sexual, @JsonProperty("hate") double hate,
+			@JsonProperty("harassment") double harassment, @JsonProperty("self-harm") double selfHarm,
+			@JsonProperty("violence") double violence, @JsonProperty("sexual/minors") double sexualMinors,
+			@JsonProperty("hate/threatening") double hateThreatening,
+			@JsonProperty("violence/graphic") double violenceGraphic,
+			@JsonProperty("self-harm/intent") double selfHarmIntent,
+			@JsonProperty("self-harm/instructions") double selfHarmInstructions,
+			@JsonProperty("harassment/threatening") double harassmentThreatening) {
+	}
+
+	/** A single moderation result for one input. */
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record ModerationResult(@JsonProperty("flagged") boolean flagged,
+			@JsonProperty("categories") ModerationCategories categories,
+			@JsonProperty("category_scores") ModerationCategoryScores categoryScores) {
+	}
+
+	/** Response body for a moderation request. */
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record ModerationResponse(@JsonProperty("id") String id, @JsonProperty("model") String model,
+			@JsonProperty("results") List<ModerationResult> results) {
+	}
+
+	// ─── Rerank ───────────────────────────────────────────────────────────────
+
+	/** Request body for a rerank API call. */
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record RerankRequest(@JsonProperty("model") String model, @JsonProperty("query") String query,
+			@JsonProperty("documents") JsonNode documents, @JsonProperty("top_n") Integer topN) {
+
+		/** Creates a rerank request without top_n. */
+		public RerankRequest(String model, String query, JsonNode documents) {
+			this(model, query, documents, null);
+		}
+	}
+
+	/** A single reranked document result. */
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record RerankResult(@JsonProperty("index") int index,
+			@JsonProperty("relevance_score") double relevanceScore) {
+	}
+
+	/** Response body for a rerank request. */
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record RerankResponse(@JsonProperty("results") List<RerankResult> results,
+			@JsonProperty("model") String model, @JsonProperty("usage") Usage usage) {
+	}
+
+	// ─── Files ────────────────────────────────────────────────────────────────
+
+	/** Request body for a file upload API call. */
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record CreateFileRequest(@JsonProperty("file") String file, @JsonProperty("purpose") String purpose,
+			@JsonProperty("filename") String filename) {
+
+		/** Creates a file upload request without a filename override. */
+		public CreateFileRequest(String file, String purpose) {
+			this(file, purpose, null);
+		}
+	}
+
+	/** Metadata for an uploaded file. */
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record FileObject(@JsonProperty("id") String id, @JsonProperty("object") String object,
+			@JsonProperty("bytes") long bytes, @JsonProperty("created_at") long createdAt,
+			@JsonProperty("filename") String filename, @JsonProperty("purpose") String purpose,
+			@JsonProperty("status") String status, @JsonProperty("status_details") String statusDetails) {
+	}
+
+	/** Response body for a delete operation. */
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record DeleteResponse(@JsonProperty("id") String id, @JsonProperty("object") String object,
+			@JsonProperty("deleted") boolean deleted) {
+	}
+
+	/** Optional query parameters for listing files. */
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record FileListQuery(@JsonProperty("purpose") String purpose, @JsonProperty("limit") Integer limit,
+			@JsonProperty("after") String after) {
+	}
+
+	/** Response body for listing files. */
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record FileListResponse(@JsonProperty("object") String object, @JsonProperty("data") List<FileObject> data) {
+	}
+
+	// ─── Batches ──────────────────────────────────────────────────────────────
+
+	/** Request body for creating a batch job. */
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record CreateBatchRequest(@JsonProperty("input_file_id") String inputFileId,
+			@JsonProperty("endpoint") String endpoint, @JsonProperty("completion_window") String completionWindow,
+			@JsonProperty("metadata") Map<String, String> metadata) {
+
+		/** Creates a batch request without metadata. */
+		public CreateBatchRequest(String inputFileId, String endpoint, String completionWindow) {
+			this(inputFileId, endpoint, completionWindow, null);
+		}
+	}
+
+	/** Counts for a batch job. */
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record BatchRequestCounts(@JsonProperty("total") long total, @JsonProperty("completed") long completed,
+			@JsonProperty("failed") long failed) {
+	}
+
+	/** Metadata for a batch processing job. */
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record BatchObject(@JsonProperty("id") String id, @JsonProperty("object") String object,
+			@JsonProperty("endpoint") String endpoint, @JsonProperty("input_file_id") String inputFileId,
+			@JsonProperty("completion_window") String completionWindow, @JsonProperty("status") String status,
+			@JsonProperty("output_file_id") String outputFileId, @JsonProperty("error_file_id") String errorFileId,
+			@JsonProperty("created_at") long createdAt, @JsonProperty("in_progress_at") Long inProgressAt,
+			@JsonProperty("expires_at") Long expiresAt, @JsonProperty("finalizing_at") Long finalizingAt,
+			@JsonProperty("completed_at") Long completedAt, @JsonProperty("failed_at") Long failedAt,
+			@JsonProperty("expired_at") Long expiredAt, @JsonProperty("cancelling_at") Long cancellingAt,
+			@JsonProperty("cancelled_at") Long cancelledAt,
+			@JsonProperty("request_counts") BatchRequestCounts requestCounts,
+			@JsonProperty("metadata") Map<String, String> metadata) {
+	}
+
+	/** Optional query parameters for listing batches. */
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record BatchListQuery(@JsonProperty("limit") Integer limit, @JsonProperty("after") String after) {
+	}
+
+	/** Response body for listing batches. */
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record BatchListResponse(@JsonProperty("object") String object,
+			@JsonProperty("data") List<BatchObject> data) {
+	}
+
+	// ─── Responses API ────────────────────────────────────────────────────────
+
+	/** Request body for creating a response via the Responses API. */
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record CreateResponseRequest(@JsonProperty("model") String model, @JsonProperty("input") JsonNode input,
+			@JsonProperty("instructions") String instructions, @JsonProperty("max_output_tokens") Long maxOutputTokens,
+			@JsonProperty("temperature") Double temperature, @JsonProperty("top_p") Double topP,
+			@JsonProperty("stream") Boolean stream, @JsonProperty("metadata") Map<String, String> metadata) {
+
+		/** Creates a response request with model and input only. */
+		public CreateResponseRequest(String model, JsonNode input) {
+			this(model, input, null, null, null, null, null, null);
+		}
+	}
+
+	/** A response object from the Responses API. */
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public record ResponseObject(@JsonProperty("id") String id, @JsonProperty("object") String object,
+			@JsonProperty("created_at") long createdAt, @JsonProperty("status") String status,
+			@JsonProperty("model") String model, @JsonProperty("output") JsonNode output,
+			@JsonProperty("usage") Usage usage, @JsonProperty("metadata") Map<String, String> metadata,
+			@JsonProperty("error") JsonNode error) {
+	}
 }

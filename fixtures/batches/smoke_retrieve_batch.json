@@ -1,0 +1,36 @@
+{
+	"id": "smoke_retrieve_batch",
+	"category": "batches",
+	"description": "Retrieve the status of a batch job",
+	"api": {
+		"method": "retrieve_batch",
+		"request": {
+			"batch_id": "batch-abc123"
+		},
+		"mock_response": {
+			"status": 200,
+			"body": {
+				"id": "batch-abc123",
+				"object": "batch",
+				"endpoint": "/v1/chat/completions",
+				"input_file_id": "file-abc123",
+				"completion_window": "24h",
+				"status": "in_progress",
+				"created_at": 1711000000,
+				"in_progress_at": 1711000100,
+				"request_counts": {
+					"total": 100,
+					"completed": 45,
+					"failed": 2
+				}
+			}
+		}
+	},
+	"assertions": {
+		"response_not_null": true,
+		"batch_id": "batch-abc123",
+		"batch_status": "in_progress"
+	},
+	"tags": ["smoke", "batches"],
+	"skip": {}
+}

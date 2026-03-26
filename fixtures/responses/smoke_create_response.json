@@ -1,0 +1,48 @@
+{
+	"id": "smoke_create_response",
+	"category": "responses",
+	"description": "Create a basic response using the Responses API",
+	"api": {
+		"method": "create_response",
+		"request": {
+			"model": "gpt-4o",
+			"input": "Explain quantum computing in one sentence."
+		},
+		"mock_response": {
+			"status": 200,
+			"body": {
+				"id": "resp-abc123",
+				"object": "response",
+				"created_at": 1711000000,
+				"status": "completed",
+				"model": "gpt-4o",
+				"output": [
+					{
+						"type": "message",
+						"id": "msg-001",
+						"role": "assistant",
+						"content": [
+							{
+								"type": "output_text",
+								"text": "Quantum computing uses quantum bits that can exist in multiple states simultaneously to solve certain problems exponentially faster than classical computers."
+							}
+						]
+					}
+				],
+				"usage": {
+					"input_tokens": 12,
+					"output_tokens": 28,
+					"total_tokens": 40
+				}
+			}
+		}
+	},
+	"assertions": {
+		"response_not_null": true,
+		"response_id": "resp-abc123",
+		"response_status": "completed",
+		"response_output_count": 1
+	},
+	"tags": ["smoke", "responses"],
+	"skip": {}
+}

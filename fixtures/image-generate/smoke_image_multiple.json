@@ -1,0 +1,38 @@
+{
+	"id": "smoke_image_multiple",
+	"category": "image-generate",
+	"description": "Image generation requesting multiple images",
+	"api": {
+		"method": "image_generate",
+		"request": {
+			"model": "dall-e-2",
+			"prompt": "A red bicycle",
+			"n": 3,
+			"size": "256x256"
+		},
+		"mock_response": {
+			"status": 200,
+			"body": {
+				"created": 1711000000,
+				"data": [
+					{
+						"url": "https://example.com/images/img-001.png"
+					},
+					{
+						"url": "https://example.com/images/img-002.png"
+					},
+					{
+						"url": "https://example.com/images/img-003.png"
+					}
+				]
+			}
+		}
+	},
+	"assertions": {
+		"response_not_null": true,
+		"image_count": 3,
+		"image_has_url": true
+	},
+	"tags": ["smoke", "image"],
+	"skip": {}
+}

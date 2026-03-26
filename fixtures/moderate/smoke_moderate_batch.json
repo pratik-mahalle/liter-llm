@@ -1,0 +1,58 @@
+{
+	"id": "smoke_moderate_batch",
+	"category": "moderate",
+	"description": "Moderate multiple inputs in a single request",
+	"api": {
+		"method": "moderate",
+		"request": {
+			"model": "omni-moderation-latest",
+			"input": ["Hello world", "Nice weather today"]
+		},
+		"mock_response": {
+			"status": 200,
+			"body": {
+				"id": "modr-def456",
+				"model": "omni-moderation-latest",
+				"results": [
+					{
+						"flagged": false,
+						"categories": {
+							"sexual": false,
+							"hate": false,
+							"harassment": false,
+							"violence": false
+						},
+						"category_scores": {
+							"sexual": 0.0001,
+							"hate": 0.0001,
+							"harassment": 0.0001,
+							"violence": 0.0001
+						}
+					},
+					{
+						"flagged": false,
+						"categories": {
+							"sexual": false,
+							"hate": false,
+							"harassment": false,
+							"violence": false
+						},
+						"category_scores": {
+							"sexual": 0.0001,
+							"hate": 0.0001,
+							"harassment": 0.0001,
+							"violence": 0.0001
+						}
+					}
+				]
+			}
+		}
+	},
+	"assertions": {
+		"response_not_null": true,
+		"moderation_result_count": 2,
+		"moderation_has_flagged": false
+	},
+	"tags": ["smoke", "moderate"],
+	"skip": {}
+}

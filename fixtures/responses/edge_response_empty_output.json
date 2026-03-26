@@ -1,0 +1,36 @@
+{
+	"id": "edge_response_empty_output",
+	"category": "responses",
+	"description": "Response completes with empty output items",
+	"api": {
+		"method": "create_response",
+		"request": {
+			"model": "gpt-4o",
+			"input": ""
+		},
+		"mock_response": {
+			"status": 200,
+			"body": {
+				"id": "resp-empty001",
+				"object": "response",
+				"created_at": 1711000000,
+				"status": "completed",
+				"model": "gpt-4o",
+				"output": [],
+				"usage": {
+					"input_tokens": 0,
+					"output_tokens": 0,
+					"total_tokens": 0
+				}
+			}
+		}
+	},
+	"assertions": {
+		"response_not_null": true,
+		"response_id": "resp-empty001",
+		"response_status": "completed",
+		"response_output_count": 0
+	},
+	"tags": ["edge-case", "responses"],
+	"skip": {}
+}

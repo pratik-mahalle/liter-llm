@@ -17,6 +17,7 @@ name = "liter_lm_rb"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+base64 = "0.22"
 liter-lm = { path = "../../../../../crates/liter-lm" }
 magnus = { version = "0.8", features = ["rb-sys"] }
 rb-sys = { version = "0.9", default-features = false, features = [

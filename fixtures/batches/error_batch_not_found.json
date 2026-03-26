@@ -1,0 +1,29 @@
+{
+	"id": "error_batch_not_found",
+	"category": "batches",
+	"description": "404 Not Found when retrieving a nonexistent batch",
+	"api": {
+		"method": "retrieve_batch",
+		"request": {
+			"batch_id": "batch-nonexistent"
+		},
+		"mock_response": {
+			"status": 404,
+			"body": {
+				"error": {
+					"message": "No such Batch object: batch-nonexistent",
+					"type": "invalid_request_error",
+					"param": null,
+					"code": null
+				}
+			}
+		}
+	},
+	"assertions": {
+		"expect_success": false,
+		"error_type": "NotFound",
+		"error_status_code": 404
+	},
+	"tags": ["error-handling", "batches"],
+	"skip": {}
+}

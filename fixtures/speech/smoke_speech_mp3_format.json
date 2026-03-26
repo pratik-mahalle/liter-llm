@@ -1,0 +1,29 @@
+{
+	"id": "smoke_speech_mp3_format",
+	"category": "speech",
+	"description": "Text-to-speech with explicit MP3 response format",
+	"api": {
+		"method": "speech",
+		"request": {
+			"model": "tts-1-hd",
+			"input": "The quick brown fox jumps over the lazy dog.",
+			"voice": "nova",
+			"response_format": "mp3",
+			"speed": 1.0
+		},
+		"mock_response": {
+			"status": 200,
+			"body": {
+				"_binary": true,
+				"_content_type": "audio/mpeg",
+				"_description": "Mock MP3 audio data"
+			}
+		}
+	},
+	"assertions": {
+		"response_not_null": true,
+		"audio_not_empty": true
+	},
+	"tags": ["smoke", "speech"],
+	"skip": {}
+}

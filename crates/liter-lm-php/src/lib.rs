@@ -30,7 +30,7 @@
 #![cfg_attr(windows, feature(abi_vectorcall))]
 
 use ext_php_rs::prelude::*;
-use liter_lm::{ClientConfigBuilder, DefaultClient, LlmClient};
+use liter_lm::{BatchClient, ClientConfigBuilder, DefaultClient, FileClient, LlmClient, ResponseClient};
 
 // ─── Tokio runtime ────────────────────────────────────────────────────────────
 
@@ -197,6 +197,251 @@ impl PhpLlmClient {
     #[php(name = "listModels")]
     pub fn list_models(&self) -> PhpResult<String> {
         let response = block_on_future(self.inner.list_models())?.map_err(|e| PhpException::from(e.to_string()))?;
+
+        serde_json::to_string(&response).map_err(|e| PhpException::from(format!("serialization error: {e}")))
+    }
+
+    // ── Additional inference methods ─────────────────────────────────────────
+
+    /// Generate an image from a text prompt.
+    ///
+    /// @param string $requestJson JSON-encoded OpenAI-compatible image generation request.
+    /// @return string JSON-encoded images response.
+    #[php(name = "imageGenerate")]
+    pub fn image_generate(&self, request_json: String) -> PhpResult<String> {
+        let req: liter_lm::CreateImageRequest = serde_json::from_str(&request_json)
+            .map_err(|e| PhpException::from(format!("invalid image generate request JSON: {e}")))?;
+
+        let response =
+            block_on_future(self.inner.image_generate(req))?.map_err(|e| PhpException::from(e.to_string()))?;
+
+        serde_json::to_string(&response).map_err(|e| PhpException::from(format!("serialization error: {e}")))
+    }
+
+    /// Generate speech audio from text.
+    ///
+    /// Returns the raw audio bytes as a string (binary-safe in PHP).
+    ///
+    /// @param string $requestJson JSON-encoded OpenAI-compatible speech request.
+    /// @return string Raw audio bytes.
+    pub fn speech(&self, request_json: String) -> PhpResult<String> {
+        let req: liter_lm::CreateSpeechRequest = serde_json::from_str(&request_json)
+            .map_err(|e| PhpException::from(format!("invalid speech request JSON: {e}")))?;
+
+        let response = block_on_future(self.inner.speech(req))?.map_err(|e| PhpException::from(e.to_string()))?;
+
+        // Return raw bytes as a binary string — PHP strings are binary-safe.
+        // SAFETY: String::from_utf8_lossy is not needed; we use from_raw_parts-style
+        // conversion via unsafe to preserve exact bytes.  However, ext-php-rs
+        // String return values are binary-safe, so we can safely transmute.
+        Ok(unsafe { String::from_utf8_unchecked(response.to_vec()) })
+    }
+
+    /// Transcribe audio to text.
+    ///
+    /// @param string $requestJson JSON-encoded OpenAI-compatible transcription request.
+    /// @return string JSON-encoded transcription response.
+    pub fn transcribe(&self, request_json: String) -> PhpResult<String> {
+        let req: liter_lm::CreateTranscriptionRequest = serde_json::from_str(&request_json)
+            .map_err(|e| PhpException::from(format!("invalid transcribe request JSON: {e}")))?;
+
+        let response = block_on_future(self.inner.transcribe(req))?.map_err(|e| PhpException::from(e.to_string()))?;
+
+        serde_json::to_string(&response).map_err(|e| PhpException::from(format!("serialization error: {e}")))
+    }
+
+    /// Check content against moderation policies.
+    ///
+    /// @param string $requestJson JSON-encoded OpenAI-compatible moderation request.
+    /// @return string JSON-encoded moderation response.
+    pub fn moderate(&self, request_json: String) -> PhpResult<String> {
+        let req: liter_lm::ModerationRequest = serde_json::from_str(&request_json)
+            .map_err(|e| PhpException::from(format!("invalid moderation request JSON: {e}")))?;
+
+        let response = block_on_future(self.inner.moderate(req))?.map_err(|e| PhpException::from(e.to_string()))?;
+
+        serde_json::to_string(&response).map_err(|e| PhpException::from(format!("serialization error: {e}")))
+    }
+
+    /// Rerank documents by relevance to a query.
+    ///
+    /// @param string $requestJson JSON-encoded rerank request.
+    /// @return string JSON-encoded rerank response.
+    pub fn rerank(&self, request_json: String) -> PhpResult<String> {
+        let req: liter_lm::RerankRequest = serde_json::from_str(&request_json)
+            .map_err(|e| PhpException::from(format!("invalid rerank request JSON: {e}")))?;
+
+        let response = block_on_future(self.inner.rerank(req))?.map_err(|e| PhpException::from(e.to_string()))?;
+
+        serde_json::to_string(&response).map_err(|e| PhpException::from(format!("serialization error: {e}")))
+    }
+
+    // ── File management methods ──────────────────────────────────────────────
+
+    /// Upload a file.
+    ///
+    /// @param string $requestJson JSON-encoded file upload request.
+    /// @return string JSON-encoded file object.
+    #[php(name = "createFile")]
+    pub fn create_file(&self, request_json: String) -> PhpResult<String> {
+        let req: liter_lm::CreateFileRequest = serde_json::from_str(&request_json)
+            .map_err(|e| PhpException::from(format!("invalid create file request JSON: {e}")))?;
+
+        let response = block_on_future(self.inner.create_file(req))?.map_err(|e| PhpException::from(e.to_string()))?;
+
+        serde_json::to_string(&response).map_err(|e| PhpException::from(format!("serialization error: {e}")))
+    }
+
+    /// Retrieve metadata for a file by ID.
+    ///
+    /// @param string $fileId The file ID.
+    /// @return string JSON-encoded file object.
+    #[php(name = "retrieveFile")]
+    pub fn retrieve_file(&self, file_id: String) -> PhpResult<String> {
+        let response =
+            block_on_future(self.inner.retrieve_file(&file_id))?.map_err(|e| PhpException::from(e.to_string()))?;
+
+        serde_json::to_string(&response).map_err(|e| PhpException::from(format!("serialization error: {e}")))
+    }
+
+    /// Delete a file by ID.
+    ///
+    /// @param string $fileId The file ID.
+    /// @return string JSON-encoded delete response.
+    #[php(name = "deleteFile")]
+    pub fn delete_file(&self, file_id: String) -> PhpResult<String> {
+        let response =
+            block_on_future(self.inner.delete_file(&file_id))?.map_err(|e| PhpException::from(e.to_string()))?;
+
+        serde_json::to_string(&response).map_err(|e| PhpException::from(format!("serialization error: {e}")))
+    }
+
+    /// List files, optionally filtered by query parameters.
+    ///
+    /// @param string|null $queryJson JSON-encoded query parameters (optional).
+    /// @return string JSON-encoded file list response.
+    #[php(name = "listFiles")]
+    pub fn list_files(&self, query_json: Option<String>) -> PhpResult<String> {
+        let query: Option<liter_lm::FileListQuery> = query_json
+            .map(|s| {
+                serde_json::from_str(&s).map_err(|e| PhpException::from(format!("invalid list files query JSON: {e}")))
+            })
+            .transpose()?;
+
+        let response = block_on_future(self.inner.list_files(query))?.map_err(|e| PhpException::from(e.to_string()))?;
+
+        serde_json::to_string(&response).map_err(|e| PhpException::from(format!("serialization error: {e}")))
+    }
+
+    /// Retrieve the raw content of a file.
+    ///
+    /// @param string $fileId The file ID.
+    /// @return string Raw file bytes.
+    #[php(name = "fileContent")]
+    pub fn file_content(&self, file_id: String) -> PhpResult<String> {
+        let response =
+            block_on_future(self.inner.file_content(&file_id))?.map_err(|e| PhpException::from(e.to_string()))?;
+
+        // Return raw bytes as a binary string — PHP strings are binary-safe.
+        Ok(unsafe { String::from_utf8_unchecked(response.to_vec()) })
+    }
+
+    // ── Batch management methods ─────────────────────────────────────────────
+
+    /// Create a new batch job.
+    ///
+    /// @param string $requestJson JSON-encoded batch creation request.
+    /// @return string JSON-encoded batch object.
+    #[php(name = "createBatch")]
+    pub fn create_batch(&self, request_json: String) -> PhpResult<String> {
+        let req: liter_lm::CreateBatchRequest = serde_json::from_str(&request_json)
+            .map_err(|e| PhpException::from(format!("invalid create batch request JSON: {e}")))?;
+
+        let response = block_on_future(self.inner.create_batch(req))?.map_err(|e| PhpException::from(e.to_string()))?;
+
+        serde_json::to_string(&response).map_err(|e| PhpException::from(format!("serialization error: {e}")))
+    }
+
+    /// Retrieve a batch by ID.
+    ///
+    /// @param string $batchId The batch ID.
+    /// @return string JSON-encoded batch object.
+    #[php(name = "retrieveBatch")]
+    pub fn retrieve_batch(&self, batch_id: String) -> PhpResult<String> {
+        let response =
+            block_on_future(self.inner.retrieve_batch(&batch_id))?.map_err(|e| PhpException::from(e.to_string()))?;
+
+        serde_json::to_string(&response).map_err(|e| PhpException::from(format!("serialization error: {e}")))
+    }
+
+    /// List batches, optionally filtered by query parameters.
+    ///
+    /// @param string|null $queryJson JSON-encoded query parameters (optional).
+    /// @return string JSON-encoded batch list response.
+    #[php(name = "listBatches")]
+    pub fn list_batches(&self, query_json: Option<String>) -> PhpResult<String> {
+        let query: Option<liter_lm::BatchListQuery> = query_json
+            .map(|s| {
+                serde_json::from_str(&s)
+                    .map_err(|e| PhpException::from(format!("invalid list batches query JSON: {e}")))
+            })
+            .transpose()?;
+
+        let response =
+            block_on_future(self.inner.list_batches(query))?.map_err(|e| PhpException::from(e.to_string()))?;
+
+        serde_json::to_string(&response).map_err(|e| PhpException::from(format!("serialization error: {e}")))
+    }
+
+    /// Cancel an in-progress batch.
+    ///
+    /// @param string $batchId The batch ID.
+    /// @return string JSON-encoded batch object.
+    #[php(name = "cancelBatch")]
+    pub fn cancel_batch(&self, batch_id: String) -> PhpResult<String> {
+        let response =
+            block_on_future(self.inner.cancel_batch(&batch_id))?.map_err(|e| PhpException::from(e.to_string()))?;
+
+        serde_json::to_string(&response).map_err(|e| PhpException::from(format!("serialization error: {e}")))
+    }
+
+    // ── Response management methods ──────────────────────────────────────────
+
+    /// Create a new response.
+    ///
+    /// @param string $requestJson JSON-encoded response creation request.
+    /// @return string JSON-encoded response object.
+    #[php(name = "createResponse")]
+    pub fn create_response(&self, request_json: String) -> PhpResult<String> {
+        let req: liter_lm::CreateResponseRequest = serde_json::from_str(&request_json)
+            .map_err(|e| PhpException::from(format!("invalid create response request JSON: {e}")))?;
+
+        let response =
+            block_on_future(self.inner.create_response(req))?.map_err(|e| PhpException::from(e.to_string()))?;
+
+        serde_json::to_string(&response).map_err(|e| PhpException::from(format!("serialization error: {e}")))
+    }
+
+    /// Retrieve a response by ID.
+    ///
+    /// @param string $responseId The response ID.
+    /// @return string JSON-encoded response object.
+    #[php(name = "retrieveResponse")]
+    pub fn retrieve_response(&self, response_id: String) -> PhpResult<String> {
+        let response = block_on_future(self.inner.retrieve_response(&response_id))?
+            .map_err(|e| PhpException::from(e.to_string()))?;
+
+        serde_json::to_string(&response).map_err(|e| PhpException::from(format!("serialization error: {e}")))
+    }
+
+    /// Cancel an in-progress response.
+    ///
+    /// @param string $responseId The response ID.
+    /// @return string JSON-encoded response object.
+    #[php(name = "cancelResponse")]
+    pub fn cancel_response(&self, response_id: String) -> PhpResult<String> {
+        let response = block_on_future(self.inner.cancel_response(&response_id))?
+            .map_err(|e| PhpException::from(e.to_string()))?;
 
         serde_json::to_string(&response).map_err(|e| PhpException::from(format!("serialization error: {e}")))
     }

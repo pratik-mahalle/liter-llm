@@ -266,6 +266,192 @@ export interface ModelsListResponse {
   object: string;
   data: ModelObject[];
 }
+
+// ── Images ──────────────────────────────────────────────────────────────────
+
+export interface CreateImageRequest {
+  model?: string;
+  prompt: string;
+  n?: number;
+  size?: string;
+  quality?: string;
+  response_format?: string;
+  style?: string;
+  user?: string;
+}
+
+export interface ImageObject {
+  url?: string;
+  b64_json?: string;
+  revised_prompt?: string;
+}
+
+export interface ImagesResponse {
+  created: number;
+  data: ImageObject[];
+}
+
+// ── Audio ───────────────────────────────────────────────────────────────────
+
+export interface CreateSpeechRequest {
+  model: string;
+  input: string;
+  voice: string;
+  response_format?: string;
+  speed?: number;
+}
+
+export interface CreateTranscriptionRequest {
+  model: string;
+  file: string;
+  language?: string;
+  prompt?: string;
+  response_format?: string;
+  temperature?: number;
+}
+
+export interface TranscriptionResponse {
+  text: string;
+}
+
+// ── Moderations ─────────────────────────────────────────────────────────────
+
+export interface ModerationRequest {
+  input: string | string[];
+  model?: string;
+}
+
+export interface ModerationResult {
+  flagged: boolean;
+  categories: Record<string, boolean>;
+  category_scores: Record<string, number>;
+}
+
+export interface ModerationResponse {
+  id: string;
+  model: string;
+  results: ModerationResult[];
+}
+
+// ── Rerank ──────────────────────────────────────────────────────────────────
+
+export interface RerankRequest {
+  model: string;
+  query: string;
+  documents: string[] | Record<string, unknown>[];
+  top_n?: number;
+  return_documents?: boolean;
+}
+
+export interface RerankResult {
+  index: number;
+  relevance_score: number;
+  document?: Record<string, unknown>;
+}
+
+export interface RerankResponse {
+  results: RerankResult[];
+  model: string;
+  usage?: UsageResponse;
+}
+
+// ── Files ───────────────────────────────────────────────────────────────────
+
+export interface CreateFileRequest {
+  file: string;
+  purpose: string;
+  filename?: string;
+}
+
+export interface FileObject {
+  id: string;
+  object: string;
+  bytes: number;
+  created_at: number;
+  filename: string;
+  purpose: string;
+  status?: string;
+}
+
+export interface FileListResponse {
+  object: string;
+  data: FileObject[];
+}
+
+export interface FileListQuery {
+  purpose?: string;
+  limit?: number;
+  after?: string;
+}
+
+export interface DeleteResponse {
+  id: string;
+  object: string;
+  deleted: boolean;
+}
+
+// ── Batches ─────────────────────────────────────────────────────────────────
+
+export interface CreateBatchRequest {
+  input_file_id: string;
+  endpoint: string;
+  completion_window: string;
+  metadata?: Record<string, string>;
+}
+
+export interface BatchObject {
+  id: string;
+  object: string;
+  endpoint: string;
+  input_file_id: string;
+  completion_window: string;
+  status: string;
+  output_file_id?: string;
+  error_file_id?: string;
+  created_at: number;
+  completed_at?: number;
+  failed_at?: number;
+  expired_at?: number;
+  request_counts?: {
+    total: number;
+    completed: number;
+    failed: number;
+  };
+  metadata?: Record<string, string>;
+}
+
+export interface BatchListResponse {
+  object: string;
+  data: BatchObject[];
+}
+
+export interface BatchListQuery {
+  limit?: number;
+  after?: string;
+}
+
+// ── Responses ───────────────────────────────────────────────────────────────
+
+export interface CreateResponseRequest {
+  model: string;
+  input: string | unknown[];
+  instructions?: string;
+  temperature?: number;
+  max_output_tokens?: number;
+  tools?: unknown[];
+  metadata?: Record<string, string>;
+}
+
+export interface ResponseObject {
+  id: string;
+  object: string;
+  created_at: number;
+  status: string;
+  model: string;
+  output: unknown[];
+  usage?: UsageResponse;
+  metadata?: Record<string, string>;
+}
 "#;
 
 // ─── JS interop helpers ───────────────────────────────────────────────────────
@@ -435,6 +621,344 @@ impl LlmClient {
         wasm_bindgen_futures::future_to_promise(async move {
             let url = format!("{base_url}/models");
             let resp_json = fetch_json_get_with_auth(&url, &auth_header, max_retries).await?;
+            json_to_js(&resp_json)
+        })
+    }
+
+    // ── Additional inference methods ─────────────────────────────────────────
+
+    /// Generate an image from a text prompt.
+    ///
+    /// Accepts a JS object matching the OpenAI Images API.
+    /// Returns a `Promise` that resolves to the parsed response object.
+    #[wasm_bindgen(js_name = "imageGenerate")]
+    pub fn image_generate(&self, request: JsValue) -> Promise {
+        let auth_header = self.effective_auth_header();
+        let base_url = self.base_url.clone();
+        let max_retries = self.max_retries;
+
+        wasm_bindgen_futures::future_to_promise(async move {
+            let req_json = js_to_json(request)?;
+            let url = format!("{base_url}/images/generations");
+            let resp_json = fetch_json_post_with_auth(&url, &auth_header, req_json, max_retries).await?;
+            json_to_js(&resp_json)
+        })
+    }
+
+    /// Generate speech audio from text.
+    ///
+    /// Accepts a JS object matching the OpenAI Audio Speech API.
+    /// Returns a `Promise` that resolves to an `ArrayBuffer` of audio bytes.
+    pub fn speech(&self, request: JsValue) -> Promise {
+        let auth_header = self.effective_auth_header();
+        let base_url = self.base_url.clone();
+        let max_retries = self.max_retries;
+
+        wasm_bindgen_futures::future_to_promise(async move {
+            let req_json = js_to_json(request)?;
+            let url = format!("{base_url}/audio/speech");
+            let resp_bytes = fetch_bytes_post_with_auth(&url, &auth_header, req_json, max_retries).await?;
+            Ok(resp_bytes)
+        })
+    }
+
+    /// Transcribe audio to text.
+    ///
+    /// Accepts a JS object matching the OpenAI Audio Transcriptions API.
+    /// Returns a `Promise` that resolves to the parsed response object.
+    pub fn transcribe(&self, request: JsValue) -> Promise {
+        let auth_header = self.effective_auth_header();
+        let base_url = self.base_url.clone();
+        let max_retries = self.max_retries;
+
+        wasm_bindgen_futures::future_to_promise(async move {
+            let req_json = js_to_json(request)?;
+            let url = format!("{base_url}/audio/transcriptions");
+            let resp_json = fetch_json_post_with_auth(&url, &auth_header, req_json, max_retries).await?;
+            json_to_js(&resp_json)
+        })
+    }
+
+    /// Check content against moderation policies.
+    ///
+    /// Accepts a JS object matching the OpenAI Moderations API.
+    /// Returns a `Promise` that resolves to the parsed response object.
+    pub fn moderate(&self, request: JsValue) -> Promise {
+        let auth_header = self.effective_auth_header();
+        let base_url = self.base_url.clone();
+        let max_retries = self.max_retries;
+
+        wasm_bindgen_futures::future_to_promise(async move {
+            let req_json = js_to_json(request)?;
+            let url = format!("{base_url}/moderations");
+            let resp_json = fetch_json_post_with_auth(&url, &auth_header, req_json, max_retries).await?;
+            json_to_js(&resp_json)
+        })
+    }
+
+    /// Rerank documents by relevance to a query.
+    ///
+    /// Accepts a JS object matching the rerank API format.
+    /// Returns a `Promise` that resolves to the parsed response object.
+    pub fn rerank(&self, request: JsValue) -> Promise {
+        let auth_header = self.effective_auth_header();
+        let base_url = self.base_url.clone();
+        let max_retries = self.max_retries;
+
+        wasm_bindgen_futures::future_to_promise(async move {
+            let req_json = js_to_json(request)?;
+            let url = format!("{base_url}/rerank");
+            let resp_json = fetch_json_post_with_auth(&url, &auth_header, req_json, max_retries).await?;
+            json_to_js(&resp_json)
+        })
+    }
+
+    // ── File management methods ──────────────────────────────────────────────
+
+    /// Upload a file.
+    ///
+    /// Accepts a JS object with file upload parameters.
+    /// Returns a `Promise` that resolves to the parsed file object.
+    #[wasm_bindgen(js_name = "createFile")]
+    pub fn create_file(&self, request: JsValue) -> Promise {
+        let auth_header = self.effective_auth_header();
+        let base_url = self.base_url.clone();
+        let max_retries = self.max_retries;
+
+        wasm_bindgen_futures::future_to_promise(async move {
+            let req_json = js_to_json(request)?;
+            let url = format!("{base_url}/files");
+            let resp_json = fetch_json_post_with_auth(&url, &auth_header, req_json, max_retries).await?;
+            json_to_js(&resp_json)
+        })
+    }
+
+    /// Retrieve metadata for a file by ID.
+    ///
+    /// Returns a `Promise` that resolves to the parsed file object.
+    #[wasm_bindgen(js_name = "retrieveFile")]
+    pub fn retrieve_file(&self, file_id: String) -> Promise {
+        let auth_header = self.effective_auth_header();
+        let base_url = self.base_url.clone();
+        let max_retries = self.max_retries;
+
+        wasm_bindgen_futures::future_to_promise(async move {
+            let url = format!("{base_url}/files/{file_id}");
+            let resp_json = fetch_json_get_with_auth(&url, &auth_header, max_retries).await?;
+            json_to_js(&resp_json)
+        })
+    }
+
+    /// Delete a file by ID.
+    ///
+    /// Returns a `Promise` that resolves to the parsed delete response.
+    #[wasm_bindgen(js_name = "deleteFile")]
+    pub fn delete_file(&self, file_id: String) -> Promise {
+        let auth_header = self.effective_auth_header();
+        let base_url = self.base_url.clone();
+        let max_retries = self.max_retries;
+
+        wasm_bindgen_futures::future_to_promise(async move {
+            let url = format!("{base_url}/files/{file_id}");
+            let resp_json = fetch_json_delete_with_auth(&url, &auth_header, max_retries).await?;
+            json_to_js(&resp_json)
+        })
+    }
+
+    /// List files, optionally filtered by query parameters.
+    ///
+    /// Pass `null` or `undefined` to list all files without filtering.
+    /// Returns a `Promise` that resolves to the parsed file list response.
+    #[wasm_bindgen(js_name = "listFiles")]
+    pub fn list_files(&self, query: JsValue) -> Promise {
+        let auth_header = self.effective_auth_header();
+        let base_url = self.base_url.clone();
+        let max_retries = self.max_retries;
+
+        wasm_bindgen_futures::future_to_promise(async move {
+            let mut url = format!("{base_url}/files");
+            if !query.is_null() && !query.is_undefined() {
+                let params = js_to_json(query)?;
+                if let serde_json::Value::Object(map) = params {
+                    let qs: Vec<String> = map
+                        .into_iter()
+                        .filter_map(|(k, v)| match v {
+                            serde_json::Value::String(s) => Some(format!("{k}={s}")),
+                            serde_json::Value::Number(n) => Some(format!("{k}={n}")),
+                            _ => None,
+                        })
+                        .collect();
+                    if !qs.is_empty() {
+                        url = format!("{url}?{}", qs.join("&"));
+                    }
+                }
+            }
+            let resp_json = fetch_json_get_with_auth(&url, &auth_header, max_retries).await?;
+            json_to_js(&resp_json)
+        })
+    }
+
+    /// Retrieve the raw content of a file.
+    ///
+    /// Returns a `Promise` that resolves to an `ArrayBuffer` of the file bytes.
+    #[wasm_bindgen(js_name = "fileContent")]
+    pub fn file_content(&self, file_id: String) -> Promise {
+        let auth_header = self.effective_auth_header();
+        let base_url = self.base_url.clone();
+        let max_retries = self.max_retries;
+
+        wasm_bindgen_futures::future_to_promise(async move {
+            let url = format!("{base_url}/files/{file_id}/content");
+            let resp_bytes = fetch_bytes_get_with_auth(&url, &auth_header, max_retries).await?;
+            Ok(resp_bytes)
+        })
+    }
+
+    // ── Batch management methods ─────────────────────────────────────────────
+
+    /// Create a new batch job.
+    ///
+    /// Accepts a JS object with batch creation parameters.
+    /// Returns a `Promise` that resolves to the parsed batch object.
+    #[wasm_bindgen(js_name = "createBatch")]
+    pub fn create_batch(&self, request: JsValue) -> Promise {
+        let auth_header = self.effective_auth_header();
+        let base_url = self.base_url.clone();
+        let max_retries = self.max_retries;
+
+        wasm_bindgen_futures::future_to_promise(async move {
+            let req_json = js_to_json(request)?;
+            let url = format!("{base_url}/batches");
+            let resp_json = fetch_json_post_with_auth(&url, &auth_header, req_json, max_retries).await?;
+            json_to_js(&resp_json)
+        })
+    }
+
+    /// Retrieve a batch by ID.
+    ///
+    /// Returns a `Promise` that resolves to the parsed batch object.
+    #[wasm_bindgen(js_name = "retrieveBatch")]
+    pub fn retrieve_batch(&self, batch_id: String) -> Promise {
+        let auth_header = self.effective_auth_header();
+        let base_url = self.base_url.clone();
+        let max_retries = self.max_retries;
+
+        wasm_bindgen_futures::future_to_promise(async move {
+            let url = format!("{base_url}/batches/{batch_id}");
+            let resp_json = fetch_json_get_with_auth(&url, &auth_header, max_retries).await?;
+            json_to_js(&resp_json)
+        })
+    }
+
+    /// List batches, optionally filtered by query parameters.
+    ///
+    /// Pass `null` or `undefined` to list all batches without filtering.
+    /// Returns a `Promise` that resolves to the parsed batch list response.
+    #[wasm_bindgen(js_name = "listBatches")]
+    pub fn list_batches(&self, query: JsValue) -> Promise {
+        let auth_header = self.effective_auth_header();
+        let base_url = self.base_url.clone();
+        let max_retries = self.max_retries;
+
+        wasm_bindgen_futures::future_to_promise(async move {
+            let mut url = format!("{base_url}/batches");
+            if !query.is_null() && !query.is_undefined() {
+                let params = js_to_json(query)?;
+                if let serde_json::Value::Object(map) = params {
+                    let qs: Vec<String> = map
+                        .into_iter()
+                        .filter_map(|(k, v)| match v {
+                            serde_json::Value::String(s) => Some(format!("{k}={s}")),
+                            serde_json::Value::Number(n) => Some(format!("{k}={n}")),
+                            _ => None,
+                        })
+                        .collect();
+                    if !qs.is_empty() {
+                        url = format!("{url}?{}", qs.join("&"));
+                    }
+                }
+            }
+            let resp_json = fetch_json_get_with_auth(&url, &auth_header, max_retries).await?;
+            json_to_js(&resp_json)
+        })
+    }
+
+    /// Cancel an in-progress batch.
+    ///
+    /// Returns a `Promise` that resolves to the parsed batch object.
+    #[wasm_bindgen(js_name = "cancelBatch")]
+    pub fn cancel_batch(&self, batch_id: String) -> Promise {
+        let auth_header = self.effective_auth_header();
+        let base_url = self.base_url.clone();
+        let max_retries = self.max_retries;
+
+        wasm_bindgen_futures::future_to_promise(async move {
+            let url = format!("{base_url}/batches/{batch_id}/cancel");
+            let resp_json = fetch_json_post_with_auth(
+                &url,
+                &auth_header,
+                serde_json::Value::Object(Default::default()),
+                max_retries,
+            )
+            .await?;
+            json_to_js(&resp_json)
+        })
+    }
+
+    // ── Response management methods ──────────────────────────────────────────
+
+    /// Create a new response.
+    ///
+    /// Accepts a JS object with response creation parameters.
+    /// Returns a `Promise` that resolves to the parsed response object.
+    #[wasm_bindgen(js_name = "createResponse")]
+    pub fn create_response(&self, request: JsValue) -> Promise {
+        let auth_header = self.effective_auth_header();
+        let base_url = self.base_url.clone();
+        let max_retries = self.max_retries;
+
+        wasm_bindgen_futures::future_to_promise(async move {
+            let req_json = js_to_json(request)?;
+            let url = format!("{base_url}/responses");
+            let resp_json = fetch_json_post_with_auth(&url, &auth_header, req_json, max_retries).await?;
+            json_to_js(&resp_json)
+        })
+    }
+
+    /// Retrieve a response by ID.
+    ///
+    /// Returns a `Promise` that resolves to the parsed response object.
+    #[wasm_bindgen(js_name = "retrieveResponse")]
+    pub fn retrieve_response(&self, id: String) -> Promise {
+        let auth_header = self.effective_auth_header();
+        let base_url = self.base_url.clone();
+        let max_retries = self.max_retries;
+
+        wasm_bindgen_futures::future_to_promise(async move {
+            let url = format!("{base_url}/responses/{id}");
+            let resp_json = fetch_json_get_with_auth(&url, &auth_header, max_retries).await?;
+            json_to_js(&resp_json)
+        })
+    }
+
+    /// Cancel an in-progress response.
+    ///
+    /// Returns a `Promise` that resolves to the parsed response object.
+    #[wasm_bindgen(js_name = "cancelResponse")]
+    pub fn cancel_response(&self, id: String) -> Promise {
+        let auth_header = self.effective_auth_header();
+        let base_url = self.base_url.clone();
+        let max_retries = self.max_retries;
+
+        wasm_bindgen_futures::future_to_promise(async move {
+            let url = format!("{base_url}/responses/{id}/cancel");
+            let resp_json = fetch_json_post_with_auth(
+                &url,
+                &auth_header,
+                serde_json::Value::Object(Default::default()),
+                max_retries,
+            )
+            .await?;
             json_to_js(&resp_json)
         })
     }
@@ -623,6 +1147,158 @@ async fn do_fetch_post(url: &str, auth_header_value: &str, body: &str) -> Result
 /// `auth_header_value` is the full `Authorization` header value.
 async fn do_fetch_get(url: &str, auth_header_value: &str) -> Result<serde_json::Value, JsValue> {
     do_fetch("GET", url, auth_header_value, None).await
+}
+
+/// Inner DELETE implementation using `web_sys::Request` / `fetch`.
+///
+/// `auth_header_value` is the full `Authorization` header value.
+async fn do_fetch_delete(url: &str, auth_header_value: &str) -> Result<serde_json::Value, JsValue> {
+    do_fetch("DELETE", url, auth_header_value, None).await
+}
+
+/// Perform a JSON DELETE request using the JS `fetch` API.
+///
+/// Retries on 429 / 5xx up to `max_retries` times with exponential backoff.
+///
+/// `auth_header_value` is the full `Authorization` header value.
+async fn fetch_json_delete_with_auth(
+    url: &str,
+    auth_header_value: &str,
+    max_retries: u32,
+) -> Result<serde_json::Value, JsValue> {
+    let mut attempt = 0u32;
+    loop {
+        let result = do_fetch_delete(url, auth_header_value).await;
+        match result {
+            Ok(value) => return Ok(value),
+            Err(e) if attempt < max_retries && is_retryable_error(&e) => {
+                let delay_ms = backoff_ms(attempt);
+                sleep_ms(delay_ms).await;
+                attempt += 1;
+            }
+            Err(e) => return Err(e),
+        }
+    }
+}
+
+/// Perform a POST request and return the response body as raw bytes (Uint8Array).
+///
+/// Used for binary responses such as audio from the speech endpoint.
+async fn fetch_bytes_post_with_auth(
+    url: &str,
+    auth_header_value: &str,
+    body: serde_json::Value,
+    max_retries: u32,
+) -> Result<JsValue, JsValue> {
+    let body_str = serde_json::to_string(&body).map_err(js_err)?;
+
+    let mut attempt = 0u32;
+    loop {
+        let result = do_fetch_bytes("POST", url, auth_header_value, Some(&body_str)).await;
+        match result {
+            Ok(value) => return Ok(value),
+            Err(e) if attempt < max_retries && is_retryable_error(&e) => {
+                let delay_ms = backoff_ms(attempt);
+                sleep_ms(delay_ms).await;
+                attempt += 1;
+            }
+            Err(e) => return Err(e),
+        }
+    }
+}
+
+/// Perform a GET request and return the response body as raw bytes (Uint8Array).
+///
+/// Used for binary responses such as file content downloads.
+async fn fetch_bytes_get_with_auth(url: &str, auth_header_value: &str, max_retries: u32) -> Result<JsValue, JsValue> {
+    let mut attempt = 0u32;
+    loop {
+        let result = do_fetch_bytes("GET", url, auth_header_value, None).await;
+        match result {
+            Ok(value) => return Ok(value),
+            Err(e) if attempt < max_retries && is_retryable_error(&e) => {
+                let delay_ms = backoff_ms(attempt);
+                sleep_ms(delay_ms).await;
+                attempt += 1;
+            }
+            Err(e) => return Err(e),
+        }
+    }
+}
+
+/// Shared inner fetch implementation that returns raw bytes as a `Uint8Array`.
+///
+/// Used for endpoints that return binary data (audio, file content).
+async fn do_fetch_bytes(method: &str, url: &str, auth_header: &str, body: Option<&str>) -> Result<JsValue, JsValue> {
+    use js_sys::Reflect;
+    use wasm_bindgen::JsCast;
+
+    let headers = js_sys::Object::new();
+    if body.is_some() {
+        Reflect::set(&headers, &"Content-Type".into(), &"application/json".into())?;
+    }
+    Reflect::set(&headers, &"Authorization".into(), &auth_header.into())?;
+
+    let init = js_sys::Object::new();
+    Reflect::set(&init, &"method".into(), &method.into())?;
+    Reflect::set(&init, &"headers".into(), &headers.into())?;
+    if let Some(b) = body {
+        Reflect::set(&init, &"body".into(), &JsValue::from_str(b))?;
+    }
+
+    let global = js_sys::global();
+
+    let fetch_fn =
+        Reflect::get(&global, &"fetch".into()).map_err(|_| js_err("fetch is not available in this environment"))?;
+    let fetch_fn: js_sys::Function = fetch_fn
+        .dyn_into()
+        .map_err(|_| js_err("global.fetch is not a function"))?;
+
+    let response_promise = fetch_fn
+        .call2(&global, &JsValue::from_str(url), &init.into())
+        .map_err(|e| js_err(format!("fetch call failed: {e:?}")))?;
+    let response_promise: Promise = response_promise
+        .dyn_into()
+        .map_err(|_| js_err("fetch did not return a Promise"))?;
+
+    let response = JsFuture::from(response_promise).await?;
+
+    let status = Reflect::get(&response, &"status".into())
+        .ok()
+        .and_then(|v| v.as_f64())
+        .map(|f| f as u16)
+        .unwrap_or(0);
+
+    if status >= 400 {
+        let text_method: js_sys::Function = Reflect::get(&response, &"text".into())
+            .map_err(|_| js_err("response.text is missing"))?
+            .dyn_into()
+            .map_err(|_| js_err("response.text is not a function"))?;
+
+        let text_promise: Promise = text_method
+            .call0(&response)
+            .map_err(|e| js_err(format!("response.text() failed: {e:?}")))?
+            .dyn_into()
+            .map_err(|_| js_err("response.text() did not return a Promise"))?;
+
+        let raw_text: String = JsFuture::from(text_promise).await?.as_string().unwrap_or_default();
+        return Err(js_err(format!("HTTP {status}: {raw_text}")));
+    }
+
+    let array_buffer_method: js_sys::Function = Reflect::get(&response, &"arrayBuffer".into())
+        .map_err(|_| js_err("response.arrayBuffer is missing"))?
+        .dyn_into()
+        .map_err(|_| js_err("response.arrayBuffer is not a function"))?;
+
+    let ab_promise: Promise = array_buffer_method
+        .call0(&response)
+        .map_err(|e| js_err(format!("response.arrayBuffer() failed: {e:?}")))?
+        .dyn_into()
+        .map_err(|_| js_err("response.arrayBuffer() did not return a Promise"))?;
+
+    let array_buffer = JsFuture::from(ab_promise).await?;
+    let uint8_array = js_sys::Uint8Array::new(&array_buffer);
+    Ok(uint8_array.into())
 }
 
 /// Read the response body as JSON, checking the HTTP status first.

@@ -1,0 +1,31 @@
+{
+	"id": "error_batch_auth_401",
+	"category": "batches",
+	"description": "401 Unauthorized when creating a batch with invalid API key",
+	"api": {
+		"method": "create_batch",
+		"request": {
+			"input_file_id": "file-abc123",
+			"endpoint": "/v1/chat/completions",
+			"completion_window": "24h"
+		},
+		"mock_response": {
+			"status": 401,
+			"body": {
+				"error": {
+					"message": "Incorrect API key provided.",
+					"type": "invalid_request_error",
+					"param": null,
+					"code": "invalid_api_key"
+				}
+			}
+		}
+	},
+	"assertions": {
+		"expect_success": false,
+		"error_type": "Authentication",
+		"error_status_code": 401
+	},
+	"tags": ["error-handling", "batches"],
+	"skip": {}
+}

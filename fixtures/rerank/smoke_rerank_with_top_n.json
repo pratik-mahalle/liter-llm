@@ -1,0 +1,50 @@
+{
+	"id": "smoke_rerank_with_top_n",
+	"category": "rerank",
+	"description": "Reranking with top_n parameter to limit results",
+	"api": {
+		"method": "rerank",
+		"request": {
+			"model": "rerank-v3.5",
+			"query": "What is Python?",
+			"documents": [
+				"Python is a programming language.",
+				"Cats are cute animals.",
+				"Python was created by Guido van Rossum.",
+				"The sun is a star."
+			],
+			"top_n": 2
+		},
+		"mock_response": {
+			"status": 200,
+			"body": {
+				"id": "rerank-def456",
+				"results": [
+					{
+						"index": 0,
+						"relevance_score": 0.97
+					},
+					{
+						"index": 2,
+						"relevance_score": 0.91
+					}
+				],
+				"meta": {
+					"api_version": {
+						"version": "2"
+					},
+					"billed_units": {
+						"search_units": 1
+					}
+				}
+			}
+		}
+	},
+	"assertions": {
+		"response_not_null": true,
+		"rerank_result_count": 2,
+		"rerank_top_score_min": 0.9
+	},
+	"tags": ["smoke", "rerank"],
+	"skip": {}
+}

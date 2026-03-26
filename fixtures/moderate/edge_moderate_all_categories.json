@@ -1,0 +1,47 @@
+{
+	"id": "edge_moderate_all_categories",
+	"category": "moderate",
+	"description": "Moderation response with multiple categories flagged",
+	"api": {
+		"method": "moderate",
+		"request": {
+			"model": "omni-moderation-latest",
+			"input": "Extremely harmful content targeting multiple categories"
+		},
+		"mock_response": {
+			"status": 200,
+			"body": {
+				"id": "modr-multi001",
+				"model": "omni-moderation-latest",
+				"results": [
+					{
+						"flagged": true,
+						"categories": {
+							"sexual": false,
+							"hate": true,
+							"harassment": true,
+							"self-harm": false,
+							"violence": true,
+							"violence/graphic": true
+						},
+						"category_scores": {
+							"sexual": 0.01,
+							"hate": 0.85,
+							"harassment": 0.9,
+							"self-harm": 0.02,
+							"violence": 0.95,
+							"violence/graphic": 0.78
+						}
+					}
+				]
+			}
+		}
+	},
+	"assertions": {
+		"response_not_null": true,
+		"moderation_result_count": 1,
+		"moderation_has_flagged": true
+	},
+	"tags": ["edge-case", "moderate"],
+	"skip": {}
+}

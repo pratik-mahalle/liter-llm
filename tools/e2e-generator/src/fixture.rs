@@ -129,6 +129,106 @@ pub struct Assertions {
     #[allow(dead_code)] // reserved for future generator use
     pub first_tool_call_function_name: Option<String>,
 
+    // ── Image generation ─────────────────────────────────────────────────────
+    /// Expected number of image objects in the response.
+    #[serde(default)]
+    #[allow(dead_code)] // reserved for future generator use
+    pub image_count: Option<usize>,
+    /// Assert that the response contains base64-encoded image data.
+    #[serde(default)]
+    #[allow(dead_code)] // reserved for future generator use
+    pub image_has_b64_data: Option<bool>,
+    /// Assert that the response contains image URLs.
+    #[serde(default)]
+    #[allow(dead_code)] // reserved for future generator use
+    pub image_has_url: Option<bool>,
+
+    // ── Speech ────────────────────────────────────────────────────────────────
+    /// Assert that the audio response body is non-empty.
+    #[serde(default)]
+    #[allow(dead_code)] // reserved for future generator use
+    pub audio_not_empty: Option<bool>,
+
+    // ── Transcription ─────────────────────────────────────────────────────────
+    /// Expected transcription text.
+    #[serde(default)]
+    #[allow(dead_code)] // reserved for future generator use
+    pub transcription_text: Option<String>,
+
+    // ── Moderation ────────────────────────────────────────────────────────────
+    /// Expected number of moderation result objects.
+    #[serde(default)]
+    #[allow(dead_code)] // reserved for future generator use
+    pub moderation_result_count: Option<usize>,
+    /// Assert that at least one result is flagged.
+    #[serde(default)]
+    #[allow(dead_code)] // reserved for future generator use
+    pub moderation_has_flagged: Option<bool>,
+
+    // ── Rerank ────────────────────────────────────────────────────────────────
+    /// Expected number of rerank result objects.
+    #[serde(default)]
+    #[allow(dead_code)] // reserved for future generator use
+    pub rerank_result_count: Option<usize>,
+    /// Assert that results contain the document text.
+    #[serde(default)]
+    #[allow(dead_code)] // reserved for future generator use
+    pub rerank_has_documents: Option<bool>,
+    /// Assert the top result's relevance score is above this threshold.
+    #[serde(default)]
+    #[allow(dead_code)] // reserved for future generator use
+    pub rerank_top_score_min: Option<f64>,
+
+    // ── Files ─────────────────────────────────────────────────────────────────
+    /// Expected file ID in the response.
+    #[serde(default)]
+    #[allow(dead_code)] // reserved for future generator use
+    pub file_id: Option<String>,
+    /// Expected number of files in a list response.
+    #[serde(default)]
+    #[allow(dead_code)] // reserved for future generator use
+    pub file_count: Option<usize>,
+    /// Assert that file content is non-empty.
+    #[serde(default)]
+    #[allow(dead_code)] // reserved for future generator use
+    pub file_content_not_empty: Option<bool>,
+    /// Assert that the file was deleted successfully.
+    #[serde(default)]
+    #[allow(dead_code)] // reserved for future generator use
+    pub file_deleted: Option<bool>,
+
+    // ── Batches ───────────────────────────────────────────────────────────────
+    /// Expected batch ID in the response.
+    #[serde(default)]
+    #[allow(dead_code)] // reserved for future generator use
+    pub batch_id: Option<String>,
+    /// Expected batch status (e.g. "completed", "in_progress", "cancelled").
+    #[serde(default)]
+    #[allow(dead_code)] // reserved for future generator use
+    pub batch_status: Option<String>,
+    /// Expected number of batches in a list response.
+    #[serde(default)]
+    #[allow(dead_code)] // reserved for future generator use
+    pub batch_count: Option<usize>,
+
+    // ── Responses API ─────────────────────────────────────────────────────────
+    /// Expected response ID from the Responses API.
+    #[serde(default)]
+    #[allow(dead_code)] // reserved for future generator use
+    pub response_id: Option<String>,
+    /// Expected response status (e.g. "completed", "cancelled").
+    #[serde(default)]
+    #[allow(dead_code)] // reserved for future generator use
+    pub response_status: Option<String>,
+    /// Expected output items count from the Responses API.
+    #[serde(default)]
+    #[allow(dead_code)] // reserved for future generator use
+    pub response_output_count: Option<usize>,
+    /// Assert that the response contains tool call output.
+    #[serde(default)]
+    #[allow(dead_code)] // reserved for future generator use
+    pub response_has_tool_calls: Option<bool>,
+
     // ── Error handling ───────────────────────────────────────────────────────
     /// Expected error variant name (e.g. "Authentication", "RateLimited").
     #[serde(default)]
