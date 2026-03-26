@@ -17,6 +17,18 @@ use crate::types::ChatCompletionChunk;
 /// behind an [`Arc`] so the service can be cloned without owning a unique
 /// reference.  `tower::Service::call` takes `&mut self`, but the actual
 /// async work is dispatched through the shared reference inside the arc.
+///
+/// # Streaming behaviour
+///
+/// **Important:** Streaming responses (`ChatStream`) are **fully buffered** in
+/// memory before being yielded to the caller.  This is a consequence of Tower's
+/// `Service` trait requiring `'static` futures — the borrowed stream returned by
+/// [`LlmClient::chat_stream`] cannot outlive the `call` future without unsafe
+/// lifetime extension.  All chunks are collected into a `VecDeque` and then
+/// replayed through a `BoxStream<'static, ...>`.
+///
+/// If you need incremental, unbuffered streaming, use [`LlmClient`] directly
+/// instead of wrapping it in `LlmService`.
 pub struct LlmService<C> {
     inner: Arc<C>,
 }

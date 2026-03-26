@@ -65,6 +65,10 @@ pub struct ModelPricing {
 /// Returns `None` if the model is not present in the embedded pricing registry.
 /// Returns `Some(cost_usd)` otherwise, where the value is in US dollars.
 ///
+/// When an exact model name match is not found, progressively shorter prefixes
+/// are tried by stripping from the last `-` or `.` separator.  For example,
+/// `gpt-4-0613` will match `gpt-4` if no `gpt-4-0613` entry exists.
+///
 /// # Example
 ///
 /// ```rust
@@ -76,7 +80,7 @@ pub struct ModelPricing {
 /// ```
 #[must_use]
 pub fn completion_cost(model: &str, prompt_tokens: u64, completion_tokens: u64) -> Option<f64> {
-    let pricing = pricing()?.models.get(model)?;
+    let pricing = model_pricing(model)?;
     Some(
         (prompt_tokens as f64) * pricing.input_cost_per_token
             + (completion_tokens as f64) * pricing.output_cost_per_token,
@@ -87,9 +91,30 @@ pub fn completion_cost(model: &str, prompt_tokens: u64, completion_tokens: u64) 
 ///
 /// Returns `None` if the model is not present in the embedded pricing registry.
 /// The returned reference is valid for the lifetime of the process (`'static`).
+///
+/// When an exact model name match is not found, progressively shorter prefixes
+/// are tried by stripping from the last `-` or `.` separator.  For example,
+/// `gpt-4-0613` will try `gpt-4-0613`, then `gpt-4`, then `gpt`.  The first
+/// match wins.
 #[must_use]
 pub fn model_pricing(model: &str) -> Option<&'static ModelPricing> {
-    pricing()?.models.get(model)
+    let models = &pricing()?.models;
+
+    // Exact match first.
+    if let Some(p) = models.get(model) {
+        return Some(p);
+    }
+
+    // Progressively strip the last `-` or `.` segment and retry.
+    let mut candidate = model;
+    while let Some(pos) = candidate.rfind(['-', '.']) {
+        candidate = &candidate[..pos];
+        if let Some(p) = models.get(candidate) {
+            return Some(p);
+        }
+    }
+
+    None
 }
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
@@ -138,6 +163,25 @@ mod tests {
     #[test]
     fn model_pricing_returns_none_for_unknown_model() {
         assert!(model_pricing("does-not-exist").is_none());
+    }
+
+    #[test]
+    fn model_pricing_prefix_fallback_matches_shorter_name() {
+        // gpt-4 is in the registry; gpt-4-0613 is a versioned variant that
+        // should fall back to the gpt-4 entry via prefix stripping.
+        let exact = model_pricing("gpt-4").expect("gpt-4 must be in registry");
+        let prefix = model_pricing("gpt-4-0613").expect("gpt-4-0613 should match gpt-4 via prefix");
+        assert!(
+            (exact.input_cost_per_token - prefix.input_cost_per_token).abs() < 1e-15,
+            "prefix match should return the same pricing as exact match"
+        );
+    }
+
+    #[test]
+    fn completion_cost_prefix_fallback() {
+        // Versioned model name should resolve via prefix stripping.
+        let cost = completion_cost("gpt-4-0613", 100, 50);
+        assert!(cost.is_some(), "gpt-4-0613 should resolve via prefix fallback to gpt-4");
     }
 
     #[test]

@@ -337,6 +337,12 @@ impl Provider for VertexAiProvider {
     /// Gemini wraps the response in `candidates[0].content.parts[]`.
     /// Finish reasons use Gemini terminology (`STOP`, `MAX_TOKENS`, `SAFETY`, …)
     /// and are mapped to the OpenAI `finish_reason` set.
+    ///
+    /// **Known limitation:** The `model` field in the normalized response is
+    /// always `""`.  Gemini/Vertex AI does not include the model name in its
+    /// response body — the model is only present in the request URL path.
+    /// Threading the model through would require a signature change to
+    /// `transform_response`.
     fn transform_response(&self, body: &mut serde_json::Value) -> Result<()> {
         use serde_json::json;
 
@@ -480,6 +486,11 @@ impl Provider for VertexAiProvider {
     /// `generateContent` JSON response.  We reuse `transform_response` to
     /// normalize it into OpenAI format, then build a `ChatCompletionChunk` from
     /// the first choice's message content.
+    ///
+    /// **Note:** The `id` and `model` fields are empty strings on every chunk
+    /// because Gemini's streaming payloads do not include them, and this parser
+    /// is stateless.  This differs from the OpenAI format where every chunk
+    /// includes the real `id` and `model`.
     fn parse_stream_event(&self, event_data: &str) -> Result<Option<ChatCompletionChunk>> {
         // NOTE: `[DONE]` is handled at the SSE parser level; no check needed here.
         if event_data.trim().is_empty() {

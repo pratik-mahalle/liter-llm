@@ -385,6 +385,11 @@ impl Provider for BedrockProvider {
     /// Bedrock wraps the assistant's message in `output.message.content[]` blocks.
     /// Stop reasons use Bedrock terminology (`end_turn`, `tool_use`, etc.) and are
     /// mapped to the OpenAI `finish_reason` set.
+    ///
+    /// **Known limitation:** The `model` field in the normalized response is
+    /// always `""`.  Bedrock does not include the model name in its response
+    /// body — the model is only present in the request URL path.  Threading
+    /// the model through would require a signature change to `transform_response`.
     fn transform_response(&self, body: &mut serde_json::Value) -> Result<()> {
         use serde_json::json;
 
@@ -508,6 +513,13 @@ impl Provider for BedrockProvider {
 /// - `metadata` → usage (emitted as a final chunk with empty delta)
 ///
 /// Returns `Ok(None)` for events that don't map to a chunk (e.g. `contentBlockStop`).
+///
+/// **Known limitation:** The `id` field is hardcoded to `"bedrock-stream"` and
+/// `model` is always `""` on every chunk.  Bedrock's ConverseStream protocol does
+/// not include a request/response ID or model name in its event payloads, and
+/// this parser is stateless so it cannot carry forward values from the original
+/// request.  This differs from the OpenAI format where every chunk includes the
+/// real `id` and `model`.
 pub(crate) fn parse_bedrock_stream_event(event_type: &str, payload: &str) -> Result<Option<ChatCompletionChunk>> {
     use crate::error::LiterLmError;
     use serde_json::json;

@@ -58,6 +58,12 @@ pub enum LiterLmError {
     #[error(transparent)]
     Network(#[from] reqwest::Error),
 
+    /// A catch-all for errors that occur during streaming response processing.
+    ///
+    /// This variant covers multiple sub-conditions including UTF-8 decoding
+    /// failures, CRC/checksum mismatches (AWS EventStream), JSON parse errors
+    /// in individual SSE chunks, and buffer overflow conditions.  The `message`
+    /// field contains a human-readable description of the specific failure.
     #[error("streaming error: {message}")]
     Streaming { message: String },
 
@@ -153,9 +159,13 @@ impl LiterLmError {
                 }
             }
             404 => Self::NotFound { message },
+            405 | 413 => Self::BadRequest { message },
             408 => Self::Timeout,
             500 => Self::ServerError { message },
             502..=504 => Self::ServiceUnavailable { message },
+            // Map remaining 4xx codes to BadRequest (client errors) and
+            // everything else (5xx, unknown) to ServerError.
+            400..=499 => Self::BadRequest { message },
             _ => Self::ServerError { message },
         }
     }

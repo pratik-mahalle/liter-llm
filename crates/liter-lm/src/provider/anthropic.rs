@@ -326,6 +326,12 @@ impl Provider for AnthropicProvider {
     /// - `message_stop`: signals end of stream, returns `Ok(None)`.
     /// - `content_block_stop`, `ping`: skipped (returns `Ok(None)` — no content to emit).
     /// - `error`: returns `Err(LiterLmError::Streaming)`.
+    ///
+    /// **Note:** The `id` and `model` fields are only populated on the first
+    /// chunk (`message_start`).  Subsequent chunks emit empty strings for both
+    /// fields because this parser is stateless — it cannot carry forward values
+    /// from earlier events.  This differs from the OpenAI format where every
+    /// chunk includes `id` and `model`.
     fn parse_stream_event(&self, event_data: &str) -> Result<Option<ChatCompletionChunk>> {
         // NOTE: `[DONE]` is handled at the SSE parser level; no check needed here.
 
