@@ -9,6 +9,6 @@
     "vitest": "^4.1.2"
   },
   "dependencies": {
-    "liter-llm": "link:../../packages/typescript"
+    "@kreuzberg/liter-llm": "workspace:*"
   }
 }

@@ -460,10 +460,6 @@ fn js_err(msg: impl std::fmt::Display) -> JsValue {
     JsValue::from_str(&msg.to_string())
 }
 
-fn json_to_js(value: &serde_json::Value) -> Result<JsValue, JsValue> {
-    serde_wasm_bindgen::to_value(value).map_err(js_err)
-}
-
 fn js_to_json(value: JsValue) -> Result<serde_json::Value, JsValue> {
     serde_wasm_bindgen::from_value(value).map_err(js_err)
 }
@@ -568,7 +564,7 @@ impl LlmClient {
             let req_json = js_to_json(request)?;
             let url = format!("{base_url}/chat/completions");
             let resp_json = fetch_json_post_with_auth(&url, &auth_header, req_json, max_retries).await?;
-            json_to_js(&resp_json)
+            Ok(resp_json)
         })
     }
 
@@ -605,7 +601,7 @@ impl LlmClient {
             let req_json = js_to_json(request)?;
             let url = format!("{base_url}/embeddings");
             let resp_json = fetch_json_post_with_auth(&url, &auth_header, req_json, max_retries).await?;
-            json_to_js(&resp_json)
+            Ok(resp_json)
         })
     }
 
@@ -621,7 +617,7 @@ impl LlmClient {
         wasm_bindgen_futures::future_to_promise(async move {
             let url = format!("{base_url}/models");
             let resp_json = fetch_json_get_with_auth(&url, &auth_header, max_retries).await?;
-            json_to_js(&resp_json)
+            Ok(resp_json)
         })
     }
 
@@ -641,7 +637,7 @@ impl LlmClient {
             let req_json = js_to_json(request)?;
             let url = format!("{base_url}/images/generations");
             let resp_json = fetch_json_post_with_auth(&url, &auth_header, req_json, max_retries).await?;
-            json_to_js(&resp_json)
+            Ok(resp_json)
         })
     }
 
@@ -675,7 +671,7 @@ impl LlmClient {
             let req_json = js_to_json(request)?;
             let url = format!("{base_url}/audio/transcriptions");
             let resp_json = fetch_json_post_with_auth(&url, &auth_header, req_json, max_retries).await?;
-            json_to_js(&resp_json)
+            Ok(resp_json)
         })
     }
 
@@ -692,7 +688,7 @@ impl LlmClient {
             let req_json = js_to_json(request)?;
             let url = format!("{base_url}/moderations");
             let resp_json = fetch_json_post_with_auth(&url, &auth_header, req_json, max_retries).await?;
-            json_to_js(&resp_json)
+            Ok(resp_json)
         })
     }
 
@@ -709,7 +705,7 @@ impl LlmClient {
             let req_json = js_to_json(request)?;
             let url = format!("{base_url}/rerank");
             let resp_json = fetch_json_post_with_auth(&url, &auth_header, req_json, max_retries).await?;
-            json_to_js(&resp_json)
+            Ok(resp_json)
         })
     }
 
@@ -729,7 +725,7 @@ impl LlmClient {
             let req_json = js_to_json(request)?;
             let url = format!("{base_url}/files");
             let resp_json = fetch_json_post_with_auth(&url, &auth_header, req_json, max_retries).await?;
-            json_to_js(&resp_json)
+            Ok(resp_json)
         })
     }
 
@@ -745,7 +741,7 @@ impl LlmClient {
         wasm_bindgen_futures::future_to_promise(async move {
             let url = format!("{base_url}/files/{file_id}");
             let resp_json = fetch_json_get_with_auth(&url, &auth_header, max_retries).await?;
-            json_to_js(&resp_json)
+            Ok(resp_json)
         })
     }
 
@@ -761,7 +757,7 @@ impl LlmClient {
         wasm_bindgen_futures::future_to_promise(async move {
             let url = format!("{base_url}/files/{file_id}");
             let resp_json = fetch_json_delete_with_auth(&url, &auth_header, max_retries).await?;
-            json_to_js(&resp_json)
+            Ok(resp_json)
         })
     }
 
@@ -794,7 +790,7 @@ impl LlmClient {
                 }
             }
             let resp_json = fetch_json_get_with_auth(&url, &auth_header, max_retries).await?;
-            json_to_js(&resp_json)
+            Ok(resp_json)
         })
     }
 
@@ -830,7 +826,7 @@ impl LlmClient {
             let req_json = js_to_json(request)?;
             let url = format!("{base_url}/batches");
             let resp_json = fetch_json_post_with_auth(&url, &auth_header, req_json, max_retries).await?;
-            json_to_js(&resp_json)
+            Ok(resp_json)
         })
     }
 
@@ -846,7 +842,7 @@ impl LlmClient {
         wasm_bindgen_futures::future_to_promise(async move {
             let url = format!("{base_url}/batches/{batch_id}");
             let resp_json = fetch_json_get_with_auth(&url, &auth_header, max_retries).await?;
-            json_to_js(&resp_json)
+            Ok(resp_json)
         })
     }
 
@@ -879,7 +875,7 @@ impl LlmClient {
                 }
             }
             let resp_json = fetch_json_get_with_auth(&url, &auth_header, max_retries).await?;
-            json_to_js(&resp_json)
+            Ok(resp_json)
         })
     }
 
@@ -901,7 +897,7 @@ impl LlmClient {
                 max_retries,
             )
             .await?;
-            json_to_js(&resp_json)
+            Ok(resp_json)
         })
     }
 
@@ -921,7 +917,7 @@ impl LlmClient {
             let req_json = js_to_json(request)?;
             let url = format!("{base_url}/responses");
             let resp_json = fetch_json_post_with_auth(&url, &auth_header, req_json, max_retries).await?;
-            json_to_js(&resp_json)
+            Ok(resp_json)
         })
     }
 
@@ -937,7 +933,7 @@ impl LlmClient {
         wasm_bindgen_futures::future_to_promise(async move {
             let url = format!("{base_url}/responses/{id}");
             let resp_json = fetch_json_get_with_auth(&url, &auth_header, max_retries).await?;
-            json_to_js(&resp_json)
+            Ok(resp_json)
         })
     }
 
@@ -959,7 +955,7 @@ impl LlmClient {
                 max_retries,
             )
             .await?;
-            json_to_js(&resp_json)
+            Ok(resp_json)
         })
     }
 }
@@ -996,7 +992,7 @@ async fn fetch_json_post_with_auth(
     auth_header_value: &str,
     body: serde_json::Value,
     max_retries: u32,
-) -> Result<serde_json::Value, JsValue> {
+) -> Result<JsValue, JsValue> {
     let body_str = serde_json::to_string(&body).map_err(js_err)?;
 
     let mut attempt = 0u32;
@@ -1019,11 +1015,7 @@ async fn fetch_json_post_with_auth(
 /// Retries on 429 / 5xx up to `max_retries` times with exponential backoff.
 ///
 /// `auth_header_value` is the full `Authorization` header value.
-async fn fetch_json_get_with_auth(
-    url: &str,
-    auth_header_value: &str,
-    max_retries: u32,
-) -> Result<serde_json::Value, JsValue> {
+async fn fetch_json_get_with_auth(url: &str, auth_header_value: &str, max_retries: u32) -> Result<JsValue, JsValue> {
     let mut attempt = 0u32;
     loop {
         let result = do_fetch_get(url, auth_header_value).await;
@@ -1099,12 +1091,7 @@ fn is_retryable_error(error: &JsValue) -> bool {
 /// - `url`: Target URL.
 /// - `auth_header`: Value for the `Authorization` header.
 /// - `body`: Optional JSON body string (included only for POST / PUT requests).
-async fn do_fetch(
-    method: &str,
-    url: &str,
-    auth_header: &str,
-    body: Option<&str>,
-) -> Result<serde_json::Value, JsValue> {
+async fn do_fetch(method: &str, url: &str, auth_header: &str, body: Option<&str>) -> Result<JsValue, JsValue> {
     use js_sys::Reflect;
     use wasm_bindgen::JsCast;
 
@@ -1144,21 +1131,21 @@ async fn do_fetch(
 /// Inner POST implementation using `web_sys::Request` / `fetch`.
 ///
 /// `auth_header_value` is the full `Authorization` header value.
-async fn do_fetch_post(url: &str, auth_header_value: &str, body: &str) -> Result<serde_json::Value, JsValue> {
+async fn do_fetch_post(url: &str, auth_header_value: &str, body: &str) -> Result<JsValue, JsValue> {
     do_fetch("POST", url, auth_header_value, Some(body)).await
 }
 
 /// Inner GET implementation using `web_sys::Request` / `fetch`.
 ///
 /// `auth_header_value` is the full `Authorization` header value.
-async fn do_fetch_get(url: &str, auth_header_value: &str) -> Result<serde_json::Value, JsValue> {
+async fn do_fetch_get(url: &str, auth_header_value: &str) -> Result<JsValue, JsValue> {
     do_fetch("GET", url, auth_header_value, None).await
 }
 
 /// Inner DELETE implementation using `web_sys::Request` / `fetch`.
 ///
 /// `auth_header_value` is the full `Authorization` header value.
-async fn do_fetch_delete(url: &str, auth_header_value: &str) -> Result<serde_json::Value, JsValue> {
+async fn do_fetch_delete(url: &str, auth_header_value: &str) -> Result<JsValue, JsValue> {
     do_fetch("DELETE", url, auth_header_value, None).await
 }
 
@@ -1167,11 +1154,7 @@ async fn do_fetch_delete(url: &str, auth_header_value: &str) -> Result<serde_jso
 /// Retries on 429 / 5xx up to `max_retries` times with exponential backoff.
 ///
 /// `auth_header_value` is the full `Authorization` header value.
-async fn fetch_json_delete_with_auth(
-    url: &str,
-    auth_header_value: &str,
-    max_retries: u32,
-) -> Result<serde_json::Value, JsValue> {
+async fn fetch_json_delete_with_auth(url: &str, auth_header_value: &str, max_retries: u32) -> Result<JsValue, JsValue> {
     let mut attempt = 0u32;
     loop {
         let result = do_fetch_delete(url, auth_header_value).await;
@@ -1314,7 +1297,7 @@ async fn do_fetch_bytes(method: &str, url: &str, auth_header: &str, body: Option
 /// body cannot be parsed as JSON.  The error string is always formatted as
 /// `"HTTP {status}: {message}"` so that `is_retryable_error` can parse the
 /// status code reliably.
-async fn extract_json_from_response(response: JsValue) -> Result<serde_json::Value, JsValue> {
+async fn extract_json_from_response(response: JsValue) -> Result<JsValue, JsValue> {
     use js_sys::Reflect;
     use wasm_bindgen::JsCast;
 
@@ -1365,11 +1348,12 @@ async fn extract_json_from_response(response: JsValue) -> Result<serde_json::Val
         .dyn_into()
         .map_err(|_| js_err("response.json() did not return a Promise"))?;
 
+    // Return the parsed JS value directly instead of round-tripping through
+    // serde_json::Value.  The previous JsValue -> serde_json::Value -> JsValue
+    // conversion caused data loss in the Node.js WASM target, resulting in
+    // `chat()` and other methods resolving with null/undefined.
     let json_value = JsFuture::from(json_promise).await?;
-    let parsed: serde_json::Value =
-        serde_wasm_bindgen::from_value(json_value).map_err(|e| js_err(format!("JSON parse error: {e}")))?;
-
-    Ok(parsed)
+    Ok(json_value)
 }
 
 // ─── Free-standing helpers ────────────────────────────────────────────────────

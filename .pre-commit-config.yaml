@@ -163,7 +163,7 @@ repos:
       - id: clang-format
         args: [--style=file]
         files: (^crates/liter-llm-ffi/)
-        exclude: (include/)
+        exclude: (include/|liter_llm\.h$)
   - repo: local
     hooks:
       - id: cppcheck

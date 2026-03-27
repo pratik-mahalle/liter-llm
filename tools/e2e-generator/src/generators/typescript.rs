@@ -53,7 +53,7 @@ fn write_package_json(dir: &Utf8Path) -> Result<()> {
     "vitest": "^3.0.0"
   },
   "dependencies": {
-    "liter-llm": "../../packages/typescript"
+    "@kreuzberg/liter-llm": "workspace:*"
   }
 }
 "#;
@@ -187,7 +187,7 @@ fn write_spec_file(dir: &Utf8Path, category: &str, fixtures: &[&Fixture]) -> Res
         r#"// @ts-ignore – binding not yet implemented; tests compile and fail at runtime"#
     )
     .unwrap();
-    writeln!(out, r#"import {{ LlmClient }} from "liter-llm";"#).unwrap();
+    writeln!(out, r#"import {{ LlmClient }} from "@kreuzberg/liter-llm";"#).unwrap();
     writeln!(out).unwrap();
 
     writeln!(out, r#"describe("{category}", () => {{"#).unwrap();

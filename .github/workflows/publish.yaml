@@ -859,7 +859,7 @@ jobs:
         shell: bash
       - uses: actions/setup-java@v5
         with:
-          java-version: "21"
+          java-version: "25.0.2+10.0.LTS"
           distribution: temurin
       - name: Build Maven package
         run: mvn clean package -DskipTests -q

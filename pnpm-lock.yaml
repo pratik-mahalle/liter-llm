@@ -18,8 +18,8 @@ importers:
 
   e2e/typescript:
     dependencies:
-      liter-llm:
-        specifier: link:../../packages/typescript
+      '@kreuzberg/liter-llm':
+        specifier: workspace:*
         version: link:../../packages/typescript
     devDependencies:
       vitest:

@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { startMockServer, type MockServer, type MockRoute } from "./helpers";
 // @ts-ignore – binding not yet implemented; tests compile and fail at runtime
-import { LlmClient } from "liter-llm";
+import { LlmClient } from "@kreuzberg/liter-llm";
 
 describe("tool-calling", () => {
   // Chat request to Anthropic provider with a tool definition; assistant responds with a tool call

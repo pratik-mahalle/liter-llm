@@ -116,8 +116,7 @@ crates/liter-llm-ffi/tests/c/test_*
 crates/liter-llm-ffi/tests/c/*.o
 crates/liter-llm-ffi/tests/c/*.dSYM/
 
-# NAPI-RS generated files
-crates/liter-llm-node/index.d.ts
+# NAPI-RS generated files (index.d.ts is committed for TypeScript type resolution)
 crates/liter-llm-node/index.js
 
 # Generated pkg-config files
