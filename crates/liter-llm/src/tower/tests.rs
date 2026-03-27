@@ -70,7 +70,7 @@ enum LiterLlmErrorKind {
 }
 
 impl LiterLlmErrorKind {
-    fn into_error(&self) -> LiterLlmError {
+    fn to_error(&self) -> LiterLlmError {
         match self {
             Self::RateLimited { message } => LiterLlmError::RateLimited {
                 message: message.clone(),
@@ -171,7 +171,7 @@ impl LlmClient for MockClient {
     fn chat(&self, req: ChatCompletionRequest) -> BoxFuture<'_, ChatCompletionResponse> {
         self.inner.call_count.fetch_add(1, Ordering::SeqCst);
         let result = match &self.inner.chat_error {
-            Some(kind) => Err(kind.into_error()),
+            Some(kind) => Err(kind.to_error()),
             None => Ok(make_chat_response(&req.model)),
         };
         Box::pin(async move { result })

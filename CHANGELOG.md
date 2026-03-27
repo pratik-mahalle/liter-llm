@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-rc.2] - 2026-03-27
+
+### Fixed
+
+- Embed `schemas/` inside liter-llm crate for crates.io packaging
+- Ruby vendoring: copy schemas into vendor tree for cross-compilation
+- Elixir NIF tarball naming (lib prefix, .so extension, tag in download URL)
+- Elixir publish: generate NIF checksums from release assets before compile
+- Node NAPI: add platform `npm/<target>/package.json` packages for publish
+- Node TypeScript wrapper: add tsup entry config for build
+- Publish workflow: inline Ruby gem build and FFI build (fix Windows path mangling)
+- Publish workflow: fix `gh release upload` without git repo context
+- Publish workflow: artifact action versions (v8 does not exist, use v7)
+- Publish workflow: add `republish` input for retag + full republish
+- CI: fix `snake_to_camel` trailing underscore handling in NAPI bindings
+- CI: fix WASM e2e tests (skip unimplemented `chat_stream`, build nodejs target)
+- CI: fix Go golangci-lint install (build from source for Go 1.26 compat)
+- CI: fix Python e2e generator unused imports
+- CI: fix Windows auth test Duration underflow panic
+- Metadata: update all READMEs and package descriptions to 142+ providers
+
 ## [1.0.0-rc.1] - 2026-03-27
 
 ### Added
@@ -28,5 +49,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - E2E test generator for all 11 languages from JSON fixtures
 - 11 fixtures across smoke, streaming, error-handling, tool-calling, types
 
-[Unreleased]: https://github.com/kreuzberg-dev/liter-llm/compare/v1.0.0-rc.1...HEAD
+[Unreleased]: https://github.com/kreuzberg-dev/liter-llm/compare/v1.0.0-rc.2...HEAD
+[1.0.0-rc.2]: https://github.com/kreuzberg-dev/liter-llm/compare/v1.0.0-rc.1...v1.0.0-rc.2
 [1.0.0-rc.1]: https://github.com/kreuzberg-dev/liter-llm/releases/tag/v1.0.0-rc.1
