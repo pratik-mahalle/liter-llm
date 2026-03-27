@@ -26,6 +26,16 @@ importers:
         specifier: ^4.1.2
         version: 4.1.2(@types/node@25.5.0)(vite@7.3.1(@types/node@25.5.0))
 
+  e2e/wasm:
+    dependencies:
+      liter-llm-wasm:
+        specifier: ../../crates/liter-llm-wasm
+        version: link:../../crates/liter-llm-wasm
+    devDependencies:
+      vitest:
+        specifier: ^4.1.2
+        version: 4.1.2(@types/node@25.5.0)(vite@7.3.1(@types/node@25.5.0))
+
   packages/typescript:
     dependencies:
       '@kreuzberg/liter-llm-native':
@@ -33,7 +43,7 @@ importers:
         version: link:../../crates/liter-llm-node
     devDependencies:
       '@biomejs/biome':
-        specifier: ^2.4.8
+        specifier: ^2.4.9
         version: 2.4.9
       '@types/node':
         specifier: ^25.5.0
@@ -45,7 +55,7 @@ importers:
         specifier: ^6.0.2
         version: 6.0.2
       vitest:
-        specifier: ^4.1.1
+        specifier: ^4.1.2
         version: 4.1.2(@types/node@25.5.0)(vite@7.3.1(@types/node@25.5.0))
 
 packages:

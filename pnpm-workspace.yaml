@@ -3,3 +3,4 @@ packages:
   - "crates/liter-llm-wasm"
   - "packages/typescript"
   - "e2e/typescript"
+  - "e2e/wasm"
