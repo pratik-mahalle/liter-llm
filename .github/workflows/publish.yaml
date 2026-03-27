@@ -953,7 +953,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ needs.prepare.outputs.tag }}
-        run: gh release upload "$TAG" go-ffi-release/*.tar.gz --clobber
+        run: gh release upload "$TAG" go-ffi-release/*.tar.gz --clobber --repo ${{ github.repository }}
         shell: bash
 
   upload-elixir-nifs:
@@ -974,7 +974,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ needs.prepare.outputs.tag }}
-        run: gh release upload "$TAG" elixir-nifs/*.tar.gz --clobber
+        run: gh release upload "$TAG" elixir-nifs/*.tar.gz --clobber --repo ${{ github.repository }}
         shell: bash
 
   upload-php-extensions:
@@ -995,7 +995,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ needs.prepare.outputs.tag }}
-        run: gh release upload "$TAG" php-ext-artifacts/*.tar.gz --clobber
+        run: gh release upload "$TAG" php-ext-artifacts/*.tar.gz --clobber --repo ${{ github.repository }}
         shell: bash
 
   # ─────────────────────────────────────────────────────────────────────────
