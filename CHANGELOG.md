@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-rc.1] - 2026-03-27
+
 ### Added
 
 - Core Rust crate with `LlmClient` trait, `DefaultClient`, SSE streaming, retry with backoff
@@ -25,3 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WASM binding (wasm-bindgen) with TypeScript custom section types
 - E2E test generator for all 11 languages from JSON fixtures
 - 11 fixtures across smoke, streaming, error-handling, tool-calling, types
+
+[Unreleased]: https://github.com/kreuzberg-dev/liter-llm/compare/v1.0.0-rc.1...HEAD
+[1.0.0-rc.1]: https://github.com/kreuzberg-dev/liter-llm/releases/tag/v1.0.0-rc.1
