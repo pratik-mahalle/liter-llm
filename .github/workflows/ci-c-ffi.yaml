@@ -53,6 +53,11 @@ jobs:
           cache-key-prefix: c-ffi
           use-sccache: false
 
+      - name: Install C Dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update -q && sudo apt-get install -y libcurl4-openssl-dev
+        shell: bash
+
       - name: Build liter-llm-ffi
         run: cargo build -p liter-llm-ffi --release
         shell: bash
