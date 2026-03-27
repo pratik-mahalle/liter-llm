@@ -333,32 +333,4 @@ fn cancel_response(config_json: String, response_id: String) -> NifResult<String
 
 // ─── NIF init ─────────────────────────────────────────────────────────────────
 
-rustler::init!(
-    "Elixir.LiterLlm.Native",
-    [
-        // Core inference
-        chat,
-        embed,
-        list_models,
-        image_generate,
-        speech,
-        transcribe,
-        moderate,
-        rerank,
-        // File management
-        create_file,
-        retrieve_file,
-        delete_file,
-        list_files,
-        file_content,
-        // Batch management
-        create_batch,
-        retrieve_batch,
-        list_batches,
-        cancel_batch,
-        // Response management
-        create_response,
-        retrieve_response,
-        cancel_response,
-    ]
-);
+rustler::init!("Elixir.LiterLlm.Native");
