@@ -181,7 +181,7 @@ jobs:
           # Node
           check "package.json (node)" "$(python3 -c "import json; print(json.load(open('packages/typescript/package.json'))['version'])")"
           # Ruby gemspec (gem format "1.0.0.pre.rc.1" → semver "1.0.0-rc.1")
-          GEM_VER=$(grep 'spec.version' packages/ruby/liter_llm.gemspec | grep -oP '"\K[^"]+' | sed 's/\.pre\./-/')
+          GEM_VER=$(grep 'spec.version' packages/ruby/liter_llm.gemspec | grep -oP "['\"]\K[^'\"]+" | sed 's/\.pre\./-/')
           check "liter_llm.gemspec" "$GEM_VER"
           # Java
           check "pom.xml" "$(grep -m1 '<version>' packages/java/pom.xml | grep -oP '>\K[^<]+')"
