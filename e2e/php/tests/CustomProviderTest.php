@@ -12,6 +12,7 @@ require_once __DIR__ . '/Helpers.php';
 
 final class CustomProviderTest extends TestCase
 {
+
     /** Tests custom provider with custom auth header */
     public function testProviderAuth(): void
     {
@@ -29,7 +30,7 @@ final class CustomProviderTest extends TestCase
         $mockUrl = $server->url;
 
         // TDD: Custom provider tests -- will fail until custom provider registration is implemented.
-        $config = new LlmClientConfig([
+        $config = new LlmClient(
             'api_key' => 'test-key',
         ]);
         $client = new LlmClient($config);
@@ -63,7 +64,7 @@ final class CustomProviderTest extends TestCase
         $mockUrl = $server->url;
 
         // TDD: Custom provider tests -- will fail until custom provider registration is implemented.
-        $config = new LlmClientConfig([
+        $config = new LlmClient(
             'api_key' => 'test-key',
         ]);
         $client = new LlmClient($config);

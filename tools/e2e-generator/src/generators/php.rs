@@ -654,7 +654,7 @@ fn write_new_category_test_method(out: &mut String, fixture: &Fixture, category:
                 "        // TDD: Cache tests -- will fail until cache feature is implemented."
             )
             .unwrap();
-            writeln!(out, "        $config = new LlmClientConfig([").unwrap();
+            writeln!(out, "        $config = new LlmClient(").unwrap();
             writeln!(out, "            'api_key' => 'test-key',").unwrap();
             writeln!(out, "            'base_url' => $mockUrl,").unwrap();
             writeln!(
@@ -703,7 +703,7 @@ fn write_new_category_test_method(out: &mut String, fixture: &Fixture, category:
             .unwrap();
 
             if is_error {
-                writeln!(out, "        $config = new LlmClientConfig([").unwrap();
+                writeln!(out, "        $config = new LlmClient(").unwrap();
                 writeln!(out, "            'api_key' => 'test-key',").unwrap();
                 writeln!(out, "            'base_url' => $mockUrl,").unwrap();
                 writeln!(
@@ -718,7 +718,7 @@ fn write_new_category_test_method(out: &mut String, fixture: &Fixture, category:
                 writeln!(out, "        $this->expectException(BudgetExceededException::class);").unwrap();
                 writeln!(out, "        $client->chat($request);").unwrap();
             } else {
-                writeln!(out, "        $config = new LlmClientConfig([").unwrap();
+                writeln!(out, "        $config = new LlmClient(").unwrap();
                 writeln!(out, "            'api_key' => 'test-key',").unwrap();
                 writeln!(out, "            'base_url' => $mockUrl,").unwrap();
                 writeln!(
@@ -747,7 +747,7 @@ fn write_new_category_test_method(out: &mut String, fixture: &Fixture, category:
                 "        // TDD: Hook tests -- will fail until hooks feature is implemented."
             )
             .unwrap();
-            writeln!(out, "        $config = new LlmClientConfig([").unwrap();
+            writeln!(out, "        $config = new LlmClient(").unwrap();
             writeln!(out, "            'api_key' => 'test-key',").unwrap();
             writeln!(out, "            'base_url' => $mockUrl,").unwrap();
             writeln!(out, "        ]);").unwrap();
@@ -836,7 +836,7 @@ fn write_new_category_test_method(out: &mut String, fixture: &Fixture, category:
                     .and_then(|v| v.as_str())
                     .unwrap_or("my-provider");
 
-                writeln!(out, "        $config = new LlmClientConfig([").unwrap();
+                writeln!(out, "        $config = new LlmClient(").unwrap();
                 writeln!(out, "            'api_key' => 'test-key',").unwrap();
                 writeln!(out, "        ]);").unwrap();
                 writeln!(out, "        $client = new LlmClient($config);").unwrap();

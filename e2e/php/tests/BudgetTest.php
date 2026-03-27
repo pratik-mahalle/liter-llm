@@ -12,6 +12,7 @@ require_once __DIR__ . '/Helpers.php';
 
 final class BudgetTest extends TestCase
 {
+
     /** Tests that a request is rejected when budget is exceeded */
     public function testBudgetEnforced(): void
     {
@@ -29,7 +30,7 @@ final class BudgetTest extends TestCase
         $mockUrl = $server->url;
 
         // TDD: Budget tests -- will fail until budget feature is implemented.
-        $config = new LlmClientConfig([
+        $config = new LlmClient(
             'api_key' => 'test-key',
             'base_url' => $mockUrl,
             'budget' => ['global_limit' => 0.001, 'enforcement' => 'hard'],
@@ -59,7 +60,7 @@ final class BudgetTest extends TestCase
         $mockUrl = $server->url;
 
         // TDD: Budget tests -- will fail until budget feature is implemented.
-        $config = new LlmClientConfig([
+        $config = new LlmClient(
             'api_key' => 'test-key',
             'base_url' => $mockUrl,
             'budget' => ['global_limit' => 0.001, 'enforcement' => 'hard'],
@@ -89,7 +90,7 @@ final class BudgetTest extends TestCase
         $mockUrl = $server->url;
 
         // TDD: Budget tests -- will fail until budget feature is implemented.
-        $config = new LlmClientConfig([
+        $config = new LlmClient(
             'api_key' => 'test-key',
             'base_url' => $mockUrl,
             'budget' => ['global_limit' => 10.0, 'enforcement' => 'soft'],

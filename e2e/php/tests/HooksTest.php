@@ -12,6 +12,7 @@ require_once __DIR__ . '/Helpers.php';
 
 final class HooksTest extends TestCase
 {
+
     /** Tests that on_request hook can reject a request */
     public function testHookGuardrail(): void
     {
@@ -29,7 +30,7 @@ final class HooksTest extends TestCase
         $mockUrl = $server->url;
 
         // TDD: Hook tests -- will fail until hooks feature is implemented.
-        $config = new LlmClientConfig([
+        $config = new LlmClient(
             'api_key' => 'test-key',
             'base_url' => $mockUrl,
         ]);
@@ -62,7 +63,7 @@ final class HooksTest extends TestCase
         $mockUrl = $server->url;
 
         // TDD: Hook tests -- will fail until hooks feature is implemented.
-        $config = new LlmClientConfig([
+        $config = new LlmClient(
             'api_key' => 'test-key',
             'base_url' => $mockUrl,
         ]);
@@ -74,10 +75,7 @@ final class HooksTest extends TestCase
         });
 
         $request = '{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}';
-        try {
-            $client->chat($request);
-        } catch (\Throwable $e) {
-        }
+        try { $client->chat($request); } catch (\Throwable $e) { }
         $this->assertTrue($hookCalled, 'Expected on_error hook to be called');
         $server->stop();
     }
@@ -99,7 +97,7 @@ final class HooksTest extends TestCase
         $mockUrl = $server->url;
 
         // TDD: Hook tests -- will fail until hooks feature is implemented.
-        $config = new LlmClientConfig([
+        $config = new LlmClient(
             'api_key' => 'test-key',
             'base_url' => $mockUrl,
         ]);
@@ -133,7 +131,7 @@ final class HooksTest extends TestCase
         $mockUrl = $server->url;
 
         // TDD: Hook tests -- will fail until hooks feature is implemented.
-        $config = new LlmClientConfig([
+        $config = new LlmClient(
             'api_key' => 'test-key',
             'base_url' => $mockUrl,
         ]);

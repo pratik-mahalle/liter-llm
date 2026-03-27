@@ -590,7 +590,7 @@ impl LlmClient {
         let hooks = self.hooks.clone();
 
         wasm_bindgen_futures::future_to_promise(async move {
-            invoke_hooks(&hooks, "onRequest", &[request.clone()]).await;
+            invoke_hooks(&hooks, "onRequest", std::slice::from_ref(&request)).await;
             let req_json = js_to_json(request.clone())?;
             let url = format!("{base_url}/chat/completions");
             match fetch_json_post_with_auth(&url, &auth_header, req_json, max_retries).await {
@@ -637,7 +637,7 @@ impl LlmClient {
         let hooks = self.hooks.clone();
 
         wasm_bindgen_futures::future_to_promise(async move {
-            invoke_hooks(&hooks, "onRequest", &[request.clone()]).await;
+            invoke_hooks(&hooks, "onRequest", std::slice::from_ref(&request)).await;
             let req_json = js_to_json(request.clone())?;
             let url = format!("{base_url}/embeddings");
             match fetch_json_post_with_auth(&url, &auth_header, req_json, max_retries).await {
@@ -665,7 +665,7 @@ impl LlmClient {
 
         wasm_bindgen_futures::future_to_promise(async move {
             let req_marker = JsValue::from_str("listModels");
-            invoke_hooks(&hooks, "onRequest", &[req_marker.clone()]).await;
+            invoke_hooks(&hooks, "onRequest", std::slice::from_ref(&req_marker)).await;
             let url = format!("{base_url}/models");
             match fetch_json_get_with_auth(&url, &auth_header, max_retries).await {
                 Ok(resp_json) => {
@@ -694,7 +694,7 @@ impl LlmClient {
         let hooks = self.hooks.clone();
 
         wasm_bindgen_futures::future_to_promise(async move {
-            invoke_hooks(&hooks, "onRequest", &[request.clone()]).await;
+            invoke_hooks(&hooks, "onRequest", std::slice::from_ref(&request)).await;
             let req_json = js_to_json(request.clone())?;
             let url = format!("{base_url}/images/generations");
             match fetch_json_post_with_auth(&url, &auth_header, req_json, max_retries).await {
@@ -721,7 +721,7 @@ impl LlmClient {
         let hooks = self.hooks.clone();
 
         wasm_bindgen_futures::future_to_promise(async move {
-            invoke_hooks(&hooks, "onRequest", &[request.clone()]).await;
+            invoke_hooks(&hooks, "onRequest", std::slice::from_ref(&request)).await;
             let req_json = js_to_json(request.clone())?;
             let url = format!("{base_url}/audio/speech");
             match fetch_bytes_post_with_auth(&url, &auth_header, req_json, max_retries).await {
@@ -748,7 +748,7 @@ impl LlmClient {
         let hooks = self.hooks.clone();
 
         wasm_bindgen_futures::future_to_promise(async move {
-            invoke_hooks(&hooks, "onRequest", &[request.clone()]).await;
+            invoke_hooks(&hooks, "onRequest", std::slice::from_ref(&request)).await;
             let req_json = js_to_json(request.clone())?;
             let url = format!("{base_url}/audio/transcriptions");
             match fetch_json_post_with_auth(&url, &auth_header, req_json, max_retries).await {
@@ -775,7 +775,7 @@ impl LlmClient {
         let hooks = self.hooks.clone();
 
         wasm_bindgen_futures::future_to_promise(async move {
-            invoke_hooks(&hooks, "onRequest", &[request.clone()]).await;
+            invoke_hooks(&hooks, "onRequest", std::slice::from_ref(&request)).await;
             let req_json = js_to_json(request.clone())?;
             let url = format!("{base_url}/moderations");
             match fetch_json_post_with_auth(&url, &auth_header, req_json, max_retries).await {
@@ -802,7 +802,7 @@ impl LlmClient {
         let hooks = self.hooks.clone();
 
         wasm_bindgen_futures::future_to_promise(async move {
-            invoke_hooks(&hooks, "onRequest", &[request.clone()]).await;
+            invoke_hooks(&hooks, "onRequest", std::slice::from_ref(&request)).await;
             let req_json = js_to_json(request.clone())?;
             let url = format!("{base_url}/rerank");
             match fetch_json_post_with_auth(&url, &auth_header, req_json, max_retries).await {
@@ -832,7 +832,7 @@ impl LlmClient {
         let hooks = self.hooks.clone();
 
         wasm_bindgen_futures::future_to_promise(async move {
-            invoke_hooks(&hooks, "onRequest", &[request.clone()]).await;
+            invoke_hooks(&hooks, "onRequest", std::slice::from_ref(&request)).await;
             let req_json = js_to_json(request.clone())?;
             let url = format!("{base_url}/files");
             match fetch_json_post_with_auth(&url, &auth_header, req_json, max_retries).await {
@@ -860,7 +860,7 @@ impl LlmClient {
 
         wasm_bindgen_futures::future_to_promise(async move {
             let req_marker = JsValue::from_str(&file_id);
-            invoke_hooks(&hooks, "onRequest", &[req_marker.clone()]).await;
+            invoke_hooks(&hooks, "onRequest", std::slice::from_ref(&req_marker)).await;
             let url = format!("{base_url}/files/{file_id}");
             match fetch_json_get_with_auth(&url, &auth_header, max_retries).await {
                 Ok(resp_json) => {
@@ -887,7 +887,7 @@ impl LlmClient {
 
         wasm_bindgen_futures::future_to_promise(async move {
             let req_marker = JsValue::from_str(&file_id);
-            invoke_hooks(&hooks, "onRequest", &[req_marker.clone()]).await;
+            invoke_hooks(&hooks, "onRequest", std::slice::from_ref(&req_marker)).await;
             let url = format!("{base_url}/files/{file_id}");
             match fetch_json_delete_with_auth(&url, &auth_header, max_retries).await {
                 Ok(resp_json) => {
@@ -914,7 +914,7 @@ impl LlmClient {
         let hooks = self.hooks.clone();
 
         wasm_bindgen_futures::future_to_promise(async move {
-            invoke_hooks(&hooks, "onRequest", &[query.clone()]).await;
+            invoke_hooks(&hooks, "onRequest", std::slice::from_ref(&query)).await;
             let mut url = format!("{base_url}/files");
             if !query.is_null() && !query.is_undefined() {
                 let params = js_to_json(query.clone())?;
@@ -957,7 +957,7 @@ impl LlmClient {
 
         wasm_bindgen_futures::future_to_promise(async move {
             let req_marker = JsValue::from_str(&file_id);
-            invoke_hooks(&hooks, "onRequest", &[req_marker.clone()]).await;
+            invoke_hooks(&hooks, "onRequest", std::slice::from_ref(&req_marker)).await;
             let url = format!("{base_url}/files/{file_id}/content");
             match fetch_bytes_get_with_auth(&url, &auth_header, max_retries).await {
                 Ok(resp_bytes) => {
@@ -986,7 +986,7 @@ impl LlmClient {
         let hooks = self.hooks.clone();
 
         wasm_bindgen_futures::future_to_promise(async move {
-            invoke_hooks(&hooks, "onRequest", &[request.clone()]).await;
+            invoke_hooks(&hooks, "onRequest", std::slice::from_ref(&request)).await;
             let req_json = js_to_json(request.clone())?;
             let url = format!("{base_url}/batches");
             match fetch_json_post_with_auth(&url, &auth_header, req_json, max_retries).await {
@@ -1014,7 +1014,7 @@ impl LlmClient {
 
         wasm_bindgen_futures::future_to_promise(async move {
             let req_marker = JsValue::from_str(&batch_id);
-            invoke_hooks(&hooks, "onRequest", &[req_marker.clone()]).await;
+            invoke_hooks(&hooks, "onRequest", std::slice::from_ref(&req_marker)).await;
             let url = format!("{base_url}/batches/{batch_id}");
             match fetch_json_get_with_auth(&url, &auth_header, max_retries).await {
                 Ok(resp_json) => {
@@ -1041,7 +1041,7 @@ impl LlmClient {
         let hooks = self.hooks.clone();
 
         wasm_bindgen_futures::future_to_promise(async move {
-            invoke_hooks(&hooks, "onRequest", &[query.clone()]).await;
+            invoke_hooks(&hooks, "onRequest", std::slice::from_ref(&query)).await;
             let mut url = format!("{base_url}/batches");
             if !query.is_null() && !query.is_undefined() {
                 let params = js_to_json(query.clone())?;
@@ -1084,7 +1084,7 @@ impl LlmClient {
 
         wasm_bindgen_futures::future_to_promise(async move {
             let req_marker = JsValue::from_str(&batch_id);
-            invoke_hooks(&hooks, "onRequest", &[req_marker.clone()]).await;
+            invoke_hooks(&hooks, "onRequest", std::slice::from_ref(&req_marker)).await;
             let url = format!("{base_url}/batches/{batch_id}/cancel");
             match fetch_json_post_with_auth(
                 &url,
@@ -1120,7 +1120,7 @@ impl LlmClient {
         let hooks = self.hooks.clone();
 
         wasm_bindgen_futures::future_to_promise(async move {
-            invoke_hooks(&hooks, "onRequest", &[request.clone()]).await;
+            invoke_hooks(&hooks, "onRequest", std::slice::from_ref(&request)).await;
             let req_json = js_to_json(request.clone())?;
             let url = format!("{base_url}/responses");
             match fetch_json_post_with_auth(&url, &auth_header, req_json, max_retries).await {
@@ -1148,7 +1148,7 @@ impl LlmClient {
 
         wasm_bindgen_futures::future_to_promise(async move {
             let req_marker = JsValue::from_str(&id);
-            invoke_hooks(&hooks, "onRequest", &[req_marker.clone()]).await;
+            invoke_hooks(&hooks, "onRequest", std::slice::from_ref(&req_marker)).await;
             let url = format!("{base_url}/responses/{id}");
             match fetch_json_get_with_auth(&url, &auth_header, max_retries).await {
                 Ok(resp_json) => {
@@ -1175,7 +1175,7 @@ impl LlmClient {
 
         wasm_bindgen_futures::future_to_promise(async move {
             let req_marker = JsValue::from_str(&id);
-            invoke_hooks(&hooks, "onRequest", &[req_marker.clone()]).await;
+            invoke_hooks(&hooks, "onRequest", std::slice::from_ref(&req_marker)).await;
             let url = format!("{base_url}/responses/{id}/cancel");
             match fetch_json_post_with_auth(
                 &url,
@@ -1271,21 +1271,21 @@ impl LlmClient {
 async fn invoke_hooks(hooks: &[JsValue], method_name: &str, args: &[JsValue]) {
     let method_key = JsValue::from_str(method_name);
     for hook in hooks {
-        if let Ok(func) = js_sys::Reflect::get(hook, &method_key) {
-            if func.is_function() {
-                let f: js_sys::Function = func.into();
-                let result = match args.len() {
-                    0 => f.call0(hook),
-                    1 => f.call1(hook, &args[0]),
-                    2 => f.call2(hook, &args[0], &args[1]),
-                    _ => f.call1(hook, &args[0]), // fallback
-                };
-                // If the hook returns a Promise, await it (best-effort).
-                if let Ok(val) = result {
-                    if val.is_instance_of::<Promise>() {
-                        let _ = JsFuture::from(Promise::from(val)).await;
-                    }
-                }
+        if let Ok(func) = js_sys::Reflect::get(hook, &method_key)
+            && func.is_function()
+        {
+            let f: js_sys::Function = func.into();
+            let result = match args.len() {
+                0 => f.call0(hook),
+                1 => f.call1(hook, &args[0]),
+                2 => f.call2(hook, &args[0], &args[1]),
+                _ => f.call1(hook, &args[0]), // fallback
+            };
+            // If the hook returns a Promise, await it (best-effort).
+            if let Ok(val) = result
+                && val.is_instance_of::<Promise>()
+            {
+                let _ = JsFuture::from(Promise::from(val)).await;
             }
         }
     }

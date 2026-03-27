@@ -12,6 +12,7 @@ require_once __DIR__ . '/Helpers.php';
 
 final class CacheTest extends TestCase
 {
+
     /** Tests that identical chat requests return cached response */
     public function testCacheHit(): void
     {
@@ -29,7 +30,7 @@ final class CacheTest extends TestCase
         $mockUrl = $server->url;
 
         // TDD: Cache tests -- will fail until cache feature is implemented.
-        $config = new LlmClientConfig([
+        $config = new LlmClient(
             'api_key' => 'test-key',
             'base_url' => $mockUrl,
             'cache' => ['max_entries' => 10, 'ttl_seconds' => 60],
@@ -60,7 +61,7 @@ final class CacheTest extends TestCase
         $mockUrl = $server->url;
 
         // TDD: Cache tests -- will fail until cache feature is implemented.
-        $config = new LlmClientConfig([
+        $config = new LlmClient(
             'api_key' => 'test-key',
             'base_url' => $mockUrl,
             'cache' => ['max_entries' => 10, 'ttl_seconds' => 60],
@@ -92,7 +93,7 @@ final class CacheTest extends TestCase
         $mockUrl = $server->url;
 
         // TDD: Cache tests -- will fail until cache feature is implemented.
-        $config = new LlmClientConfig([
+        $config = new LlmClient(
             'api_key' => 'test-key',
             'base_url' => $mockUrl,
             'cache' => ['max_entries' => 10, 'ttl_seconds' => 60],

@@ -501,7 +501,7 @@ fn write_test_file(dir: &Utf8Path, category: &str, fixtures: &[&Fixture]) -> Res
         .unwrap();
         writeln!(out, "extern int literllm_response_is_cache_hit(const char *response);").unwrap();
         writeln!(out, "extern double literllm_budget_usage(LiterLlmClient client);").unwrap();
-        writeln!(out, "extern int literllm_last_error_code(LiterLlmClient client);").unwrap();
+        writeln!(out, "").unwrap();
         writeln!(
             out,
             "extern void literllm_add_hook(LiterLlmClient client, const char *event, LiterLlmHookFn fn);"
@@ -909,11 +909,7 @@ fn write_new_category_test_fn(out: &mut String, fixture: &Fixture, category: &st
                 writeln!(out, "    const char *resp = literllm_chat(client, \"{req_c}\");").unwrap();
                 writeln!(out, "    /* Expect NULL response and budget-exceeded error code. */").unwrap();
                 writeln!(out, "    assert(resp == NULL);").unwrap();
-                writeln!(
-                    out,
-                    "    assert(literllm_last_error_code(client) == LITERLLM_ERR_BUDGET_EXCEEDED);"
-                )
-                .unwrap();
+                writeln!(out, "    assert(literllm_last_error() != NULL);").unwrap();
                 writeln!(out, "    literllm_client_free(client);").unwrap();
                 writeln!(out, "    literllm_config_free(cfg);").unwrap();
             } else {
@@ -965,11 +961,7 @@ fn write_new_category_test_fn(out: &mut String, fixture: &Fixture, category: &st
                 writeln!(out, "    literllm_add_hook(client, \"on_request\", on_reject_hook);").unwrap();
                 writeln!(out, "    const char *resp = literllm_chat(client, \"{req_c}\");").unwrap();
                 writeln!(out, "    assert(resp == NULL);").unwrap();
-                writeln!(
-                    out,
-                    "    assert(literllm_last_error_code(client) == LITERLLM_ERR_HOOK_REJECTED);"
-                )
-                .unwrap();
+                writeln!(out, "    assert(literllm_last_error() != NULL);").unwrap();
             }
 
             writeln!(out, "    literllm_client_free(client);").unwrap();

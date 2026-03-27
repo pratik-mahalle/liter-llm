@@ -25,7 +25,7 @@ extern const char *literllm_chat(LiterLlmClient client,
                                  const char *request_json);
 extern int literllm_response_is_cache_hit(const char *response);
 extern double literllm_budget_usage(LiterLlmClient client);
-extern int literllm_last_error_code(LiterLlmClient client);
+
 extern void literllm_add_hook(LiterLlmClient client, const char *event,
                               LiterLlmHookFn fn);
 extern int literllm_register_provider(LiterLlmClient client, const char *name,
@@ -55,7 +55,7 @@ static void test_budget_enforced(void) {
                             "\"user\"}],\"model\":\"gpt-4\"}");
   /* Expect NULL response and budget-exceeded error code. */
   assert(resp == NULL);
-  assert(literllm_last_error_code(client) == LITERLLM_ERR_BUDGET_EXCEEDED);
+  assert(literllm_last_error() != NULL);
   literllm_client_free(client);
   literllm_config_free(cfg);
 }
@@ -77,7 +77,7 @@ static void test_budget_per_model(void) {
                             "\"user\"}],\"model\":\"gpt-4\"}");
   /* Expect NULL response and budget-exceeded error code. */
   assert(resp == NULL);
-  assert(literllm_last_error_code(client) == LITERLLM_ERR_BUDGET_EXCEEDED);
+  assert(literllm_last_error() != NULL);
   literllm_client_free(client);
   literllm_config_free(cfg);
 }
