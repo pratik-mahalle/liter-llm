@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-rc.4] - 2026-03-28
+
+### Added
+
+- Shared `liter-llm-bindings-core` crate: case conversion, config parsing, error formatting, runtime management, JSON helpers
+- Bidirectional snake_case ↔ camelCase key conversion for Node.js and WASM bindings (inputs and outputs)
+- Node.js: accept camelCase request keys (e.g. `maxTokens`) — automatically normalized to snake_case
+- WASM: full camelCase output (e.g. `promptTokens`, `finishReason`) and camelCase input support
+- Real `chat_stream` across all bindings: Ruby (Enumerator), Elixir (NIF), Java (SSE callback), C# (IAsyncEnumerable), WASM (ReadableStream)
+- Real hooks in Node.js via `NapiHookBridge` + `ThreadsafeFunction` (replaces stub)
+- PHP: full ManagedClient integration — hooks, budget, cache, custom providers
+- `budget_used` / `budgetUsed` getter across all bindings (Python, Node, WASM, PHP, Ruby, C FFI)
+- `unregister_provider` across all bindings (Python, Node, WASM, PHP, Ruby, C FFI)
+- Documentation: hooks, budget, cache, custom provider sections added to all package READMEs
+- Documentation: streaming examples for Java, C#, Ruby, Elixir, WASM (replaced "not yet supported" notes)
+
+### Changed
+
+- All fixture skip conditions removed — every binding runs every E2E test (zero skips)
+- E2E generators rewritten for correct error assertions using `fixture.assertions.error_type`
+- Node/WASM custom provider tests use static `registerProvider` with `authHeader` field
+- PHP binding switched from `DefaultClient` to `ManagedClient` with Tower middleware
+- Replaced `markdownlint-cli` with `rumdl-fmt` in pre-commit config
+- Java Maven plugins aligned with kreuzberg (3.x stable, not 4.x beta)
+
+### Fixed
+
+- WASM budget/cache config: accept both snake_case and camelCase via serde aliases
+- Node budget tests: fixture `global_limit` set to `0.0` for immediate pre-flight rejection
+- Error type fixtures: `forbidden_403` → `Authentication`, `service_unavailable_502`/`gateway_timeout_504` → `ServiceUnavailable`
+- Rust Bedrock test: updated stream URL expectation for cross-region `us.` prefix
+- Elixir: extracted `do_cached_call` helper to fix Credo nesting depth warning
+- Ruby: added `futures-core` dependency for `chat_stream`
+- PHP E2E generator: use wrapper classes with Composer path dependency for autoloading
+
 ## [1.0.0-rc.3] - 2026-03-27
 
 ### Added
@@ -75,7 +110,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - E2E test generator for all 11 languages from JSON fixtures
 - 11 fixtures across smoke, streaming, error-handling, tool-calling, types
 
-[Unreleased]: https://github.com/kreuzberg-dev/liter-llm/compare/v1.0.0-rc.3...HEAD
+[Unreleased]: https://github.com/kreuzberg-dev/liter-llm/compare/v1.0.0-rc.4...HEAD
+[1.0.0-rc.4]: https://github.com/kreuzberg-dev/liter-llm/compare/v1.0.0-rc.3...v1.0.0-rc.4
 [1.0.0-rc.3]: https://github.com/kreuzberg-dev/liter-llm/compare/v1.0.0-rc.2...v1.0.0-rc.3
 [1.0.0-rc.2]: https://github.com/kreuzberg-dev/liter-llm/compare/v1.0.0-rc.1...v1.0.0-rc.2
 [1.0.0-rc.1]: https://github.com/kreuzberg-dev/liter-llm/releases/tag/v1.0.0-rc.1

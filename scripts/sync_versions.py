@@ -248,23 +248,80 @@ def update_pom_xml(file_path: Path, version: str) -> tuple[bool, str, str]:
 
 
 def update_csproj(file_path: Path, version: str) -> tuple[bool, str, str]:
-    """Update <Version> in a .csproj file."""
+    """Update <Version> and <PackageReleaseNotes> in a .csproj file."""
     content = file_path.read_text(encoding="utf-8")
+    original = content
 
     pattern = r"(<Version>)([^<]+)(</Version>)"
     match = re.search(pattern, content)
     old_version = match.group(2).strip() if match else "NOT FOUND"
 
-    if old_version == version:
-        return False, old_version, version
+    # Update <Version>.
+    content = re.sub(pattern, rf"\g<1>{version}\g<3>", content)
 
-    new_content = re.sub(
-        pattern,
-        rf"\g<1>{version}\g<3>",
+    # Also update PackageReleaseNotes if present.
+    content = re.sub(
+        r"(<PackageReleaseNotes>)Version [^<]+(</PackageReleaseNotes>)",
+        rf"\g<1>Version {version}\g<2>",
         content,
     )
 
+    if content != original:
+        file_path.write_text(content, encoding="utf-8")
+        return True, old_version, version
+
+    return False, old_version, version
+
+
+def update_c_header(file_path: Path, version: str) -> tuple[bool, str, str]:
+    """Update #define LITER_LLM_VERSION in a C header file."""
+    content = file_path.read_text(encoding="utf-8")
+
+    pattern = r'(#define\s+LITER_LLM_VERSION\s+")[^"]+"'
+    match = re.search(pattern, content)
+    old_version = match.group(0).split('"')[1] if match else "NOT FOUND"
+
+    if old_version == version:
+        return False, old_version, version
+
+    new_content = re.sub(pattern, rf'\g<1>{version}"', content)
+
     if new_content != content:
+        file_path.write_text(new_content, encoding="utf-8")
+        return True, old_version, version
+
+    return False, old_version, version
+
+
+def update_cargo_toml_dep_version(file_path: Path, version: str) -> tuple[bool, str, str]:
+    """Update inline version pins for liter-llm deps in a Cargo.toml."""
+    content = file_path.read_text(encoding="utf-8")
+    original = content
+
+    # Match: liter-llm = { path = "...", version = "x.y.z", ... }
+    pattern = r'(liter-llm\s*=\s*\{[^}]*version\s*=\s*")[^"]+"'
+    match = re.search(pattern, content)
+    old_version = match.group(0).rsplit('"', 2)[-2] if match else "NOT FOUND"
+
+    new_content = re.sub(
+        pattern,
+        rf'\g<1>{version}"',
+        content,
+    )
+
+    # Also update the crate's own version if not workspace-inherited.
+    own_version_pattern = r'^version\s*=\s*"[^"]+"'
+    own_match = re.search(own_version_pattern, new_content, re.MULTILINE)
+    if own_match and "workspace" not in own_match.group(0):
+        new_content = re.sub(
+            own_version_pattern,
+            f'version = "{version}"',
+            new_content,
+            count=1,
+            flags=re.MULTILINE,
+        )
+
+    if new_content != original:
         file_path.write_text(new_content, encoding="utf-8")
         return True, old_version, version
 
@@ -421,6 +478,19 @@ def build_targets(
         (repo_root / "packages" / "java" / "pom.xml", update_pom_xml),
         # Elixir binding
         (repo_root / "packages" / "elixir" / "mix.exs", update_mix_exs),
+        # C FFI header and Cargo.toml dep version
+        (repo_root / "crates" / "liter-llm-ffi" / "liter_llm.h", update_c_header),
+        (repo_root / "crates" / "liter-llm-ffi" / "Cargo.toml", update_cargo_toml_dep_version),
+        # NAPI-RS root package.json and platform packages
+        (repo_root / "crates" / "liter-llm-node" / "package.json", update_package_json),
+        (repo_root / "crates" / "liter-llm-node" / "npm" / "linux-x64-gnu" / "package.json", update_package_json),
+        (repo_root / "crates" / "liter-llm-node" / "npm" / "linux-arm64-gnu" / "package.json", update_package_json),
+        (repo_root / "crates" / "liter-llm-node" / "npm" / "darwin-arm64" / "package.json", update_package_json),
+        (repo_root / "crates" / "liter-llm-node" / "npm" / "win32-x64-msvc" / "package.json", update_package_json),
+        # WASM package.json
+        (repo_root / "crates" / "liter-llm-wasm" / "package.json", update_package_json),
+        # Ruby native Cargo.toml (not in workspace — has own version)
+        (repo_root / "packages" / "ruby" / "ext" / "liter_llm_rb" / "native" / "Cargo.toml", update_cargo_toml_dep_version),
     ]
 
 
