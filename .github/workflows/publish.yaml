@@ -534,17 +534,20 @@ jobs:
       needs.prepare.outputs.release_ruby == 'true' &&
       (needs.check-rubygems.outputs.exists != 'true' || needs.prepare.outputs.force_republish == 'true')
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 60
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
         include:
           - label: linux-x86_64
             runner: ubuntu-latest
+            ruby_platform: x86_64-linux
           - label: linux-aarch64
             runner: ubuntu-24.04-arm
+            ruby_platform: aarch64-linux
           - label: macos-arm64
             runner: macos-latest
+            ruby_platform: arm64-darwin
     env:
       RB_SYS_CARGO_PROFILE: release
     steps:
@@ -568,7 +571,7 @@ jobs:
 
       - name: Install Bundler
         shell: bash
-        run: (gem install bundler --no-document) && bundler --version
+        run: (gem install bundler -v 4.0.0 --no-document || gem install bundler --no-document) && bundler --version
 
       - name: Install Task
         uses: kreuzberg-dev/actions/install-task@v1
@@ -591,18 +594,43 @@ jobs:
       - name: Compile native extension
         shell: bash
         working-directory: packages/ruby
-        timeout-minutes: 30
-        run: bundle exec rake compile
+        timeout-minutes: 60
+        run: |
+          echo "Compiling native extension..."
+          if ! bundle exec rake compile 2>&1 | tee compile.log; then
+            echo "ERROR: Rake compile failed with exit code ${PIPESTATUS[0]}" >&2
+            exit 1
+          fi
+          echo "Native extension compiled successfully"
+          echo "=== Native libraries ==="
+          find lib -name '*.so' -o -name '*.bundle' -o -name '*.dylib' 2>/dev/null | head -20
 
-      - name: Build gem
+      - name: Build platform gem
         shell: bash
         working-directory: packages/ruby
-        run: gem build liter_llm.gemspec
+        run: ruby ../../scripts/publish/ruby/build-native-gem.rb "${{ matrix.ruby_platform }}"
+
+      - name: Verify platform gem was built
+        shell: bash
+        working-directory: packages/ruby
+        run: |
+          if [ ! -d pkg ]; then
+            echo "ERROR: pkg directory does not exist" >&2
+            ls -la >&2
+            exit 1
+          fi
+          if ! find pkg -maxdepth 1 -name "liter_llm-*-${{ matrix.ruby_platform }}.gem" -print -quit | grep -q .; then
+            echo "ERROR: No platform gem for ${{ matrix.ruby_platform }} found in pkg/" >&2
+            ls -la pkg/ >&2
+            exit 1
+          fi
+          echo "Platform gem built successfully:"
+          ls -lh pkg/*.gem
 
       - uses: actions/upload-artifact@v7
         with:
           name: rubygems-${{ matrix.label }}
-          path: packages/ruby/*.gem
+          path: packages/ruby/pkg/*.gem
           retention-days: 14
           compression-level: 0
 
@@ -1300,20 +1328,95 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
-      - uses: actions/download-artifact@v7
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.tag }}
+          fetch-depth: 0
+
+      - name: Download Ruby gem artifacts
+        uses: actions/download-artifact@v7
         with:
           pattern: rubygems-*
-          path: gems
+          path: dist
           merge-multiple: true
-      - name: Configure trusted publishing credentials
-        if: ${{ needs.prepare.outputs.dry_run != 'true' }}
-        uses: rubygems/configure-rubygems-credentials@v1.0.0
-      - uses: kreuzberg-dev/actions/publish-rubygems@v1
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
         with:
-          gems-dir: gems
+          ruby-version: '3.3'
+          bundler: none
+          bundler-cache: false
+
+      - name: Install Bundler
+        shell: bash
+        run: (gem install bundler -v 4.0.0 --no-document || gem install bundler --no-document) && bundler --version
+
+      - name: Install Ruby dependencies
+        shell: bash
+        run: scripts/ci/ruby/install-ruby-deps.sh packages/ruby
+
+      - name: Vendor liter-llm core crate
+        shell: bash
+        run: python3 scripts/ci/ruby/vendor-liter-llm-core.py
+
+      - name: Build source gem (fallback for unsupported platforms)
+        shell: bash
+        working-directory: packages/ruby
+        run: |
+          bundle config set --local path vendor/bundle
+          bundle check || bundle install
+          bundle exec rake build
+
+      - name: Copy source gem to dist directory
+        shell: bash
+        run: |
+          mkdir -p dist
+          cp packages/ruby/pkg/*.gem dist/
+
+      - name: List all gems for publishing
+        shell: bash
+        working-directory: dist
+        run: |
+          echo "=== All gems to publish ==="
+          ls -lh liter_llm-*.gem
+          echo ""
+          gem_count=$(find . -maxdepth 1 -name 'liter_llm-*.gem' -print | wc -l)
+          echo "Total gems: $gem_count"
+          echo ""
+          echo "Expected:"
+          echo "  - Source gem: liter_llm-VERSION.gem"
+          echo "  - Linux x86_64: liter_llm-VERSION-x86_64-linux.gem"
+          echo "  - Linux ARM64: liter_llm-VERSION-aarch64-linux.gem"
+          echo "  - macOS ARM64: liter_llm-VERSION-arm64-darwin.gem"
+          if [ "$gem_count" -lt 2 ]; then
+            echo "WARNING: Expected at least 2 gems (source + platform), found $gem_count" >&2
+          fi
+
+      - name: Re-check RubyGems before publish
+        id: recheck
+        uses: kreuzberg-dev/actions/check-registry@v1
+        with:
+          registry: rubygems
+          package: liter_llm
+          version: ${{ needs.prepare.outputs.version }}
+
+      - name: Configure trusted publishing credentials
+        if: ${{ needs.prepare.outputs.dry_run != 'true' && steps.recheck.outputs.exists != 'true' }}
+        uses: rubygems/configure-rubygems-credentials@v1.0.0
+
+      - name: Publish gems to RubyGems
+        if: ${{ needs.prepare.outputs.dry_run != 'true' && steps.recheck.outputs.exists != 'true' }}
+        uses: kreuzberg-dev/actions/publish-rubygems@v1
+        with:
+          gems-dir: dist
           dry-run: ${{ needs.prepare.outputs.dry_run }}
+
+      - name: RubyGems already published summary
+        if: ${{ steps.recheck.outputs.exists == 'true' }}
+        run: echo "Gem liter_llm@${{ needs.prepare.outputs.version }} already published on RubyGems — skipped." >> "$GITHUB_STEP_SUMMARY"
 
   publish-maven:
     name: Publish Maven Central
