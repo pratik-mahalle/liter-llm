@@ -1,4 +1,5 @@
 pub mod config;
+pub mod config_file;
 #[cfg(all(feature = "native-http", feature = "tower"))]
 pub mod managed;
 
@@ -37,6 +38,7 @@ use crate::provider::{self, OpenAiCompatibleProvider, OpenAiProvider, Provider};
 use secrecy::ExposeSecret;
 
 pub use config::{ClientConfig, ClientConfigBuilder};
+pub use config_file::FileConfig;
 
 /// A boxed future returning `Result<T>`.
 pub type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = Result<T>> + Send + 'a>>;

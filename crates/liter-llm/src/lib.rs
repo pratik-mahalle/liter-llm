@@ -19,7 +19,8 @@ pub mod types;
 
 // Re-export key types at crate root.
 pub use client::{
-    BatchClient, BoxFuture, BoxStream, ClientConfig, ClientConfigBuilder, FileClient, LlmClient, ResponseClient,
+    BatchClient, BoxFuture, BoxStream, ClientConfig, ClientConfigBuilder, FileClient, FileConfig, LlmClient,
+    ResponseClient,
 };
 // DefaultClient requires the native HTTP stack (reqwest + tokio).
 #[cfg(feature = "native-http")]

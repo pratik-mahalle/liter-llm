@@ -174,7 +174,7 @@ impl std::fmt::Debug for ClientConfig {
 /// obtain a [`ClientConfig`].
 #[must_use]
 pub struct ClientConfigBuilder {
-    config: ClientConfig,
+    pub(crate) config: ClientConfig,
 }
 
 impl ClientConfigBuilder {

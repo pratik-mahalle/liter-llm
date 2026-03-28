@@ -79,12 +79,12 @@ An honest look at where things stand. We're newer and leaner -- litellm has brea
 | **Language** | Rust (compiled, memory-safe) | Python |
 | **Bindings** | 11 native (Rust, Python, TS, Go, Java, Ruby, PHP, C#, Elixir, WASM, C) | Python (+ OpenAI-compatible proxy) |
 | **Providers** | 142 (compiled at build time) | 100+ (runtime resolution) |
-| **Streaming** | SSE + AWS EventStream binary protocol | SSE |
-| **Observability** | Built-in OpenTelemetry (GenAI semconv) | 51+ callback integrations |
+| **Streaming** | SSE + AWS EventStream binary protocol | SSE + AWS EventStream |
+| **Observability** | Built-in OpenTelemetry (GenAI semconv) | 40+ callback integrations |
 | **API key safety** | `secrecy::SecretString` (zeroed, redacted) | Plain strings |
-| **Middleware** | Composable Tower stack | Built-in, non-composable |
+| **Middleware** | Composable Tower stack | Built-in callback system |
 | **Proxy / Gateway** | -- | Yes |
-| **Guardrails** | -- | 35+ hooks |
+| **Guardrails** | -- | 10+ integrations, 4 execution modes |
 | **Semantic caching** | -- | Redis + Qdrant backends |
 | **Virtual key mgmt** | -- | Yes |
 | **Management API** | -- | Multi-tenant (teams, budgets, keys) |
@@ -92,15 +92,15 @@ An honest look at where things stand. We're newer and leaner -- litellm has brea
 | **Load balancer** | Fallback middleware | Full router with strategies |
 | **Cost tracking** | Embedded pricing + OTEL spans | Per-key/team/model budgets |
 | **Rate limiting** | Per-model RPM/TPM (Tower layer) | Per-key/user/team/model |
-| **Caching** | In-memory LRU (Tower layer) | 16 backends (Redis, S3, disk, ...) |
+| **Caching** | In-memory LRU + 40+ backends via OpenDAL (S3, Redis, GCS, DynamoDB, disk, ...) | 7 backends (Redis, S3, GCS, disk, Qdrant) |
 | **Tool calling** | Parallel tools, structured output, JSON schema | Full support |
 | **Embeddings** | Yes | Yes |
 | **Batch API** | Yes | Yes |
 | **Audio / Speech** | Yes | Yes |
 | **Lifecycle hooks** | onRequest/onResponse/onError per-client | Callback integrations |
-| **Budget tracking** | Per-model and global cost limits | Per-key/team budgets |
-| **Response cache** | In-memory LRU with TTL | 16 backends |
-| **Custom providers** | Runtime `register_provider` API | Config-based |
+| **Budget enforcement** | Per-model + global limits, hard/soft modes | Per-key/team budgets |
+| **Health checks** | Automatic provider probes + cooldown | -- |
+| **Custom providers** | Runtime `register_provider` API | Config + code-based |
 | **Image generation** | Yes | Yes |
 
 ## Key Features
