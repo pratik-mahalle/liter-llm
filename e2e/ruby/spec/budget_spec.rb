@@ -16,7 +16,7 @@ RSpec.describe "budget" do
     )
     server = E2EHelpers::MockServer.new([route])
 
-    budget_config = JSON.parse('{"enforcement":"hard","global_limit":0.001}')
+    budget_config = JSON.parse('{"enforcement":"hard","global_limit":0.0}')
     client = LiterLlm::Client.new(api_key: 'test-key', base_url: server.url, max_retries: 0, budget: budget_config)
     expect { client.chat('{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}') }.to raise_error(LiterLlm::BudgetExceededError)
 
@@ -35,7 +35,7 @@ RSpec.describe "budget" do
     )
     server = E2EHelpers::MockServer.new([route])
 
-    budget_config = JSON.parse('{"enforcement":"hard","model_limits":{"gpt-4":0.001}}')
+    budget_config = JSON.parse('{"enforcement":"hard","model_limits":{"gpt-4":0.0}}')
     client = LiterLlm::Client.new(api_key: 'test-key', base_url: server.url, max_retries: 0, budget: budget_config)
     expect { client.chat('{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}') }.to raise_error(LiterLlm::BudgetExceededError)
 

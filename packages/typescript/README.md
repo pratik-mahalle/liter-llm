@@ -63,12 +63,12 @@ pnpm add liter-llm
 ```typescript
 import { LlmClient } from "liter-llm";
 
-const client = new LlmClient();
+const client = new LlmClient({ apiKey: process.env.OPENAI_API_KEY });
 const response = await client.chat({
   model: "openai/gpt-4o",
   messages: [{ role: "user", content: "Hello!" }],
 });
-console.log(response.content);
+console.log(response.choices[0].message.content);
 ```
 
 ## Features
@@ -91,7 +91,7 @@ Stream tokens as they are generated for responsive user experiences:
 ```typescript
 import { LlmClient } from "liter-llm";
 
-const client = new LlmClient();
+const client = new LlmClient({ apiKey: process.env.OPENAI_API_KEY });
 const stream = client.chatStream({
   model: "openai/gpt-4o",
   messages: [{ role: "user", content: "Tell me a story" }],
@@ -110,7 +110,7 @@ Define tools for the model to call with structured outputs:
 ```typescript
 import { LlmClient, type Tool } from "liter-llm";
 
-const client = new LlmClient();
+const client = new LlmClient({ apiKey: process.env.OPENAI_API_KEY });
 
 const tools: Tool[] = [
   {
@@ -135,6 +135,55 @@ const response = await client.chat({
 for (const call of response.toolCalls ?? []) {
   console.log(`Tool: ${call.name}, Args:`, call.arguments);
 }
+```
+
+## Hooks
+
+Register lifecycle hooks for observability or request manipulation:
+
+```typescript
+client.addHook({
+  onRequest: (req) => console.log(`Sending to ${req.model}`),
+  onResponse: (resp) => console.log(`Got ${resp.choices.length} choices`),
+  onError: (err) => console.error(`Error: ${err}`),
+});
+```
+
+## Budget
+
+Set per-model or global cost limits:
+
+```typescript
+const client = new LlmClient({
+  apiKey: process.env.OPENAI_API_KEY,
+  budget: { globalLimit: 10.0, modelLimits: { "openai/gpt-4o": 5.0 } },
+});
+console.log(client.budgetUsed); // cumulative spend in USD
+```
+
+## Cache
+
+Enable in-memory LRU response caching:
+
+```typescript
+const client = new LlmClient({
+  apiKey: process.env.OPENAI_API_KEY,
+  cache: { maxEntries: 256, ttlSeconds: 300 },
+});
+```
+
+## Custom Providers
+
+Register a custom provider at runtime (static method):
+
+```typescript
+LlmClient.registerProvider({
+  name: "my-provider",
+  baseUrl: "https://api.my-provider.com/v1",
+  authHeader: "Authorization",
+  authPrefix: "Bearer",
+  modelPrefix: "my-provider",
+});
 ```
 
 ## Provider Routing

@@ -113,18 +113,13 @@ IO.puts(hd(response["choices"])["message"]["content"])
 Stream tokens in real time:
 
 ```elixir
-# Note: The Elixir client does not yet support streaming.
-# Use the non-streaming chat function instead.
-{:ok, response} =
-  LiterLlm.chat(
-    %{
-      model: "openai/gpt-4o",
-      messages: [%{role: "user", content: "Tell me a story"}]
-    },
-    api_key: System.fetch_env!("OPENAI_API_KEY")
-  )
+{:ok, chunks} =
+  LiterLlm.Client.chat_stream(client, %{
+    model: "openai/gpt-4o-mini",
+    messages: [%{role: "user", content: "Hello"}]
+  })
 
-IO.puts(hd(response["choices"])["message"]["content"])
+for chunk <- chunks, do: IO.inspect(chunk)
 ```
 
 ### Next Steps

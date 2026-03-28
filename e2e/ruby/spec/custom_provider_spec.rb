@@ -47,7 +47,7 @@ RSpec.describe "custom_provider" do
     server = E2EHelpers::MockServer.new([route])
 
     client = LiterLlm::Client.new(api_key: 'test-key', base_url: server.url, max_retries: 0)
-    provider_config = JSON.parse('{"base_url":"http://localhost","model_prefixes":["my-"],"name":"my-provider"}')
+    provider_config = JSON.parse('{"auth_header":"Bearer","base_url":"http://localhost","model_prefixes":["my-"],"name":"my-provider"}')
     # Override base_url to point at the mock server
     provider_config['base_url'] = server.url
     client.register_provider(provider_config)

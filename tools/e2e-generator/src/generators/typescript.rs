@@ -1044,9 +1044,13 @@ fn emit_ts_custom_provider_test(out: &mut String, fixture: &Fixture) {
         })
         .unwrap_or_else(|| r#""my-""#.to_string());
 
+    let auth_header = provider_config
+        .and_then(|v| v.get("auth_header"))
+        .and_then(|v| v.as_str())
+        .unwrap_or("bearer");
     writeln!(
         out,
-        "      LlmClient.registerProvider({{ name: {provider_name:?}, baseUrl: server.url, modelPrefixes: [{model_prefixes}] }});"
+        "      LlmClient.registerProvider({{ name: {provider_name:?}, baseUrl: server.url, authHeader: {auth_header:?}, modelPrefixes: [{model_prefixes}] }});"
     ).unwrap();
     writeln!(out).unwrap();
 

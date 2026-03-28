@@ -16,7 +16,7 @@ from liter_llm import BudgetExceededError, LlmClient
 ]], indirect=True)
 async def test_budget_enforced(mock_server: MockServerInfo) -> None:
     """Tests that a request is rejected when budget is exceeded"""
-    budget_config = json.loads("{\"enforcement\":\"hard\",\"global_limit\":0.001}")
+    budget_config = json.loads("{\"enforcement\":\"hard\",\"global_limit\":0.0}")
     client = LlmClient(api_key="test-key", base_url=mock_server.url, max_retries=0, budget=budget_config)
     request = json.loads("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"gpt-4\"}")
     with pytest.raises(BudgetExceededError):
@@ -29,7 +29,7 @@ async def test_budget_enforced(mock_server: MockServerInfo) -> None:
 ]], indirect=True)
 async def test_budget_per_model(mock_server: MockServerInfo) -> None:
     """Tests per-model budget limit"""
-    budget_config = json.loads("{\"enforcement\":\"hard\",\"model_limits\":{\"gpt-4\":0.001}}")
+    budget_config = json.loads("{\"enforcement\":\"hard\",\"model_limits\":{\"gpt-4\":0.0}}")
     client = LlmClient(api_key="test-key", base_url=mock_server.url, max_retries=0, budget=budget_config)
     request = json.loads("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"gpt-4\"}")
     with pytest.raises(BudgetExceededError):

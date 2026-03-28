@@ -67,7 +67,7 @@ async fn register_provider() {
             name: "my-provider".into(),
             base_url: server.url.clone(),
             model_prefixes: vec!["my-".into()],
-            auth_header: None,
+            auth_header: Some("Bearer".into()),
             ..Default::default()
         })
         .expect("register_provider failed");

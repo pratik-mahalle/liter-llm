@@ -58,7 +58,7 @@ final class CustomProviderTest extends TestCase
 
         $client = new \LiterLlm\LlmClient('test-key', $mockUrl);
 
-        $providerJson = str_replace('"PLACEHOLDER"', json_encode($mockUrl), '{"base_url":"PLACEHOLDER","model_prefixes":["my-"],"name":"my-provider"}');
+        $providerJson = str_replace('"PLACEHOLDER"', json_encode($mockUrl), '{"auth_header":"Bearer","base_url":"PLACEHOLDER","model_prefixes":["my-"],"name":"my-provider"}');
         \liter_llm_register_provider($providerJson);
 
         $resp = $client->chat('{"messages":[{"content":"Hello","role":"user"}],"model":"my-model-v1"}');

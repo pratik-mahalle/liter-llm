@@ -634,9 +634,13 @@ fn emit_wasm_custom_provider_test(out: &mut String, fixture: &Fixture) {
         "      const client = new LlmClient({{ apiKey: \"test-key\", baseUrl: server.url, maxRetries: 0 }});"
     )
     .unwrap();
+    let auth_header = provider_config
+        .and_then(|v| v.get("auth_header"))
+        .and_then(|v| v.as_str())
+        .unwrap_or("Bearer");
     writeln!(
         out,
-        "      LlmClient.registerProvider({{ name: {provider_name:?}, baseUrl: server.url, modelPrefixes: [{model_prefixes}] }});"
+        "      LlmClient.registerProvider(JSON.stringify({{ name: {provider_name:?}, base_url: server.url, auth_header: {auth_header:?}, model_prefixes: [{model_prefixes}] }}));"
     ).unwrap();
     writeln!(out).unwrap();
     writeln!(out, "      const req = JSON.parse({req_json:?});").unwrap();

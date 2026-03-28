@@ -97,6 +97,10 @@ An honest look at where things stand. We're newer and leaner -- litellm has brea
 | **Embeddings** | Yes | Yes |
 | **Batch API** | Yes | Yes |
 | **Audio / Speech** | Yes | Yes |
+| **Lifecycle hooks** | onRequest/onResponse/onError per-client | Callback integrations |
+| **Budget tracking** | Per-model and global cost limits | Per-key/team budgets |
+| **Response cache** | In-memory LRU with TTL | 16 backends |
+| **Custom providers** | Runtime `register_provider` API | Config-based |
 | **Image generation** | Yes | Yes |
 
 ## Key Features
@@ -154,9 +158,9 @@ Install in your language of choice:
 ### Usage
 
 ```python
-from liter_llm import LiterLlmClient
+from liter_llm import LlmClient
 
-client = LiterLlmClient()
+client = LlmClient()
 
 # Chat with any provider using the provider/model prefix
 response = client.chat(
@@ -182,15 +186,15 @@ All bindings expose a unified `chat()` function:
 | Language | Usage |
 | -------- | ----- |
 | Rust | `DefaultClient::new(config).chat(messages, options).await` |
-| Python | `LiterLlmClient(api_key=...).chat(messages, config)` |
-| Node.js | `new LiterLlmClient({ apiKey }).chat(messages, config)` |
+| Python | `LlmClient(api_key=...).chat(messages, config)` |
+| Node.js | `new LlmClient({ apiKey }).chat(messages, config)` |
 | Go | `client.Chat(ctx, messages, config)` |
 | Java | `client.chat(messages, configJson)` |
-| Ruby | `LiterLlm::Client.new(api_key: ...).chat(messages, config)` |
+| Ruby | `LiterLlm::LlmClient.new(api_key, config).chat(messages)` |
 | Elixir | `LiterLlm.chat(messages, config)` |
-| PHP | `LiterLlm\Client::new($apiKey)->chat($messages, $config)` |
-| C# | `new LiterLlmClient(apiKey).ChatAsync(messages, config)` |
-| WASM | `new LiterLlmClient({ apiKey }).chat(messages, config)` |
+| PHP | `LiterLlm\LlmClient::new($apiKey)->chat($messages, $config)` |
+| C# | `new LlmClient(apiKey).ChatAsync(messages, config)` |
+| WASM | `new LlmClient({ apiKey }).chat(messages, config)` |
 | C FFI | `liter_llm_chat(client, messages_json, config_json)` |
 
 ## Language READMEs

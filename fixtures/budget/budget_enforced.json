@@ -4,7 +4,7 @@
 	"description": "Tests that a request is rejected when budget is exceeded",
 	"client_config": {
 		"budget": {
-			"global_limit": 0.001,
+			"global_limit": 0.0,
 			"enforcement": "hard"
 		}
 	},

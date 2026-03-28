@@ -18,7 +18,7 @@ class BudgetTest {
       String mockUrl = server.url;
 
       // TDD: Budget tests — will fail until budget feature is implemented.
-      // Budget config: "{\"enforcement\":\"hard\",\"global_limit\":0.001}"
+      // Budget config: "{\"enforcement\":\"hard\",\"global_limit\":0.0}"
       var config =
           new LlmClientConfig.Builder()
               .apiKey("test-key")
@@ -45,7 +45,7 @@ class BudgetTest {
       String mockUrl = server.url;
 
       // TDD: Budget tests — will fail until budget feature is implemented.
-      // Budget config: "{\"enforcement\":\"hard\",\"model_limits\":{\"gpt-4\":0.001}}"
+      // Budget config: "{\"enforcement\":\"hard\",\"model_limits\":{\"gpt-4\":0.0}}"
       var config =
           new LlmClientConfig.Builder()
               .apiKey("test-key")

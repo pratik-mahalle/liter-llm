@@ -23,7 +23,7 @@ defmodule LiterLlmE2E.BudgetTest do
         api_key: "test-key",
         base_url: base_url,
         max_retries: 0,
-        budget: [global_limit: 0.001, enforcement: :hard]
+        budget: [global_limit: 0.0, enforcement: :hard]
       )
 
     assert {:error, %LiterLlm.BudgetExceededError{}} =
@@ -51,7 +51,7 @@ defmodule LiterLlmE2E.BudgetTest do
         api_key: "test-key",
         base_url: base_url,
         max_retries: 0,
-        budget: [enforcement: :hard, model_limits: Jason.decode!("{\"gpt-4\":0.001}")]
+        budget: [enforcement: :hard, model_limits: Jason.decode!("{\"gpt-4\":0.0}")]
       )
 
     assert {:error, %LiterLlm.BudgetExceededError{}} =

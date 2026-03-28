@@ -5,7 +5,7 @@
 	"client_config": {
 		"budget": {
 			"model_limits": {
-				"gpt-4": 0.001
+				"gpt-4": 0.0
 			},
 			"enforcement": "hard"
 		}

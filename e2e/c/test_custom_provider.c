@@ -73,8 +73,8 @@ static void test_register_provider(void) {
   /* Register custom provider. */
   char provider_json[2048];
   snprintf(provider_json, sizeof(provider_json),
-           "{\"base_url\":\\\"%s\\\",\"model_prefixes\":[\"my-\"],\"name\":"
-           "\"my-provider\"}",
+           "{\"auth_header\":\"Bearer\",\"base_url\":\\\"%s\\\",\"model_"
+           "prefixes\":[\"my-\"],\"name\":\"my-provider\"}",
            base_url);
   int rc = literllm_register_provider(provider_json);
   assert(rc == 0);

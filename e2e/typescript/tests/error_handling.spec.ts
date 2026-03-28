@@ -229,7 +229,7 @@ describe("error-handling", () => {
         await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}`));
       } catch (e) {
         threw = true;
-        expect((e as Error).message ?? "", "Expected [Forbidden] error").toMatch(/\[Forbidden\]|Forbidden/i);
+        expect((e as Error).message ?? "", "Expected [Authentication] error").toMatch(/\[Authentication\]|Authentication/i);
       }
       expect(threw, "Expected client.chat to throw").toBe(true);
     } finally {
@@ -258,7 +258,7 @@ describe("error-handling", () => {
         await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}`));
       } catch (e) {
         threw = true;
-        expect((e as Error).message ?? "", "Expected [ServerError] error").toMatch(/\[ServerError\]|ServerError/i);
+        expect((e as Error).message ?? "", "Expected [ServiceUnavailable] error").toMatch(/\[ServiceUnavailable\]|ServiceUnavailable/i);
       }
       expect(threw, "Expected client.chat to throw").toBe(true);
     } finally {
@@ -374,7 +374,7 @@ describe("error-handling", () => {
         await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}`));
       } catch (e) {
         threw = true;
-        expect((e as Error).message ?? "", "Expected [ServerError] error").toMatch(/\[ServerError\]|ServerError/i);
+        expect((e as Error).message ?? "", "Expected [ServiceUnavailable] error").toMatch(/\[ServiceUnavailable\]|ServiceUnavailable/i);
       }
       expect(threw, "Expected client.chat to throw").toBe(true);
     } finally {

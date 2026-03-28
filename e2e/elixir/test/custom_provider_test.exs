@@ -67,6 +67,7 @@ defmodule LiterLlmE2E.CustomProviderTest do
     client =
       LiterLlm.register_provider(client,
         name: "my-provider",
+        auth_header: "Bearer",
         model_prefixes: ["my-"],
         base_url: base_url
       )

@@ -4,14 +4,12 @@
 require "liter_llm"
 require "json"
 
-# Note: The Ruby client does not yet support streaming.
-# Use the non-streaming chat method instead.
 client = LiterLlm::LlmClient.new(ENV.fetch("OPENAI_API_KEY"), {})
 
-response = JSON.parse(client.chat(JSON.generate(
-  model: "openai/gpt-4o",
-  messages: [{ role: "user", content: "Tell me a story" }]
+chunks = JSON.parse(client.chat_stream(JSON.generate(
+  model: "openai/gpt-4o-mini",
+  messages: [{ role: "user", content: "Hello" }]
 )))
 
-puts response.dig("choices", 0, "message", "content")
+chunks.each { |chunk| puts chunk }
 ```

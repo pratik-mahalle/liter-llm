@@ -25,7 +25,7 @@
 	},
 	"assertions": {
 		"expect_success": false,
-		"error_type": "ServerError",
+		"error_type": "ServiceUnavailable",
 		"error_status_code": 502
 	},
 	"tags": ["error-handling"],

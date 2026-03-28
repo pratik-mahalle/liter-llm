@@ -36,7 +36,7 @@ async def test_provider_auth(mock_server: MockServerInfo) -> None:
 async def test_register_provider(mock_server: MockServerInfo) -> None:
     """Tests that a custom provider can be registered and routes requests"""
     client = LlmClient(api_key="test-key", base_url=mock_server.url, max_retries=0)
-    provider_config = json.loads("{\"base_url\":\"http://localhost\",\"model_prefixes\":[\"my-\"],\"name\":\"my-provider\"}")
+    provider_config = json.loads("{\"auth_header\":\"Bearer\",\"base_url\":\"http://localhost\",\"model_prefixes\":[\"my-\"],\"name\":\"my-provider\"}")
     # Override base_url to point at the mock server
     provider_config["base_url"] = mock_server.url
     client.register_provider(provider_config)

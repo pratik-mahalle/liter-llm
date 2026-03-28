@@ -109,24 +109,7 @@ defmodule LiterLlm.Client do
   def chat(%__MODULE__{} = client, request, _opts \\ []) do
     with :ok <- run_hooks(client, :on_request, request),
          :ok <- check_budget(client, request[:model]) do
-      case check_cache(client, request) do
-        {:ok, _cached} = hit ->
-          run_hooks(client, :on_response, {request, hit})
-          hit
-
-        :miss ->
-          case call_nif(:chat, client, request) do
-            {:ok, response} = ok ->
-              store_cache(client, request, response)
-              record_usage(client, request[:model], response)
-              run_hooks(client, :on_response, {request, response})
-              ok
-
-            {:error, _} = err ->
-              run_hooks(client, :on_error, {request, err})
-              err
-          end
-      end
+      do_cached_call(:chat, client, request)
     end
   end
 
@@ -171,24 +154,7 @@ defmodule LiterLlm.Client do
   def embed(%__MODULE__{} = client, request, _opts \\ []) do
     with :ok <- run_hooks(client, :on_request, request),
          :ok <- check_budget(client, request[:model]) do
-      case check_cache(client, request) do
-        {:ok, _cached} = hit ->
-          run_hooks(client, :on_response, {request, hit})
-          hit
-
-        :miss ->
-          case call_nif(:embed, client, request) do
-            {:ok, response} = ok ->
-              store_cache(client, request, response)
-              record_usage(client, request[:model], response)
-              run_hooks(client, :on_response, {request, response})
-              ok
-
-            {:error, _} = err ->
-              run_hooks(client, :on_error, {request, err})
-              err
-          end
-      end
+      do_cached_call(:embed, client, request)
     end
   end
 
@@ -609,7 +575,7 @@ defmodule LiterLlm.Client do
 
         1 ->
           try do
-            case apply(hook_module, :on_request, [payload]) do
+            case hook_module.on_request(payload) do
               :ok -> {:cont, :ok}
               {:error, reason} -> {:halt, {:error, Error.hook_rejected(inspect(reason))}}
               _other -> {:cont, :ok}
@@ -676,6 +642,27 @@ defmodule LiterLlm.Client do
   defp wrap_error(reason), do: {:error, Error.unknown(inspect(reason))}
 
   # Call a NIF function that takes (config_json, request_json) and returns a JSON response.
+  defp do_cached_call(fun, client, request) do
+    case check_cache(client, request) do
+      {:ok, _cached} = hit ->
+        run_hooks(client, :on_response, {request, hit})
+        hit
+
+      :miss ->
+        case call_nif(fun, client, request) do
+          {:ok, response} = ok ->
+            store_cache(client, request, response)
+            record_usage(client, request[:model], response)
+            run_hooks(client, :on_response, {request, response})
+            ok
+
+          {:error, _} = err ->
+            run_hooks(client, :on_error, {request, err})
+            err
+        end
+    end
+  end
+
   defp call_nif(fun, client, request) do
     with {:ok, config_json} <- encode(client_to_config_map(client)),
          {:ok, request_json} <- encode(request),

@@ -6,7 +6,8 @@
 		"custom_provider": {
 			"name": "my-provider",
 			"base_url": "http://localhost",
-			"model_prefixes": ["my-"]
+			"model_prefixes": ["my-"],
+			"auth_header": "Bearer"
 		}
 	},
 	"api": {

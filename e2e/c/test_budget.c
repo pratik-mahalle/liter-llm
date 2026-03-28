@@ -44,7 +44,7 @@ static void test_budget_enforced(void) {
   char config_json[2048];
   snprintf(config_json, sizeof(config_json),
            "{\"api_key\":\"test-key\",\"base_url\":\"%s\",\"budget\":{"
-           "\"enforcement\":\"hard\",\"global_limit\":0.001}}",
+           "\"enforcement\":\"hard\",\"global_limit\":0.0}}",
            base_url);
   LiterLlmClient *client = literllm_client_new_with_config(config_json);
   assert(client != NULL);
@@ -67,7 +67,7 @@ static void test_budget_per_model(void) {
   char config_json[2048];
   snprintf(config_json, sizeof(config_json),
            "{\"api_key\":\"test-key\",\"base_url\":\"%s\",\"budget\":{"
-           "\"enforcement\":\"hard\",\"model_limits\":{\"gpt-4\":0.001}}}",
+           "\"enforcement\":\"hard\",\"model_limits\":{\"gpt-4\":0.0}}}",
            base_url);
   LiterLlmClient *client = literllm_client_new_with_config(config_json);
   assert(client != NULL);

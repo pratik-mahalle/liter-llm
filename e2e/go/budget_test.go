@@ -26,7 +26,7 @@ func TestBudget(t *testing.T) {
 		defer server.Close()
 
 		var budgetCfg literllm.BudgetConfig
-		_ = json.Unmarshal([]byte("{\"enforcement\":\"hard\",\"global_limit\":0.001}"), &budgetCfg)
+		_ = json.Unmarshal([]byte("{\"enforcement\":\"hard\",\"global_limit\":0.0}"), &budgetCfg)
 
 		cfg := literllm.ClientConfig{
 			APIKey:  "test-key",
@@ -61,7 +61,7 @@ func TestBudget(t *testing.T) {
 		defer server.Close()
 
 		var budgetCfg literllm.BudgetConfig
-		_ = json.Unmarshal([]byte("{\"enforcement\":\"hard\",\"model_limits\":{\"gpt-4\":0.001}}"), &budgetCfg)
+		_ = json.Unmarshal([]byte("{\"enforcement\":\"hard\",\"model_limits\":{\"gpt-4\":0.0}}"), &budgetCfg)
 
 		cfg := literllm.ClientConfig{
 			APIKey:  "test-key",

@@ -28,7 +28,7 @@ final class BudgetTest extends TestCase
         $server = new MockServer($routes);
         $mockUrl = $server->url;
 
-        $client = new \LiterLlm\LlmClient('test-key', $mockUrl, null, null, null, null, '{"enforcement":"hard","global_limit":0.001}');
+        $client = new \LiterLlm\LlmClient('test-key', $mockUrl, null, null, null, null, '{"enforcement":"hard","global_limit":0.0}');
 
         $threw = false;
         try {
@@ -56,7 +56,7 @@ final class BudgetTest extends TestCase
         $server = new MockServer($routes);
         $mockUrl = $server->url;
 
-        $client = new \LiterLlm\LlmClient('test-key', $mockUrl, null, null, null, null, '{"enforcement":"hard","model_limits":{"gpt-4":0.001}}');
+        $client = new \LiterLlm\LlmClient('test-key', $mockUrl, null, null, null, null, '{"enforcement":"hard","model_limits":{"gpt-4":0.0}}');
 
         $threw = false;
         try {
