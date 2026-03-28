@@ -1,6 +1,8 @@
 use liter_llm::LlmClient;
 
-use super::{anthropic_client, google_ai_client, openai_client, simple_chat_request};
+use super::{
+    anthropic_client, gcloud_access_token, google_ai_client, openai_client, simple_chat_request, vertex_ai_client,
+};
 
 /// Sends the same prompt to every provider whose env var is set and asserts
 /// structural parity across all responses.
@@ -35,6 +37,16 @@ async fn chat_parity_across_providers() {
         match client.chat(simple_chat_request("gemini-2.5-flash-lite")).await {
             Ok(resp) => results.push(("google_ai", resp)),
             Err(e) => eprintln!("google_ai chat failed: {e}"),
+        }
+    }
+
+    if std::env::var("VERTEXAI_PROJECT").is_ok_and(|v| !v.is_empty())
+        && let Some(token) = gcloud_access_token()
+    {
+        let client = vertex_ai_client(&token);
+        match client.chat(simple_chat_request("gemini-2.5-flash-lite")).await {
+            Ok(resp) => results.push(("vertex_ai", resp)),
+            Err(e) => eprintln!("vertex_ai chat failed: {e}"),
         }
     }
 

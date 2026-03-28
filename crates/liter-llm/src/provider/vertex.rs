@@ -158,6 +158,11 @@ impl Provider for VertexAiProvider {
     }
 
     fn transform_request(&self, body: &mut serde_json::Value) -> Result<()> {
+        // Vertex AI `:predict` endpoint uses a different embed format than
+        // Google AI's `:embedContent`.
+        if body.get("input").is_some() && body.get("messages").is_none() {
+            return transform_vertex_embed_request(body);
+        }
         transform_gemini_request(body)
     }
 
@@ -447,6 +452,27 @@ fn transform_gemini_embed_request(body: &mut serde_json::Value) -> Result<()> {
     Ok(())
 }
 
+/// Transform an OpenAI embedding request to Vertex AI `:predict` format.
+///
+/// OpenAI: `{"model": "...", "input": "text"}`
+/// Vertex: `{"instances": [{"content": "text"}]}`
+fn transform_vertex_embed_request(body: &mut serde_json::Value) -> Result<()> {
+    use serde_json::json;
+
+    let input = body.get("input").cloned().unwrap_or_default();
+
+    let text = match &input {
+        serde_json::Value::String(s) => s.clone(),
+        serde_json::Value::Array(arr) => arr.first().and_then(|v| v.as_str()).unwrap_or("").to_string(),
+        _ => String::new(),
+    };
+
+    *body = json!({
+        "instances": [{"content": text}]
+    });
+    Ok(())
+}
+
 /// Normalize a Gemini `generateContent` response to OpenAI chat completion format.
 ///
 /// Gemini wraps the response in `candidates[0].content.parts[]`.
@@ -461,6 +487,27 @@ fn transform_gemini_embed_request(body: &mut serde_json::Value) -> Result<()> {
 /// response body -- the model is only present in the request URL path.
 pub(crate) fn transform_gemini_response(body: &mut serde_json::Value) -> Result<()> {
     use serde_json::json;
+
+    // ── Vertex AI predict (embedding) response ─────────────────────────
+    // Vertex returns: {"predictions": [{"embeddings": {"values": [...]}}]}
+    // Convert to OpenAI format.
+    if let Some(predictions) = body.get("predictions").and_then(|p| p.as_array()) {
+        let data: Vec<serde_json::Value> = predictions
+            .iter()
+            .enumerate()
+            .map(|(i, p)| {
+                let values = p.pointer("/embeddings/values").cloned().unwrap_or(json!([]));
+                json!({"object": "embedding", "embedding": values, "index": i})
+            })
+            .collect();
+        *body = json!({
+            "object": "list",
+            "data": data,
+            "model": "",
+            "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+        });
+        return Ok(());
+    }
 
     // ── List models response ────────────────────────────────────────────
     // Gemini returns: {"models": [{"name": "models/gemini-pro", "displayName": "...", ...}]}

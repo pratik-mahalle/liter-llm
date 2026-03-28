@@ -11,6 +11,7 @@
 //! | `OPENAI_API_KEY` | OpenAI |
 //! | `ANTHROPIC_API_KEY` | Anthropic |
 //! | `GEMINI_API_KEY` | Google AI (Gemini) |
+//! | `VERTEXAI_PROJECT` | Vertex AI (+ gcloud auth) |
 
 use liter_llm::{ChatCompletionRequest, ClientConfigBuilder, DefaultClient, EmbeddingInput, EmbeddingRequest};
 
@@ -22,6 +23,8 @@ mod cross_provider;
 mod google_ai;
 #[path = "live_providers/openai.rs"]
 mod openai;
+#[path = "live_providers/vertex_ai.rs"]
+mod vertex_ai;
 
 // ── Skip macro ──────────────────────────────────────────────────────────────
 
@@ -55,6 +58,41 @@ pub fn google_ai_client(api_key: &str) -> DefaultClient {
     let config = ClientConfigBuilder::new(api_key).max_retries(2).build();
     DefaultClient::new(config, Some("gemini/gemini-2.5-flash-lite")).unwrap()
 }
+
+/// Try to get a gcloud access token. Returns `None` if gcloud is not
+/// available or not authenticated.
+pub fn gcloud_access_token() -> Option<String> {
+    let output = std::process::Command::new("gcloud")
+        .args(["auth", "print-access-token"])
+        .output()
+        .ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    let token = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if token.is_empty() { None } else { Some(token) }
+}
+
+pub fn vertex_ai_client(token: &str) -> DefaultClient {
+    let config = ClientConfigBuilder::new(token).max_retries(2).build();
+    DefaultClient::new(config, Some("vertex_ai/gemini-2.5-flash-lite")).unwrap()
+}
+
+/// Skip a test if Vertex AI is not configured (needs VERTEXAI_PROJECT + gcloud auth).
+/// Returns the access token on success.
+macro_rules! require_vertex {
+    () => {{
+        let _project = require_env!("VERTEXAI_PROJECT");
+        match $crate::gcloud_access_token() {
+            Some(token) => token,
+            None => {
+                eprintln!("SKIP: gcloud auth not available, skipping Vertex AI test");
+                return;
+            }
+        }
+    }};
+}
+pub(crate) use require_vertex;
 
 // ── Shared request builders ─────────────────────────────────────────────────
 
