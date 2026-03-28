@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-rc.9] - 2026-03-28
+
+### Added
+
+- Live provider integration tests for 7 providers (OpenAI, Anthropic, Google AI, Vertex AI, Mistral, Azure OpenAI, AWS Bedrock)
+- Cross-provider parity test validating response shape consistency across all providers
+- Anthropic tests covering tool calling, streaming tool calls, multi-turn, system messages, max token truncation
+- TOML config file integration tests with 31 test cases and fixture files
+- Vertex AI embedding support via `:predict` endpoint transform
+- Google AI embedding, list_models response transforms to OpenAI-compatible format
+- PHP CI script for loading native extension via generated php.ini
+- Mistral and Azure OpenAI client factories and test infrastructure
+
+### Fixed
+
+- **Anthropic streaming**: `stream` field was incorrectly stripped from request body, causing zero chunks returned
+- **AWS Bedrock streaming**: EventStream parser used CRC32C instead of standard CRC32, causing frame CRC mismatches on every streaming response
+- **Google AI embeddings**: `transform_gemini_request` applied chat-only transform to embedding requests
+- **Google AI list_models**: response format mismatch (`{"models":[...]}` vs OpenAI `{"object":"list","data":[...]}`)
+- **Vertex AI embeddings**: added `transform_vertex_embed_request` for `:predict` endpoint format and response transform
+- **Provider routing regression**: per-request provider re-detection bypassed `base_url` overrides, breaking mock server tests
+- **Usage deserialization**: `completion_tokens` field now defaults to 0 when absent (fixes OpenAI embedding responses)
+- **PHP CI**: native extension not loaded in e2e tests (missing php.ini generation)
+- **README feature comparison**: corrected litellm feature claims (streaming, caching backends, guardrails, observability counts)
+- **README feature comparison**: updated liter-llm caching description to reflect 40+ OpenDAL backends
+
 ## [1.0.0-rc.7] - 2026-03-28
 
 ### Added
