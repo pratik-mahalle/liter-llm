@@ -32,6 +32,7 @@ pub struct ListFilesQuery {
     responses(
         (status = 200, description = "File object"),
         (status = 400, description = "Bad request", body = crate::openapi::ProxyErrorBody),
+        (status = 422, description = "Unprocessable entity", body = crate::openapi::ProxyErrorBody),
         (status = 401, description = "Unauthorized", body = crate::openapi::ProxyErrorBody),
         (status = 500, description = "Internal server error", body = crate::openapi::ProxyErrorBody),
     ),
