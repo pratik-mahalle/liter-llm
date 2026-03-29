@@ -158,58 +158,38 @@ Liter-LLM supports **142 providers** out of the box. Route requests to any provi
 Use any provider by prefixing the model name with the provider's routing prefix:
 
 ```python
-import asyncio
-import os
-from liter_llm import LlmClient
+from liter_llm import LiterLLM
 
-async def main() -> None:
-    # OpenAI
-    client = LlmClient(api_key=os.environ["OPENAI_API_KEY"])
-    response = await client.chat(
-        model="openai/gpt-4o",
-        messages=[{"role": "user", "content": "Hello!"}],
-    )
-    print(response.choices[0].message.content)
+client = LiterLLM()
 
-    # Anthropic
-    client = LlmClient(api_key=os.environ["ANTHROPIC_API_KEY"])
-    response = await client.chat(
-        model="anthropic/claude-3-opus",
-        messages=[{"role": "user", "content": "Hello!"}],
-    )
-    print(response.choices[0].message.content)
+# OpenAI
+response = await client.chat("openai/gpt-4o", messages=[
+    {"role": "user", "content": "Hello!"}
+])
 
-    # Groq
-    client = LlmClient(api_key=os.environ["GROQ_API_KEY"])
-    response = await client.chat(
-        model="groq/llama3-70b",
-        messages=[{"role": "user", "content": "Hello!"}],
-    )
-    print(response.choices[0].message.content)
+# Anthropic
+response = await client.chat("anthropic/claude-3-opus", messages=[
+    {"role": "user", "content": "Hello!"}
+])
 
-asyncio.run(main())
+# Groq
+response = await client.chat("groq/llama3-70b", messages=[
+    {"role": "user", "content": "Hello!"}
+])
 ```
 
 ## Custom Providers
 
-Any OpenAI-compatible API can be used as a custom provider by setting the base URL at client construction:
+Any OpenAI-compatible API can be used as a custom provider by setting the base URL and API key directly:
 
 ```python
-import asyncio
-from liter_llm import LlmClient
-
-async def main() -> None:
-    client = LlmClient(
-        api_key="my-key",
-        base_url="https://my-api.example.com/v1",
-    )
-    response = await client.chat(
-        model="custom/my-model",
-        messages=[{"role": "user", "content": "Hello!"}],
-    )
-    print(response.choices[0].message.content)
-
-asyncio.run(main())
+response = await client.chat("custom/my-model",
+    base_url="https://my-api.example.com/v1",
+    api_key="my-key",
+    messages=[
+        {"role": "user", "content": "Hello!"}
+    ]
+)
 ```
 
 ## Provider Registry
