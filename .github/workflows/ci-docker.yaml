@@ -10,6 +10,7 @@ on:
       - 'crates/liter-llm-cli/**'
       - 'docker/**'
       - '.dockerignore'
+      - 'scripts/ci/docker/**'
       - 'Cargo.toml'
       - 'Cargo.lock'
   pull_request:
@@ -21,6 +22,7 @@ on:
       - 'crates/liter-llm-cli/**'
       - 'docker/**'
       - '.dockerignore'
+      - 'scripts/ci/docker/**'
       - 'Cargo.toml'
       - 'Cargo.lock'
   workflow_dispatch:
@@ -60,42 +62,21 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max,scope=ci-docker
 
-      - name: Verify CLI version
-        run: |
-          version=$(docker run --rm liter-llm:test --version)
-          echo "CLI version: $version"
-          [[ "$version" == liter-llm* ]] || { echo "Unexpected version output"; exit 1; }
-
-      - name: Test health endpoints
-        run: |
-          container_id=$(docker run -d -p 4000:4000 \
-            -e LITER_LLM_MASTER_KEY=sk-ci-test \
-            liter-llm:test)
-          sleep 3
-
-          echo "=== Liveness ==="
-          curl -sf http://localhost:4000/health/liveness || { docker logs "$container_id"; exit 1; }
-
-          echo "=== Health ==="
-          curl -sf http://localhost:4000/health | jq .
-
-          echo "=== OpenAPI spec ==="
-          curl -sf http://localhost:4000/openapi.json | jq .info
-
-          docker stop "$container_id"
+      - name: Run Docker integration tests
+        run: python3 scripts/ci/docker/test_docker.py --image liter-llm:test --port 14000
 
       - name: Schemathesis API contract tests
         if: ${{ !inputs.skip_tests }}
         run: |
           pip3 install schemathesis
 
-          container_id=$(docker run -d -p 4000:4000 \
+          container_id=$(docker run -d -p 14001:4000 \
             -e LITER_LLM_MASTER_KEY=sk-schema-test \
             liter-llm:test)
           sleep 3
 
           FAILED=0
-          schemathesis run http://localhost:4000/openapi.json \
+          schemathesis run http://localhost:14001/openapi.json \
             --max-examples=10 \
             --request-timeout=30000 \
             --header "Authorization: Bearer sk-schema-test" \
@@ -112,10 +93,17 @@ jobs:
             echo "::warning::Docker image is larger than 100MB (${size_mb}MB)"
           fi
 
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-test-results
+          path: /tmp/liter-llm-docker-test-results.json
+          retention-days: 7
+
       - name: Save image artifact
         if: failure()
-        run: |
-          docker save liter-llm:test | gzip > liter-llm-test.tar.gz
+        run: docker save liter-llm:test | gzip > liter-llm-test.tar.gz
 
       - name: Upload image artifact
         if: failure()

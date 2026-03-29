@@ -134,6 +134,17 @@ tasks:
     cmds:
       - cargo test -p liter-llm-proxy
 
+  proxy:docker:build:
+    desc: Build proxy Docker image for testing
+    cmds:
+      - docker build -f docker/Dockerfile -t liter-llm:test .
+
+  proxy:docker:test:
+    desc: Run Docker integration tests locally
+    deps: [proxy:docker:build]
+    cmds:
+      - python3 scripts/ci/docker/test_docker.py --image liter-llm:test --port 14000
+
   proxy:schemathesis:
     desc: Run schemathesis API contract tests against proxy Docker image
     cmds:
