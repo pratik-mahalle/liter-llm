@@ -685,28 +685,20 @@ fn write_new_category_test_method(out: &mut String, fixture: &Fixture, category:
             }
         }
         "budget" => {
-            // Parse budget fixture config to extract constructor arguments.
+            // Serialize the entire budget config from the fixture as JSON so
+            // that all fields (global_limit, model_limits, enforcement, etc.)
+            // are faithfully passed to the Rust constructor.
             let budget_cfg = fixture.client_config.budget.as_ref();
-            let global_limit = budget_cfg.and_then(|v| v.get("global_limit")).and_then(|v| v.as_f64());
-            let enforcement = budget_cfg
-                .and_then(|v| v.get("enforcement"))
-                .and_then(|v| v.as_str())
-                .unwrap_or("strict");
-            let enforcement_php = php_string_escape(enforcement);
+            let budget_json_str = budget_cfg
+                .map(|v| serde_json::to_string(v).unwrap_or_default())
+                .unwrap_or_else(|| r#"{"enforcement":"strict"}"#.to_owned());
+            let budget_php = php_string_escape(&budget_json_str);
 
-            if let Some(limit) = global_limit {
-                writeln!(
-                    out,
-                    "        $client = new \\LiterLlm\\LlmClient('test-key', $mockUrl, null, null, null, null, '{{\"global_limit\":{limit},\"enforcement\":\"{enforcement_php}\"}}');"
-                )
-                .unwrap();
-            } else {
-                writeln!(
-                    out,
-                    "        $client = new \\LiterLlm\\LlmClient('test-key', $mockUrl, null, null, null, null, '{{\"enforcement\":\"{enforcement_php}\"}}');"
-                )
-                .unwrap();
-            }
+            writeln!(
+                out,
+                "        $client = new \\LiterLlm\\LlmClient('test-key', $mockUrl, null, null, null, null, '{budget_php}');"
+            )
+            .unwrap();
             writeln!(out).unwrap();
 
             if is_error {

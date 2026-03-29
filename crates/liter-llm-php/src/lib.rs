@@ -96,16 +96,6 @@ fn register_hook_zval(zval: &Zval) -> usize {
     })
 }
 
-/// Remove a hook from thread-local storage, freeing the slot for reuse.
-fn unregister_hook_zval(idx: usize) {
-    HOOK_REGISTRY.with(|registry| {
-        let mut registry = registry.borrow_mut();
-        if let Some(slot) = registry.get_mut(idx) {
-            *slot = None;
-        }
-    });
-}
-
 /// A bridge that implements `LlmHook` by calling back into PHP objects stored
 /// in thread-local storage.
 ///
@@ -131,7 +121,15 @@ unsafe impl Sync for PhpHookBridge {}
 
 impl Drop for PhpHookBridge {
     fn drop(&mut self) {
-        unregister_hook_zval(self.hook_idx);
+        // During PHP shutdown, thread-local storage may already be destroyed.
+        // `try_with` returns Err if the thread-local has been dropped, avoiding
+        // a panic/segfault from accessing deallocated memory.
+        let _ = HOOK_REGISTRY.try_with(|registry| {
+            let mut registry = registry.borrow_mut();
+            if let Some(slot) = registry.get_mut(self.hook_idx) {
+                *slot = None;
+            }
+        });
     }
 }
 
@@ -247,6 +245,8 @@ fn parse_budget_config_json(json: &str) -> PhpResult<liter_llm::tower::BudgetCon
 #[php_class]
 #[php(name = "LiterLlm\\LlmClient")]
 pub struct PhpLlmClient {
+    /// Per-client hooks registered via `addHook()`.
+    hooks: Vec<Arc<dyn LlmHook>>,
     inner: ManagedClient,
 }
 
@@ -309,7 +309,10 @@ impl PhpLlmClient {
 
         let client = config::build_managed_client(opts).map_err(|e| PhpException::from(error::format_error(&e)))?;
 
-        Ok(Self { inner: client })
+        Ok(Self {
+            inner: client,
+            hooks: Vec::new(),
+        })
     }
 
     /// Add a hook object to the client.
@@ -352,9 +355,7 @@ impl PhpLlmClient {
         // directly in each method since PHP is synchronous.  But that would
         // require us to store hooks separately.  Let's use thread-local
         // hook storage with a global list.
-        HOOKS.with(|hooks| {
-            hooks.borrow_mut().push(hook_arc);
-        });
+        self.hooks.push(hook_arc);
 
         Ok(())
     }
@@ -395,11 +396,22 @@ impl PhpLlmClient {
             .map_err(|e| PhpException::from(format!("invalid chat request JSON: {e}")))?;
 
         // Invoke pre-request hooks synchronously.
-        invoke_hooks_on_request(&req)?;
+        let llm_req = LlmRequest::Chat(req.clone());
+        invoke_hooks_on_request(&self.hooks, &llm_req)?;
 
-        let response = block_on_future(self.inner.chat(req))?.map_err(|e| PhpException::from(e.to_string()))?;
-
-        serde_json::to_string(&response).map_err(|e| PhpException::from(format!("serialization error: {e}")))
+        match block_on_future(self.inner.chat(req))? {
+            Ok(response) => {
+                // Invoke on_response hooks synchronously.
+                let llm_resp = LlmResponse::Chat(response.clone());
+                invoke_hooks_on_response(&self.hooks, &llm_req, &llm_resp);
+                serde_json::to_string(&response).map_err(|e| PhpException::from(format!("serialization error: {e}")))
+            }
+            Err(e) => {
+                // Invoke on_error hooks synchronously.
+                invoke_hooks_on_error(&self.hooks, &llm_req, &e);
+                Err(PhpException::from(e.to_string()))
+            }
+        }
     }
 
     /// Send a streaming chat completion request and collect all chunks.
@@ -738,26 +750,30 @@ impl PhpLlmClient {
     }
 }
 
-// ─── Thread-local hook storage for addHook() ─────────────────────────────────
+// ─── Per-client hook invocation helpers ──────────────────────────────────────
 
-thread_local! {
-    /// Hooks registered via `addHook()` at runtime.  These are invoked
-    /// synchronously before each request via `invoke_hooks_on_request`.
-    static HOOKS: RefCell<Vec<Arc<dyn LlmHook>>> = const { RefCell::new(Vec::new()) };
-}
-
-/// Invoke all registered thread-local hooks' `on_request` synchronously.
+/// Invoke all per-client hooks' `on_request` synchronously.
 ///
 /// If any hook returns an error, the request is rejected with that error.
-fn invoke_hooks_on_request(req: &liter_llm::ChatCompletionRequest) -> PhpResult<()> {
-    let llm_req = LlmRequest::Chat(req.clone());
-    HOOKS.with(|hooks| {
-        let hooks = hooks.borrow();
-        for hook in hooks.iter() {
-            block_on_future(hook.on_request(&llm_req))?.map_err(|e| PhpException::from(e.to_string()))?;
-        }
-        Ok(())
-    })
+fn invoke_hooks_on_request(hooks: &[Arc<dyn LlmHook>], req: &LlmRequest) -> PhpResult<()> {
+    for hook in hooks {
+        block_on_future(hook.on_request(req))?.map_err(|e| PhpException::from(e.to_string()))?;
+    }
+    Ok(())
+}
+
+/// Invoke all per-client hooks' `on_response` synchronously (fire-and-forget).
+fn invoke_hooks_on_response(hooks: &[Arc<dyn LlmHook>], req: &LlmRequest, resp: &LlmResponse) {
+    for hook in hooks {
+        let _ = block_on_future(hook.on_response(req, resp));
+    }
+}
+
+/// Invoke all per-client hooks' `on_error` synchronously (fire-and-forget).
+fn invoke_hooks_on_error(hooks: &[Arc<dyn LlmHook>], req: &LlmRequest, err: &LiterLlmError) {
+    for hook in hooks {
+        let _ = block_on_future(hook.on_error(req, err));
+    }
 }
 
 // ─── Module-level functions ──────────────────────────────────────────────────
