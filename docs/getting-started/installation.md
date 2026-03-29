@@ -6,6 +6,42 @@ description: "Installing liter-llm for Python, TypeScript, Rust, Go, Java, Ruby,
 
 liter-llm ships prebuilt native packages for all major languages. No Rust toolchain required unless building from source.
 
+## CLI / Proxy Server
+
+Install the `liter-llm` CLI for running the proxy server or MCP tool server.
+
+=== "Homebrew"
+
+    ```bash
+    brew tap kreuzberg-dev/tap
+    brew install liter-llm
+    ```
+
+=== "Cargo"
+
+    ```bash
+    cargo install liter-llm-cli
+    ```
+
+=== "Docker"
+
+    ```bash
+    docker pull ghcr.io/kreuzberg-dev/liter-llm:latest
+    docker run -p 4000:4000 -e LITER_LLM_MASTER_KEY=sk-your-key ghcr.io/kreuzberg-dev/liter-llm
+    ```
+
+After installation, start the proxy:
+
+```bash
+liter-llm api --config liter-llm-proxy.toml
+```
+
+Or start the MCP server:
+
+```bash
+liter-llm mcp --transport stdio
+```
+
 ## Install
 
 === "Python"

@@ -23,7 +23,7 @@ on:
         type: boolean
         default: false
       targets:
-        description: "Comma-separated targets to publish (empty = all). Values: crates python node wasm ruby go java elixir csharp php"
+        description: "Comma-separated targets to publish (empty = all). Values: crates python node wasm ruby go java elixir csharp php homebrew"
         required: false
         default: ""
         type: string
@@ -68,6 +68,7 @@ jobs:
       release_elixir:   ${{ steps.targets.outputs.elixir }}
       release_csharp:   ${{ steps.targets.outputs.csharp }}
       release_php:      ${{ steps.targets.outputs.php }}
+      release_homebrew: ${{ steps.targets.outputs.homebrew }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -130,7 +131,7 @@ jobs:
         id: targets
         run: |
           REQUESTED="${{ inputs.targets || github.event.client_payload.targets }}"
-          ALL="crates python node wasm ruby go java elixir csharp php"
+          ALL="crates python node wasm ruby go java elixir csharp php homebrew"
           emit() {
             local name="$1"
             if [ -z "$REQUESTED" ] || echo ",$REQUESTED," | grep -q ",$name,"; then
@@ -1080,7 +1081,7 @@ jobs:
       - uses: kreuzberg-dev/actions/setup-rust@v1
       - uses: kreuzberg-dev/actions/publish-crates@v1
         with:
-          crates: liter-llm liter-llm-bindings-core liter-llm-ffi
+          crates: liter-llm liter-llm-bindings-core liter-llm-ffi liter-llm-proxy liter-llm-cli
           version: ${{ needs.prepare.outputs.version }}
           dry-run: ${{ needs.prepare.outputs.dry_run }}
 
@@ -1604,6 +1605,136 @@ jobs:
         env:
           PACKAGIST_API_TOKEN: ${{ secrets.PACKAGIST_API_TOKEN }}
 
+  # ── Homebrew ─────────────────────────────────────────────────────────────
+  check-homebrew:
+    name: Check Homebrew tap for formula
+    needs: [prepare]
+    if: ${{ needs.prepare.outputs.release_homebrew == 'true' }}
+    runs-on: ubuntu-latest
+    outputs:
+      exists: ${{ steps.check.outputs.exists }}
+    steps:
+      - uses: kreuzberg-dev/actions/check-registry@v1
+        id: check
+        with:
+          registry: homebrew
+          package: liter-llm
+          version: ${{ needs.prepare.outputs.version }}
+          tap-repo: kreuzberg-dev/homebrew-tap
+
+  homebrew-bottles:
+    name: Build Homebrew bottles (${{ matrix.bottle_tag }})
+    needs: [prepare, check-homebrew]
+    if: |
+      needs.prepare.outputs.release_homebrew == 'true' &&
+      needs.check-homebrew.outputs.exists != 'true'
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - runner: macos-latest
+            bottle_tag: arm64_sequoia
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.tag }}
+      - uses: kreuzberg-dev/actions/setup-rust@v1
+        with:
+          cache-key-prefix: publish-homebrew-${{ matrix.bottle_tag }}
+      - name: Extract version
+        id: version
+        run: |
+          VERSION="${{ needs.prepare.outputs.version }}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - name: Build CLI
+        run: cargo build --release -p liter-llm-cli
+      - name: Create Homebrew bottle
+        id: bottle
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          bottle_root="/tmp/liter-llm-bottle"
+          bottle_dir="${bottle_root}/liter-llm/${VERSION}"
+          mkdir -p "${bottle_dir}/bin"
+          cp target/release/liter-llm "${bottle_dir}/bin/"
+          cd "${bottle_root}"
+          bottle_filename="liter-llm-${VERSION}.${{ matrix.bottle_tag }}.bottle.tar.gz"
+          tar -czf "${bottle_filename}" liter-llm/
+          sha256=$(shasum -a 256 "${bottle_filename}" | cut -d' ' -f1)
+          echo "sha256=${sha256}" >> "$GITHUB_OUTPUT"
+          echo "filename=${bottle_filename}" >> "$GITHUB_OUTPUT"
+          cp "${bottle_filename}" "${{ github.workspace }}/"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: homebrew-bottle-${{ matrix.bottle_tag }}
+          path: liter-llm-${{ steps.version.outputs.version }}.${{ matrix.bottle_tag }}.bottle.tar.gz
+          retention-days: 14
+
+  upload-homebrew-bottles:
+    name: Upload Homebrew bottles
+    needs: [prepare, check-homebrew, homebrew-bottles]
+    if: |
+      always() &&
+      needs.prepare.outputs.dry_run != 'true' &&
+      needs.prepare.outputs.release_homebrew == 'true' &&
+      needs.check-homebrew.outputs.exists != 'true' &&
+      needs.homebrew-bottles.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - name: Ensure GitHub release exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: scripts/publish/ensure-github-release-exists.sh "${{ needs.prepare.outputs.tag }}"
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: homebrew-bottle-*
+          path: dist/homebrew
+          merge-multiple: true
+      - name: Upload bottles to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: scripts/publish/upload-homebrew-bottles.sh "${{ needs.prepare.outputs.tag }}" dist/homebrew
+
+  publish-homebrew:
+    name: Update Homebrew formula
+    needs: [prepare, validate-versions, check-homebrew, publish-crates, upload-homebrew-bottles]
+    if: |
+      always() &&
+      needs.prepare.outputs.dry_run != 'true' &&
+      needs.prepare.outputs.release_homebrew == 'true' &&
+      needs.check-homebrew.outputs.exists != 'true' &&
+      needs.publish-crates.result == 'success' &&
+      needs.upload-homebrew-bottles.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.tag }}
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: homebrew-bottle-*
+          path: dist/homebrew
+          merge-multiple: true
+      - name: Setup Git credentials
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TOKEN }}
+        run: |
+          git config --global credential.helper store
+          echo "https://x-access-token:${GH_TOKEN}@github.com" > ~/.git-credentials
+          git config --global user.name "kreuzberg-bot"
+          git config --global user.email "bot@kreuzberg.dev"
+      - uses: kreuzberg-dev/actions/publish-homebrew@v1
+        with:
+          bottles-dir: dist/homebrew
+          formula-name: liter-llm
+          tap-repo: kreuzberg-dev/homebrew-tap
+          tag: ${{ needs.prepare.outputs.tag }}
+          version: ${{ needs.prepare.outputs.version }}
+          github-repo: kreuzberg-dev/liter-llm
+          dry-run: ${{ needs.prepare.outputs.dry_run }}
+
   # ─────────────────────────────────────────────────────────────────────────
   # Phase 7 — Finalize
   # ─────────────────────────────────────────────────────────────────────────
@@ -1622,6 +1753,7 @@ jobs:
       - publish-hex
       - publish-nuget
       - publish-packagist
+      - publish-homebrew
     if: always()
     runs-on: ubuntu-latest
     permissions:
@@ -1683,5 +1815,6 @@ jobs:
             report "Packagist"   "${{ needs.publish-packagist.result }}"
             report "Go FFI"      "${{ needs.upload-go-ffi.result }}"
             report "PHP ext"     "${{ needs.upload-php-extensions.result }}"
+            report "Homebrew"    "${{ needs.publish-homebrew.result }}"
           } >> "$GITHUB_STEP_SUMMARY"
         shell: bash

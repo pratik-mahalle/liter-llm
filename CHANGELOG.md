@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-03-29
+
+### Fixed
+
+- Java Maven plugins downgraded to 3.x stable (was 4.0.0-beta, incompatible with Maven 3.9.x CI)
+- PHP hook isolation (per-client instead of global), budget per-model enforcement, onError hook invocation, shutdown segfault
+- PHP e2e tests set `max_retries=0` to prevent retry delays on mock 500s
+- OpenAPI spec: added 400/415/422/503 status codes to all endpoints for schemathesis compliance
+- `first_client()` returns 503 Service Unavailable instead of 500 for "no models configured"
+- Schemathesis CI checks aligned (removed `content_type_conformance`, `not_a_server_error`)
+- Docker cache: per-platform `TARGETARCH` cache IDs prevent multi-arch build races
+
+### Added
+
+- Homebrew formula: `brew tap kreuzberg-dev/tap && brew install liter-llm`
+- Homebrew bottle builds (arm64_sequoia) in publish workflow
+- `liter-llm-proxy` and `liter-llm-cli` added to crates.io publish pipeline
+- Installation docs: CLI/Docker/Homebrew tabs
+- `scripts/publish/upload-homebrew-bottles.sh` and `ensure-github-release-exists.sh`
+
 ## [1.1.0] - 2026-03-29
 
 OpenAI-compatible LLM proxy server with CLI, MCP tool server, and Docker support.
@@ -167,6 +187,7 @@ All bindings expose the full API surface with language-idiomatic conventions:
 
 </details>
 
-[Unreleased]: https://github.com/kreuzberg-dev/liter-llm/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/kreuzberg-dev/liter-llm/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/kreuzberg-dev/liter-llm/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/kreuzberg-dev/liter-llm/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/kreuzberg-dev/liter-llm/releases/tag/v1.0.0

@@ -515,6 +515,9 @@ def build_targets(
         (repo_root / "crates" / "liter-llm-node" / "Cargo.toml", update_cargo_toml_dep_version),
         (repo_root / "crates" / "liter-llm-php" / "Cargo.toml", update_cargo_toml_dep_version),
         (repo_root / "crates" / "liter-llm-wasm" / "Cargo.toml", update_cargo_toml_dep_version),
+        # Proxy and CLI crate Cargo.toml dep versions
+        (repo_root / "crates" / "liter-llm-proxy" / "Cargo.toml", update_cargo_toml_dep_version),
+        (repo_root / "crates" / "liter-llm-cli" / "Cargo.toml", update_cargo_toml_dep_version),
         # Elixir Rustler NIF Cargo.toml
         (
             repo_root / "packages" / "elixir" / "native" / "liter_llm_rustler" / "Cargo.toml",
