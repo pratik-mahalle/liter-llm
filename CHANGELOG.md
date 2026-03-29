@@ -7,6 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-03-29
+
+OpenAI-compatible LLM proxy server with CLI, MCP tool server, and Docker support.
+
+### Proxy Server (`liter-llm-proxy`)
+
+- **22 REST endpoints** — full OpenAI-compatible API surface: chat completions (streaming + non-streaming), embeddings, models, images, audio (speech + transcription), moderations, rerank, search, OCR, files CRUD, batches CRUD, responses CRUD, health
+- **Tower middleware stack** — reuses core middleware: cache, rate limit, budget, cost tracking, cooldown, health check, tracing
+- **Virtual API keys** — in-memory key store with per-key model restrictions, RPM/TPM limits, budget limits
+- **Model routing** — name-based routing to provider deployments, wildcard aliases, deterministic default client
+- **OpenDAL file storage** — configurable backend (memory, S3, GCS, filesystem) for file operations
+- **SSE streaming** — chat completion chunks proxied as Server-Sent Events with `[DONE]` sentinel
+- **OpenAPI 3.1** — utoipa-generated spec served at `/openapi.json` with bearer auth security scheme
+- **TOML configuration** — `liter-llm-proxy.toml` with env var interpolation (`${VAR}`), auto-discovery, `deny_unknown_fields`
+- **CORS** — configurable origins from config (default: allow all)
+- **Graceful shutdown** — SIGINT/SIGTERM handling via `tokio::signal`
+
+### MCP Server (`rmcp`)
+
+- **22 tools** — full parity with REST API: chat, embed, list_models, generate_image, speech, transcribe, moderate, rerank, search, ocr, file CRUD (5), batch CRUD (4), response CRUD (3)
+- **Transports** — stdio (default) and HTTP/SSE via `StreamableHttpService`
+- **Parameter schemas** — `schemars::JsonSchema` derives for MCP tool discovery
+
+### CLI (`liter-llm`)
+
+- `liter-llm api` — start proxy server with config, host/port overrides, debug logging
+- `liter-llm mcp` — start MCP server with stdio or HTTP transport
+- 3-tier config precedence: CLI flags > env vars > config file > defaults
+
+### Docker
+
+- Multi-stage build: `rust:1.91-bookworm` builder, `cgr.dev/chainguard/glibc-dynamic` runtime (35MB)
+- Non-root execution, OCI labels, port 4000 exposed
+- `ENTRYPOINT ["liter-llm"]`, `CMD ["api", "--host", "0.0.0.0", "--port", "4000"]`
+
+### Testing
+
+- **74 unit tests** — config parsing, error mapping, auth key store, service pool, file store, streaming
+- **32 integration tests** — auth middleware, chat/embedding/models routes, error propagation, CORS, health, OpenAPI
+- **12 proxy e2e fixtures** — chat (basic + streaming), embeddings, models, auth errors, upstream errors, health, images, moderation, reranking
+- **Schemathesis** — contract testing against OpenAPI spec via Docker (`task proxy:schemathesis`)
+
+### CI/CD
+
+- `.github/workflows/ci-docker.yaml` — build + health test + schemathesis contract tests
+- `.github/workflows/publish-docker.yaml` — multi-arch (amd64/arm64) publish to `ghcr.io/kreuzberg-dev/liter-llm`
+- Taskfile: `proxy:test`, `proxy:schemathesis`
+
 ## [1.0.0] - 2026-03-28
 
 Initial stable release. Universal LLM API client with native bindings for 11 languages and 142+ providers.
@@ -119,5 +167,6 @@ All bindings expose the full API surface with language-idiomatic conventions:
 
 </details>
 
-[Unreleased]: https://github.com/kreuzberg-dev/liter-llm/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/kreuzberg-dev/liter-llm/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/kreuzberg-dev/liter-llm/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/kreuzberg-dev/liter-llm/releases/tag/v1.0.0
