@@ -91,6 +91,36 @@ static void test_cache_miss_ttl(void) {
   literllm_client_free(client);
 }
 
+/* Cache hit with OpenDAL memory backend returns cached response on repeat
+ * request */
+static void test_cache_opendal_memory(void) {
+  const char *base_url = getenv("LITER_LLM_TEST_BASE_URL");
+  if (base_url == NULL)
+    base_url = "http://127.0.0.1:9999";
+
+  char config_json[2048];
+  snprintf(config_json, sizeof(config_json),
+           "{\"api_key\":\"test-key\",\"base_url\":\"%s\",\"cache\":{\"max_"
+           "entries\":10,\"ttl_secs\":60}}",
+           base_url);
+  LiterLlmClient *client = literllm_client_new_with_config(config_json);
+  assert(client != NULL);
+
+  char *resp1 =
+      literllm_chat(client, "{\"messages\":[{\"content\":\"Hello\",\"role\":"
+                            "\"user\"}],\"model\":\"openai/gpt-4o\"}");
+  assert(resp1 != NULL);
+  char *resp2 =
+      literllm_chat(client, "{\"messages\":[{\"content\":\"Hello\",\"role\":"
+                            "\"user\"}],\"model\":\"openai/gpt-4o\"}");
+  assert(resp2 != NULL);
+  /* Second identical request should return cached response. */
+  assert(strcmp(resp1, resp2) == 0);
+  literllm_free_string(resp1);
+  literllm_free_string(resp2);
+  literllm_client_free(client);
+}
+
 /* Tests that streaming requests bypass cache entirely */
 static void test_cache_stream_bypass(void) {
   const char *base_url = getenv("LITER_LLM_TEST_BASE_URL");
@@ -119,6 +149,9 @@ int main(void) {
   printf("PASS: Tests that identical chat requests return cached response\n");
   test_cache_miss_ttl();
   printf("PASS: Tests that cache expires after TTL\n");
+  test_cache_opendal_memory();
+  printf("PASS: Cache hit with OpenDAL memory backend returns cached response "
+         "on repeat request\n");
   test_cache_stream_bypass();
   printf("PASS: Tests that streaming requests bypass cache entirely\n");
   printf("All cache tests passed.\n");

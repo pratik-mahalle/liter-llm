@@ -116,4 +116,32 @@ public sealed class EmbedTests
 
         Assert.Equal(1, doc.GetProperty("data").GetArrayLength());
     }
+
+    /// <summary>Embedding request via Ollama local provider with all-minilm model</summary>
+    [Fact]
+    public async Task LocalEmbedOllama()
+    {
+        var routes = new[]
+        {
+            new MockRoute(
+                Path: "/embeddings",
+                Method: "POST",
+                Status: 200,
+                Body: "{\"data\":[{\"embedding\":[0.013,-0.008,0.027,0.041,-0.019,0.033,-0.012,0.005,0.029,-0.015,0.022,-0.031,0.017,0.044,-0.026,0.009,-0.038,0.014,0.036,-0.007,0.021,-0.029,0.011,0.048,-0.016,0.032,-0.023,0.006,0.039,-0.013,0.025,-0.035],\"index\":0,\"object\":\"embedding\"}],\"model\":\"all-minilm\",\"object\":\"list\",\"usage\":{\"completion_tokens\":0,\"prompt_tokens\":10,\"total_tokens\":10}}",
+                StreamChunks: Array.Empty<string>()
+            ),
+        };
+
+        using var server = new MockServer(routes);
+        using var http = new HttpClient();
+        http.BaseAddress = new Uri(server.Url);
+
+        var content = new StringContent("{\"input\":\"The quick brown fox jumps over the lazy dog\",\"model\":\"ollama/all-minilm\"}", System.Text.Encoding.UTF8, "application/json");
+        var response = await http.PostAsync("/embeddings", content);
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadAsStringAsync();
+        var doc = JsonDocument.Parse(body).RootElement;
+
+        Assert.Equal(1, doc.GetProperty("data").GetArrayLength());
+    }
 }

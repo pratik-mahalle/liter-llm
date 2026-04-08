@@ -86,6 +86,48 @@ defmodule LiterLlmE2E.CacheTest do
     assert resp2 != nil
   end
 
+  test "Cache hit with OpenDAL memory backend returns cached response on repeat request" do
+    routes = [
+      %{
+        path: "/chat/completions",
+        method: "POST",
+        status: 200,
+        body:
+          "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Hi there!\",\"role\":\"assistant\"}}],\"created\":1711000000,\"id\":\"chatcmpl-opendal-mem-001\",\"model\":\"gpt-4o\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":2,\"prompt_tokens\":5,\"total_tokens\":7}}",
+        stream_chunks: []
+      }
+    ]
+
+    {:ok, base_url} = MockServer.start(routes)
+
+    client =
+      LiterLlm.client(
+        api_key: "test-key",
+        base_url: base_url,
+        max_retries: 0,
+        cache: [max_entries: 10, ttl_seconds: 60]
+      )
+
+    {:ok, resp1} =
+      LiterLlm.chat(
+        client,
+        "{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"openai/gpt-4o\"}"
+      )
+
+    {:ok, resp2} =
+      LiterLlm.chat(
+        client,
+        "{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"openai/gpt-4o\"}"
+      )
+
+    # Second identical request should be a cache hit
+    doc1 = Jason.decode!(resp1)
+    doc2 = Jason.decode!(resp2)
+
+    assert get_in(doc1, ["choices", Access.at(0), "message", "content"]) ==
+             get_in(doc2, ["choices", Access.at(0), "message", "content"])
+  end
+
   test "Tests that streaming requests bypass cache entirely" do
     routes = [
       %{

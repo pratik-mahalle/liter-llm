@@ -8,40 +8,49 @@ import type { MockServer } from "./helpers.js";
 // Run `wasm-pack build --target nodejs` in crates/liter-llm-wasm first.
 import { LlmClient } from "liter-llm-wasm";
 
-
 describe("List models response returns an empty data array when no models are available", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/models", method: "GET", status: 200, body: "{\"data\":[],\"object\":\"list\"}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{ path: "/models", method: "GET", status: 200, body: '{"data":[],"object":"list"}', streamChunks: [] },
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("List models response returns an empty data array when no models are available", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("List models response returns an empty data array when no models are available", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    const response = await client.listModels();
-    expect((response as { data: unknown[] }).data).toHaveLength(0);
-  });
+		const response = await client.listModels();
+		expect((response as { data: unknown[] }).data).toHaveLength(0);
+	});
 });
 
 describe("401 Unauthorized error on list models request when API key is invalid", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/models", method: "GET", status: 401, body: "{\"error\":{\"code\":\"invalid_api_key\",\"message\":\"Incorrect API key provided.\",\"param\":null,\"type\":\"invalid_request_error\"}}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/models",
+				method: "GET",
+				status: 401,
+				body: '{"error":{"code":"invalid_api_key","message":"Incorrect API key provided.","param":null,"type":"invalid_request_error"}}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("401 Unauthorized error on list models request when API key is invalid", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("401 Unauthorized error on list models request when API key is invalid", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    await expect(client.listModels()).rejects.toThrow();
-  });
+		await expect(client.listModels()).rejects.toThrow();
+	});
 });

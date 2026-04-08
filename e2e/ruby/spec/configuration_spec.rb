@@ -59,4 +59,88 @@ RSpec.describe 'configuration' do
   ensure
     server&.stop
   end
+
+  it 'local_provider_llamacpp' do
+    # llamacpp local provider routes requests via llamacpp/ model prefix with no auth
+    route = E2EHelpers::MockRoute.new(
+      path: '/chat/completions',
+      method: 'POST',
+      status: 200,
+      body: "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Hi there! I'm running locally.\",\"role\":\"assistant\"}}],\"created\":1711000000,\"id\":\"chatcmpl-llamacpp-001\",\"model\":\"my-model\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":6,\"prompt_tokens\":5,\"total_tokens\":11}}",
+      stream_chunks: []
+    )
+    server = E2EHelpers::MockServer.new([route])
+
+    response = post_json(server.url, '/chat/completions',
+                         '{"messages":[{"content":"Hello","role":"user"}],"model":"llamacpp/my-model"}')
+
+    expect(response.code.to_i).to eq(200)
+
+    body = JSON.parse(response.body)
+
+    expect(body['choices'].size).to eq(1)
+    expect(body.dig('choices', 0, 'message', 'content')).to eq("Hi there! I'm running locally.")
+    expect(body.dig('choices', 0, 'finish_reason')).to eq('stop')
+    expect(body['model']).to eq('my-model')
+    expect(body['usage']).not_to be_nil
+    expect(body.dig('usage', 'total_tokens')).to eq(11)
+  ensure
+    server&.stop
+  end
+
+  it 'local_provider_ollama' do
+    # Ollama local provider routes requests via ollama/ model prefix with no auth
+    route = E2EHelpers::MockRoute.new(
+      path: '/chat/completions',
+      method: 'POST',
+      status: 200,
+      body: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hello! How can I help you today?","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-ollama-001","model":"qwen2:0.5b","object":"chat.completion","usage":{"completion_tokens":8,"prompt_tokens":5,"total_tokens":13}}',
+      stream_chunks: []
+    )
+    server = E2EHelpers::MockServer.new([route])
+
+    response = post_json(server.url, '/chat/completions',
+                         '{"messages":[{"content":"Hello","role":"user"}],"model":"ollama/qwen2:0.5b"}')
+
+    expect(response.code.to_i).to eq(200)
+
+    body = JSON.parse(response.body)
+
+    expect(body['choices'].size).to eq(1)
+    expect(body.dig('choices', 0, 'message', 'content')).to eq('Hello! How can I help you today?')
+    expect(body.dig('choices', 0, 'finish_reason')).to eq('stop')
+    expect(body['model']).to eq('qwen2:0.5b')
+    expect(body['usage']).not_to be_nil
+    expect(body.dig('usage', 'total_tokens')).to eq(13)
+  ensure
+    server&.stop
+  end
+
+  it 'local_provider_vllm' do
+    # vLLM local provider routes requests via vllm/ model prefix with no auth
+    route = E2EHelpers::MockRoute.new(
+      path: '/chat/completions',
+      method: 'POST',
+      status: 200,
+      body: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hello! How may I assist you?","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-vllm-001","model":"meta-llama/Llama-3.2-1B","object":"chat.completion","usage":{"completion_tokens":7,"prompt_tokens":5,"total_tokens":12}}',
+      stream_chunks: []
+    )
+    server = E2EHelpers::MockServer.new([route])
+
+    response = post_json(server.url, '/chat/completions',
+                         '{"messages":[{"content":"Hello","role":"user"}],"model":"vllm/meta-llama/Llama-3.2-1B"}')
+
+    expect(response.code.to_i).to eq(200)
+
+    body = JSON.parse(response.body)
+
+    expect(body['choices'].size).to eq(1)
+    expect(body.dig('choices', 0, 'message', 'content')).to eq('Hello! How may I assist you?')
+    expect(body.dig('choices', 0, 'finish_reason')).to eq('stop')
+    expect(body['model']).to eq('meta-llama/Llama-3.2-1B')
+    expect(body['usage']).not_to be_nil
+    expect(body.dig('usage', 'total_tokens')).to eq(12)
+  ensure
+    server&.stop
+  end
 end

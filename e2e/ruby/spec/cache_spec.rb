@@ -50,6 +50,29 @@ RSpec.describe 'cache' do
     server&.stop
   end
 
+  it 'cache_opendal_memory' do
+    # Cache hit with OpenDAL memory backend returns cached response on repeat request
+    route = E2EHelpers::MockRoute.new(
+      path: '/chat/completions',
+      method: 'POST',
+      status: 200,
+      body: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hi there!","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-opendal-mem-001","model":"gpt-4o","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":5,"total_tokens":7}}',
+      stream_chunks: []
+    )
+    server = E2EHelpers::MockServer.new([route])
+
+    client = LiterLlm::Client.new(api_key: 'test-key', base_url: server.url, max_retries: 0,
+                                  cache: { max_entries: 10, ttl_seconds: 60 })
+    response1 = client.chat('{"messages":[{"content":"Hello","role":"user"}],"model":"openai/gpt-4o"}')
+    response2 = client.chat('{"messages":[{"content":"Hello","role":"user"}],"model":"openai/gpt-4o"}')
+    # Second identical request should be a cache hit
+    body1 = JSON.parse(response1)
+    body2 = JSON.parse(response2)
+    expect(body2.dig('choices', 0, 'message', 'content')).to eq(body1.dig('choices', 0, 'message', 'content'))
+  ensure
+    server&.stop
+  end
+
   it 'cache_stream_bypass' do
     # Tests that streaming requests bypass cache entirely
     route = E2EHelpers::MockRoute.new(

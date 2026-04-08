@@ -72,4 +72,100 @@ public sealed class ConfigurationTests
         Assert.Equal(16L, doc.GetProperty("usage").GetProperty("total_tokens").GetInt64());
         Assert.Equal("gpt-4", doc.GetProperty("model").GetString());
     }
+
+    /// <summary>llamacpp local provider routes requests via llamacpp/ model prefix with no auth</summary>
+    [Fact]
+    public async Task LocalProviderLlamacpp()
+    {
+        var routes = new[]
+        {
+            new MockRoute(
+                Path: "/chat/completions",
+                Method: "POST",
+                Status: 200,
+                Body: "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Hi there! I'm running locally.\",\"role\":\"assistant\"}}],\"created\":1711000000,\"id\":\"chatcmpl-llamacpp-001\",\"model\":\"my-model\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":6,\"prompt_tokens\":5,\"total_tokens\":11}}",
+                StreamChunks: Array.Empty<string>()
+            ),
+        };
+
+        using var server = new MockServer(routes);
+        using var http = new HttpClient();
+        http.BaseAddress = new Uri(server.Url);
+
+        var content = new StringContent("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"llamacpp/my-model\"}", System.Text.Encoding.UTF8, "application/json");
+        var response = await http.PostAsync("/chat/completions", content);
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadAsStringAsync();
+        var doc = JsonDocument.Parse(body).RootElement;
+
+        Assert.Equal(1, doc.GetProperty("choices").GetArrayLength());
+        Assert.Equal("Hi there! I'm running locally.", doc.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString());
+        Assert.Equal("stop", doc.GetProperty("choices")[0].GetProperty("finish_reason").GetString());
+        Assert.Equal(11L, doc.GetProperty("usage").GetProperty("total_tokens").GetInt64());
+        Assert.Equal("my-model", doc.GetProperty("model").GetString());
+    }
+
+    /// <summary>Ollama local provider routes requests via ollama/ model prefix with no auth</summary>
+    [Fact]
+    public async Task LocalProviderOllama()
+    {
+        var routes = new[]
+        {
+            new MockRoute(
+                Path: "/chat/completions",
+                Method: "POST",
+                Status: 200,
+                Body: "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Hello! How can I help you today?\",\"role\":\"assistant\"}}],\"created\":1711000000,\"id\":\"chatcmpl-ollama-001\",\"model\":\"qwen2:0.5b\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":8,\"prompt_tokens\":5,\"total_tokens\":13}}",
+                StreamChunks: Array.Empty<string>()
+            ),
+        };
+
+        using var server = new MockServer(routes);
+        using var http = new HttpClient();
+        http.BaseAddress = new Uri(server.Url);
+
+        var content = new StringContent("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"ollama/qwen2:0.5b\"}", System.Text.Encoding.UTF8, "application/json");
+        var response = await http.PostAsync("/chat/completions", content);
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadAsStringAsync();
+        var doc = JsonDocument.Parse(body).RootElement;
+
+        Assert.Equal(1, doc.GetProperty("choices").GetArrayLength());
+        Assert.Equal("Hello! How can I help you today?", doc.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString());
+        Assert.Equal("stop", doc.GetProperty("choices")[0].GetProperty("finish_reason").GetString());
+        Assert.Equal(13L, doc.GetProperty("usage").GetProperty("total_tokens").GetInt64());
+        Assert.Equal("qwen2:0.5b", doc.GetProperty("model").GetString());
+    }
+
+    /// <summary>vLLM local provider routes requests via vllm/ model prefix with no auth</summary>
+    [Fact]
+    public async Task LocalProviderVllm()
+    {
+        var routes = new[]
+        {
+            new MockRoute(
+                Path: "/chat/completions",
+                Method: "POST",
+                Status: 200,
+                Body: "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Hello! How may I assist you?\",\"role\":\"assistant\"}}],\"created\":1711000000,\"id\":\"chatcmpl-vllm-001\",\"model\":\"meta-llama/Llama-3.2-1B\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":7,\"prompt_tokens\":5,\"total_tokens\":12}}",
+                StreamChunks: Array.Empty<string>()
+            ),
+        };
+
+        using var server = new MockServer(routes);
+        using var http = new HttpClient();
+        http.BaseAddress = new Uri(server.Url);
+
+        var content = new StringContent("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"vllm/meta-llama/Llama-3.2-1B\"}", System.Text.Encoding.UTF8, "application/json");
+        var response = await http.PostAsync("/chat/completions", content);
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadAsStringAsync();
+        var doc = JsonDocument.Parse(body).RootElement;
+
+        Assert.Equal(1, doc.GetProperty("choices").GetArrayLength());
+        Assert.Equal("Hello! How may I assist you?", doc.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString());
+        Assert.Equal("stop", doc.GetProperty("choices")[0].GetProperty("finish_reason").GetString());
+        Assert.Equal(12L, doc.GetProperty("usage").GetProperty("total_tokens").GetInt64());
+        Assert.Equal("meta-llama/Llama-3.2-1B", doc.GetProperty("model").GetString());
+    }
 }

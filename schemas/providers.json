@@ -818,12 +818,23 @@
 		},
 		{
 			"name": "llamafile",
-			"display_name": "Llamafile",
+			"display_name": "llamafile",
 			"base_url": "http://localhost:8080/v1",
 			"auth": {
 				"type": "none"
 			},
-			"endpoints": ["chat"]
+			"endpoints": ["chat", "completion", "embedding", "rerank"],
+			"model_prefixes": ["llamafile/"]
+		},
+		{
+			"name": "llamacpp",
+			"display_name": "llama.cpp",
+			"base_url": "http://localhost:8080/v1",
+			"auth": {
+				"type": "none"
+			},
+			"endpoints": ["chat", "completion", "embedding", "rerank"],
+			"model_prefixes": ["llamacpp/"]
 		},
 		{
 			"name": "llamagate",
@@ -841,13 +852,24 @@
 			"model_count": 16
 		},
 		{
-			"name": "lm_studio",
+			"name": "lmstudio",
 			"display_name": "LM Studio",
 			"base_url": "http://localhost:1234/v1",
 			"auth": {
 				"type": "none"
 			},
-			"endpoints": ["chat"]
+			"endpoints": ["chat", "completion", "embedding"],
+			"model_prefixes": ["lmstudio/"]
+		},
+		{
+			"name": "localai",
+			"display_name": "LocalAI",
+			"base_url": "http://localhost:8080/v1",
+			"auth": {
+				"type": "none"
+			},
+			"endpoints": ["audio", "chat", "completion", "embedding", "image", "rerank"],
+			"model_prefixes": ["localai/"]
 		},
 		{
 			"name": "manus",
@@ -1044,18 +1066,8 @@
 			"auth": {
 				"type": "none"
 			},
-			"endpoints": ["chat", "embedding"],
-			"model_prefixes": ["ollama/", "ollama/deepseek-", "ollama/gpt-", "ollama/mistral-", "ollama/mixtral-"],
-			"model_count": 29
-		},
-		{
-			"name": "ollama_chat",
-			"display_name": "Ollama Chat",
-			"base_url": "http://localhost:11434/v1",
-			"auth": {
-				"type": "none"
-			},
-			"endpoints": ["chat"]
+			"endpoints": ["chat", "completion", "embedding"],
+			"model_prefixes": ["ollama/"]
 		},
 		{
 			"name": "oobabooga",
@@ -1534,12 +1546,13 @@
 		},
 		{
 			"name": "vllm",
-			"display_name": "VLLM",
+			"display_name": "vLLM",
 			"base_url": "http://localhost:8000/v1",
 			"auth": {
 				"type": "none"
 			},
-			"endpoints": ["batch", "chat", "embedding", "files", "rerank"]
+			"endpoints": ["chat", "completion", "embedding", "rerank"],
+			"model_prefixes": ["vllm/"]
 		},
 		{
 			"name": "volcengine",

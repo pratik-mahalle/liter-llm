@@ -1,0 +1,49 @@
+{
+	"id": "local_provider_vllm",
+	"category": "configuration",
+	"description": "vLLM local provider routes requests via vllm/ model prefix with no auth",
+	"api": {
+		"method": "chat",
+		"request": {
+			"model": "vllm/meta-llama/Llama-3.2-1B",
+			"messages": [
+				{
+					"role": "user",
+					"content": "Hello"
+				}
+			]
+		},
+		"mock_response": {
+			"status": 200,
+			"body": {
+				"id": "chatcmpl-vllm-001",
+				"object": "chat.completion",
+				"created": 1711000000,
+				"model": "meta-llama/Llama-3.2-1B",
+				"choices": [
+					{
+						"index": 0,
+						"message": {
+							"role": "assistant",
+							"content": "Hello! How may I assist you?"
+						},
+						"finish_reason": "stop"
+					}
+				],
+				"usage": {
+					"prompt_tokens": 5,
+					"completion_tokens": 7,
+					"total_tokens": 12
+				}
+			}
+		}
+	},
+	"assertions": {
+		"response_not_null": true,
+		"choices_count": 1,
+		"first_choice_content": "Hello! How may I assist you?",
+		"first_choice_finish_reason": "stop",
+		"model": "meta-llama/Llama-3.2-1B"
+	},
+	"tags": ["configuration", "local", "vllm"]
+}

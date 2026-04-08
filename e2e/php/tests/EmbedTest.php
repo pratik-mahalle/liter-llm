@@ -100,4 +100,27 @@ final class EmbedTest extends TestCase
 
         $this->assertCount(1, $doc['data']);
     }
+
+    /** Embedding request via Ollama local provider with all-minilm model */
+    public function testLocalEmbedOllama(): void
+    {
+        $routes = [
+            new MockRoute(
+                path: '/embeddings',
+                method: 'POST',
+                status: 200,
+                body: '{"data":[{"embedding":[0.013,-0.008,0.027,0.041,-0.019,0.033,-0.012,0.005,0.029,-0.015,0.022,-0.031,0.017,0.044,-0.026,0.009,-0.038,0.014,0.036,-0.007,0.021,-0.029,0.011,0.048,-0.016,0.032,-0.023,0.006,0.039,-0.013,0.025,-0.035],"index":0,"object":"embedding"}],"model":"all-minilm","object":"list","usage":{"completion_tokens":0,"prompt_tokens":10,"total_tokens":10}}',
+                streamChunks: [],
+            ),
+        ];
+
+        $server = new MockServer($routes);
+        $result = httpRequest($server->url . '/embeddings', 'POST', '{"input":"The quick brown fox jumps over the lazy dog","model":"ollama/all-minilm"}');
+        $server->stop();
+
+        $this->assertEquals(200, $result['status']);
+        $doc = json_decode($result['body'], true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertCount(1, $doc['data']);
+    }
 }

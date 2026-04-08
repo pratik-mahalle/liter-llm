@@ -102,6 +102,52 @@ func TestCache(t *testing.T) {
 		_ = fmt.Sprintf("") // suppress import
 	})
 
+	t.Run("cache_opendal_memory", func(t *testing.T) {
+		// Cache hit with OpenDAL memory backend returns cached response on repeat request
+
+		server := NewMockServer([]MockRoute{
+			{
+				Path:         "/chat/completions",
+				Method:       "POST",
+				Status:       200,
+				Body:         `{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hi there!","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-opendal-mem-001","model":"gpt-4o","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":5,"total_tokens":7}}`,
+				StreamChunks: nil,
+			},
+		})
+		defer server.Close()
+
+		cfg := literllm.ClientConfig{
+			APIKey:  "test-key",
+			BaseURL: server.URL,
+			Cache: &literllm.CacheConfig{
+				MaxEntries: 10,
+				TTLSeconds: 60,
+			},
+		}
+		client, err := literllm.NewClient(cfg)
+		if err != nil {
+			t.Fatalf("NewClient: %v", err)
+		}
+
+		var req map[string]interface{}
+		_ = json.Unmarshal([]byte("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"openai/gpt-4o\"}"), &req)
+
+		resp1, err := client.Chat(req)
+		if err != nil {
+			t.Fatalf("Chat call 1: %v", err)
+		}
+		resp2, err := client.Chat(req)
+		if err != nil {
+			t.Fatalf("Chat call 2: %v", err)
+		}
+
+		// Cache hit: responses should be identical.
+		j1, _ := json.Marshal(resp1)
+		j2, _ := json.Marshal(resp2)
+		AssertEqual(t, "cached response", string(j1), string(j2))
+		_ = fmt.Sprintf("") // suppress import
+	})
+
 	t.Run("cache_stream_bypass", func(t *testing.T) {
 		// Tests that streaming requests bypass cache entirely
 

@@ -79,4 +79,112 @@ class ConfigurationTest {
       assertEquals(16, body.at("/usage/total_tokens").asLong(), "total_tokens");
     }
   }
+
+  /** llamacpp local provider routes requests via llamacpp/ model prefix with no auth */
+  @Test
+  void localProviderLlamacpp() throws Exception {
+    try (Helpers.MockServer server =
+        new Helpers.MockServer(
+            List.of(
+                new Helpers.MockRoute(
+                    "/chat/completions",
+                    "POST",
+                    200,
+                    "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Hi"
+                        + " there! I'm running"
+                        + " locally.\",\"role\":\"assistant\"}}],\"created\":1711000000,\"id\":\"chatcmpl-llamacpp-001\",\"model\":\"my-model\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":6,\"prompt_tokens\":5,\"total_tokens\":11}}")))) {
+
+      HttpResponse<String> resp =
+          Helpers.postJson(
+              server.url,
+              "/chat/completions",
+              "{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"llamacpp/my-model\"}");
+
+      assertEquals(200, resp.statusCode(), "HTTP status code");
+
+      JsonNode body = Helpers.MAPPER.readTree(resp.body());
+
+      assertEquals(1, body.get("choices").size(), "choices count");
+      assertEquals(
+          "Hi there! I'm running locally.",
+          body.at("/choices/0/message/content").asText(),
+          "first choice content");
+      assertEquals("stop", body.at("/choices/0/finish_reason").asText(), "finish_reason");
+      assertEquals("my-model", body.get("model").asText(), "model");
+      assertNotNull(body.get("usage"), "usage object");
+      assertEquals(11, body.at("/usage/total_tokens").asLong(), "total_tokens");
+    }
+  }
+
+  /** Ollama local provider routes requests via ollama/ model prefix with no auth */
+  @Test
+  void localProviderOllama() throws Exception {
+    try (Helpers.MockServer server =
+        new Helpers.MockServer(
+            List.of(
+                new Helpers.MockRoute(
+                    "/chat/completions",
+                    "POST",
+                    200,
+                    "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Hello!"
+                        + " How can I help you"
+                        + " today?\",\"role\":\"assistant\"}}],\"created\":1711000000,\"id\":\"chatcmpl-ollama-001\",\"model\":\"qwen2:0.5b\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":8,\"prompt_tokens\":5,\"total_tokens\":13}}")))) {
+
+      HttpResponse<String> resp =
+          Helpers.postJson(
+              server.url,
+              "/chat/completions",
+              "{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"ollama/qwen2:0.5b\"}");
+
+      assertEquals(200, resp.statusCode(), "HTTP status code");
+
+      JsonNode body = Helpers.MAPPER.readTree(resp.body());
+
+      assertEquals(1, body.get("choices").size(), "choices count");
+      assertEquals(
+          "Hello! How can I help you today?",
+          body.at("/choices/0/message/content").asText(),
+          "first choice content");
+      assertEquals("stop", body.at("/choices/0/finish_reason").asText(), "finish_reason");
+      assertEquals("qwen2:0.5b", body.get("model").asText(), "model");
+      assertNotNull(body.get("usage"), "usage object");
+      assertEquals(13, body.at("/usage/total_tokens").asLong(), "total_tokens");
+    }
+  }
+
+  /** vLLM local provider routes requests via vllm/ model prefix with no auth */
+  @Test
+  void localProviderVllm() throws Exception {
+    try (Helpers.MockServer server =
+        new Helpers.MockServer(
+            List.of(
+                new Helpers.MockRoute(
+                    "/chat/completions",
+                    "POST",
+                    200,
+                    "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Hello!"
+                        + " How may I assist"
+                        + " you?\",\"role\":\"assistant\"}}],\"created\":1711000000,\"id\":\"chatcmpl-vllm-001\",\"model\":\"meta-llama/Llama-3.2-1B\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":7,\"prompt_tokens\":5,\"total_tokens\":12}}")))) {
+
+      HttpResponse<String> resp =
+          Helpers.postJson(
+              server.url,
+              "/chat/completions",
+              "{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"vllm/meta-llama/Llama-3.2-1B\"}");
+
+      assertEquals(200, resp.statusCode(), "HTTP status code");
+
+      JsonNode body = Helpers.MAPPER.readTree(resp.body());
+
+      assertEquals(1, body.get("choices").size(), "choices count");
+      assertEquals(
+          "Hello! How may I assist you?",
+          body.at("/choices/0/message/content").asText(),
+          "first choice content");
+      assertEquals("stop", body.at("/choices/0/finish_reason").asText(), "finish_reason");
+      assertEquals("meta-llama/Llama-3.2-1B", body.get("model").asText(), "model");
+      assertNotNull(body.get("usage"), "usage object");
+      assertEquals(12, body.at("/usage/total_tokens").asLong(), "total_tokens");
+    }
+  }
 }

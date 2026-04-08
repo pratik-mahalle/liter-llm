@@ -77,6 +77,41 @@ async fn cache_miss_ttl() {
     server.shutdown();
 }
 
+/// Cache hit with OpenDAL memory backend returns cached response on repeat request (TDD -- will fail until cache is implemented)
+#[tokio::test]
+async fn cache_opendal_memory() {
+    let server = mock_server::MockServer::start(vec![
+        mock_server::MockRoute {
+            path: "/chat/completions",
+            method: "POST",
+            status: 200,
+            body: r#"{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hi there!","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-opendal-mem-001","model":"gpt-4o","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":5,"total_tokens":7}}"#.to_string(),
+            stream_chunks: vec![],
+        },
+    ]).await;
+
+    // TDD: Cache tests -- will fail until cache middleware is implemented.
+    let config = ClientConfigBuilder::new("test-key")
+        .base_url(&server.url)
+        .max_retries(0)
+        .cache(liter_llm::CacheConfig {
+            max_entries: 10,
+            ttl_seconds: 60,
+        })
+        .build();
+    let client = DefaultClient::new(config, None).unwrap();
+
+    let req: liter_llm::ChatCompletionRequest =
+        serde_json::from_str(r#"{"messages":[{"content":"Hello","role":"user"}],"model":"openai/gpt-4o"}"#).unwrap();
+
+    // First call populates cache, second call should be a cache hit.
+    let _resp1 = client.chat(req.clone()).await.expect("first chat failed");
+    let resp2 = client.chat(req).await.expect("second chat failed");
+    assert!(resp2.cache_hit.unwrap_or(false), "Expected cache hit on second call");
+
+    server.shutdown();
+}
+
 /// Tests that streaming requests bypass cache entirely (TDD -- will fail until cache is implemented)
 #[tokio::test]
 async fn cache_stream_bypass() {

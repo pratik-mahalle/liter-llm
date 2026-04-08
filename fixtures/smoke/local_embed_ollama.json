@@ -1,0 +1,18 @@
+{
+	"id": "local_embed_ollama",
+	"category": "smoke",
+	"description": "Embedding request against local Ollama with all-minilm model",
+	"api": {
+		"method": "embed",
+		"request": {
+			"model": "ollama/all-minilm",
+			"input": "The quick brown fox"
+		}
+	},
+	"assertions": {
+		"status": "success",
+		"response_not_null": true,
+		"has_embeddings": true
+	},
+	"tags": ["smoke", "local", "ollama", "embedding"]
+}

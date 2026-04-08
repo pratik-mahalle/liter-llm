@@ -124,6 +124,38 @@ static void test_embed_with_dimensions(void) {
   }
 }
 
+/* Embedding request via Ollama local provider with all-minilm model */
+static void test_local_embed_ollama(void) {
+  /* Pre-recorded mock response body. */
+  const char *mock_body =
+      "{\"data\":[{\"embedding\":[0.013,-0.008,0.027,0.041,-0.019,0.033,-0.012,"
+      "0.005,0.029,-0.015,0.022,-0.031,0.017,0.044,-0.026,0.009,-0.038,0.014,0."
+      "036,-0.007,0.021,-0.029,0.011,0.048,-0.016,0.032,-0.023,0.006,0.039,-0."
+      "013,0.025,-0.035],\"index\":0,\"object\":\"embedding\"}],\"model\":"
+      "\"all-minilm\",\"object\":\"list\",\"usage\":{\"completion_tokens\":0,"
+      "\"prompt_tokens\":10,\"total_tokens\":10}}";
+
+  const char *base_url = getenv("LITER_LLM_TEST_BASE_URL");
+  if (base_url != NULL) {
+    /* Live HTTP test against a real server. */
+    char url[1024];
+    snprintf(url, sizeof(url), "%s/embeddings", base_url);
+
+    LiterLlmResponse *resp = liter_llm_http_post(
+        url, "{\"input\":\"The quick brown fox jumps over the lazy "
+             "dog\",\"model\":\"ollama/all-minilm\"}");
+    assert(resp != NULL);
+    liter_llm_assert_status(resp, 200L, "test_local_embed_ollama");
+    liter_llm_assert_json_array_len(resp->body, "data", 1,
+                                    "test_local_embed_ollama");
+    liter_llm_response_free(resp);
+  } else {
+    /* Offline: assert against pre-recorded mock body. */
+    liter_llm_assert_json_array_len(mock_body, "data", 1,
+                                    "test_local_embed_ollama");
+  }
+}
+
 int main(void) {
   test_batch_embed();
   printf("PASS: Embedding request with multiple input strings returns one "
@@ -137,6 +169,9 @@ int main(void) {
   test_embed_with_dimensions();
   printf("PASS: Embedding request with explicit dimensions parameter returns "
          "embeddings of the requested size\n");
+  test_local_embed_ollama();
+  printf("PASS: Embedding request via Ollama local provider with all-minilm "
+         "model\n");
   printf("All embed tests passed.\n");
   return 0;
 }

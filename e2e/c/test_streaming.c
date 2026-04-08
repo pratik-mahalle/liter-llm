@@ -164,6 +164,37 @@ static void test_empty_stream(void) {
   }
 }
 
+/* Streaming chat completion via Ollama local provider with SSE chunks */
+static void test_local_stream_ollama(void) {
+  /* Pre-recorded mock response body. */
+  const char *mock_body = "null";
+
+  const char *base_url = getenv("LITER_LLM_TEST_BASE_URL");
+  if (base_url != NULL) {
+    /* Live HTTP test against a real server. */
+    char url[1024];
+    snprintf(url, sizeof(url), "%s/chat/completions", base_url);
+
+    char *chunks[256];
+    int n = liter_llm_read_sse(url,
+                               "{\"messages\":[{\"content\":\"Count to "
+                               "3\",\"role\":\"user\"}],\"model\":\"ollama/"
+                               "qwen2:0.5b\",\"stream\":true}",
+                               chunks, 256);
+    if (n < 3) {
+      fprintf(stderr,
+              "FAIL [test_local_stream_ollama]: expected >= 3 chunks, got %d\n",
+              n);
+      abort();
+    }
+    for (int i = 0; i < n; i++)
+      free(chunks[i]);
+  } else {
+    /* Offline: assert against pre-recorded mock body. */
+    (void)mock_body; /* error or stream test — skip offline assertions */
+  }
+}
+
 /* Verify that the [DONE] sentinel signal properly terminates the stream */
 static void test_stream_done_signal(void) {
   /* Pre-recorded mock response body. */
@@ -343,6 +374,9 @@ int main(void) {
   test_empty_stream();
   printf("PASS: Streaming chat completion that produces no content chunks "
          "before the DONE signal\n");
+  test_local_stream_ollama();
+  printf("PASS: Streaming chat completion via Ollama local provider with SSE "
+         "chunks\n");
   test_stream_done_signal();
   printf("PASS: Verify that the [DONE] sentinel signal properly terminates the "
          "stream\n");

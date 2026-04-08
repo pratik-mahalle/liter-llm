@@ -5,114 +5,113 @@ import { startMockServer, type MockServer, type MockRoute } from "./helpers";
 import { LlmClient } from "@kreuzberg/liter-llm";
 
 describe("transcribe", () => {
-  // Transcription of a silent or empty audio file returns empty text
-  it("edge_transcribe_empty_audio", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/audio/transcriptions",
-        method: "POST",
-        status: 200,
-        body: `{"text":""}`,
-        streamChunks: [],
-      },
-    ];
+	// Transcription of a silent or empty audio file returns empty text
+	it("edge_transcribe_empty_audio", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/audio/transcriptions",
+				method: "POST",
+				status: 200,
+				body: `{"text":""}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
 
-      // TODO: unknown method "transcribe"
-    } finally {
-      server.close();
-    }
-  });
+			// TODO: unknown method "transcribe"
+		} finally {
+			server.close();
+		}
+	});
 
-  // 401 Unauthorized for transcription with invalid API key
-  it("error_transcribe_auth_401", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/audio/transcriptions",
-        method: "POST",
-        status: 401,
-        body: `{"error":{"code":"invalid_api_key","message":"Incorrect API key provided.","param":null,"type":"invalid_request_error"}}`,
-        streamChunks: [],
-      },
-    ];
+	// 401 Unauthorized for transcription with invalid API key
+	it("error_transcribe_auth_401", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/audio/transcriptions",
+				method: "POST",
+				status: 401,
+				body: `{"error":{"code":"invalid_api_key","message":"Incorrect API key provided.","param":null,"type":"invalid_request_error"}}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
 
-      // TODO: unknown method "transcribe"
-    } finally {
-      server.close();
-    }
-  });
+			// TODO: unknown method "transcribe"
+		} finally {
+			server.close();
+		}
+	});
 
-  // 400 Bad Request when audio format is unsupported
-  it("error_transcribe_bad_format", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/audio/transcriptions",
-        method: "POST",
-        status: 400,
-        body: `{"error":{"code":null,"message":"Invalid file format. Supported formats: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, webm.","param":"file","type":"invalid_request_error"}}`,
-        streamChunks: [],
-      },
-    ];
+	// 400 Bad Request when audio format is unsupported
+	it("error_transcribe_bad_format", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/audio/transcriptions",
+				method: "POST",
+				status: 400,
+				body: `{"error":{"code":null,"message":"Invalid file format. Supported formats: flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, webm.","param":"file","type":"invalid_request_error"}}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
 
-      // TODO: unknown method "transcribe"
-    } finally {
-      server.close();
-    }
-  });
+			// TODO: unknown method "transcribe"
+		} finally {
+			server.close();
+		}
+	});
 
-  // Basic audio transcription
-  it("smoke_transcribe_basic", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/audio/transcriptions",
-        method: "POST",
-        status: 200,
-        body: `{"text":"Hello, this is a test transcription."}`,
-        streamChunks: [],
-      },
-    ];
+	// Basic audio transcription
+	it("smoke_transcribe_basic", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/audio/transcriptions",
+				method: "POST",
+				status: 200,
+				body: `{"text":"Hello, this is a test transcription."}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
 
-      // TODO: unknown method "transcribe"
-    } finally {
-      server.close();
-    }
-  });
+			// TODO: unknown method "transcribe"
+		} finally {
+			server.close();
+		}
+	});
 
-  // Audio transcription with explicit language hint
-  it("smoke_transcribe_with_language", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/audio/transcriptions",
-        method: "POST",
-        status: 200,
-        body: `{"text":"Hallo, dies ist ein Testtranskription."}`,
-        streamChunks: [],
-      },
-    ];
+	// Audio transcription with explicit language hint
+	it("smoke_transcribe_with_language", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/audio/transcriptions",
+				method: "POST",
+				status: 200,
+				body: `{"text":"Hallo, dies ist ein Testtranskription."}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
 
-      // TODO: unknown method "transcribe"
-    } finally {
-      server.close();
-    }
-  });
-
+			// TODO: unknown method "transcribe"
+		} finally {
+			server.close();
+		}
+	});
 });

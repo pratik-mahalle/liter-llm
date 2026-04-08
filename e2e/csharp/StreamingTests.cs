@@ -217,6 +217,49 @@ public sealed class StreamingTests
         Assert.Empty(chunks);
     }
 
+    /// <summary>Streaming chat completion via Ollama local provider with SSE chunks</summary>
+    [Fact]
+    public async Task LocalStreamOllama()
+    {
+        var routes = new[]
+        {
+            new MockRoute(
+                Path: "/chat/completions",
+                Method: "POST",
+                Status: 200,
+                Body: "null",
+                StreamChunks: new[]
+                {
+                    "{\"choices\":[{\"delta\":{\"content\":\"\",\"role\":\"assistant\"},\"finish_reason\":null,\"index\":0}],\"created\":1711000000,\"id\":\"chatcmpl-ollama-s1\",\"model\":\"qwen2:0.5b\",\"object\":\"chat.completion.chunk\"}",
+                    "{\"choices\":[{\"delta\":{\"content\":\"1 \"},\"finish_reason\":null,\"index\":0}],\"created\":1711000000,\"id\":\"chatcmpl-ollama-s1\",\"model\":\"qwen2:0.5b\",\"object\":\"chat.completion.chunk\"}",
+                    "{\"choices\":[{\"delta\":{\"content\":\"2 \"},\"finish_reason\":null,\"index\":0}],\"created\":1711000000,\"id\":\"chatcmpl-ollama-s1\",\"model\":\"qwen2:0.5b\",\"object\":\"chat.completion.chunk\"}",
+                    "{\"choices\":[{\"delta\":{\"content\":\"3\"},\"finish_reason\":null,\"index\":0}],\"created\":1711000000,\"id\":\"chatcmpl-ollama-s1\",\"model\":\"qwen2:0.5b\",\"object\":\"chat.completion.chunk\"}",
+                    "{\"choices\":[{\"delta\":{},\"finish_reason\":\"stop\",\"index\":0}],\"created\":1711000000,\"id\":\"chatcmpl-ollama-s1\",\"model\":\"qwen2:0.5b\",\"object\":\"chat.completion.chunk\"}",
+                }
+            ),
+        };
+
+        using var server = new MockServer(routes);
+        using var http = new HttpClient();
+        http.BaseAddress = new Uri(server.Url);
+
+        var content = new StringContent("{\"messages\":[{\"content\":\"Count to 3\",\"role\":\"user\"}],\"model\":\"ollama/qwen2:0.5b\",\"stream\":true}", System.Text.Encoding.UTF8, "application/json");
+        var response = await http.PostAsync("/chat/completions", content);
+        response.EnsureSuccessStatusCode();
+
+        var stream = await response.Content.ReadAsStreamAsync();
+        using var reader = new System.IO.StreamReader(stream);
+        var chunks = new List<string>();
+        string? line;
+        while ((line = await reader.ReadLineAsync()) != null)
+        {
+            if (line.StartsWith("data: ") && !line.Contains("[DONE]"))
+                chunks.Add(line[6..]);
+        }
+
+        Assert.True(chunks.Count >= 3, $"Expected at least 3 chunk(s), got {chunks.Count}");
+    }
+
     /// <summary>Verify that the [DONE] sentinel signal properly terminates the stream</summary>
     [Fact]
     public async Task StreamDoneSignal()

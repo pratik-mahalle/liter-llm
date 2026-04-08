@@ -51,6 +51,8 @@ includes:
     taskfile: .task/tools/docs.yml
   snippets:
     taskfile: .task/workflows/snippets.yml
+  local:
+    taskfile: .task/workflows/local.yml
 
 vars:
   PROJECT_ROOT:

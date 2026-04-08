@@ -9,76 +9,117 @@ import type { MockServer } from "./helpers.js";
 import { LlmClient } from "liter-llm-wasm";
 
 describe("hooks", () => {
+	it("Tests that on_request hook can reject a request", async () => {
+		const server = await startMockServer([
+			{ path: "/chat/completions", method: "POST", status: 200, body: "{}", streamChunks: [] },
+		]);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-  it("Tests that on_request hook can reject a request", async () => {
-    const server = await startMockServer([{ path: "/chat/completions", method: "POST", status: 200, body: "{}", streamChunks: [] }]);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+			const hook = {
+				onRequest: async () => {
+					throw new Error("HookRejected");
+				},
+			};
+			client.addHook(hook);
+			const req = JSON.parse('{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}');
 
-      const hook = { onRequest: async () => { throw new Error("HookRejected"); } };
-      client.addHook(hook);
-      const req = JSON.parse("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"gpt-4\"}");
+			await expect(client.chat(req)).rejects.toThrow(/HookRejected|hook/i);
+		} finally {
+			server.close();
+		}
+	});
 
-      await expect(client.chat(req)).rejects.toThrow(/HookRejected|hook/i);
-    } finally {
-      server.close();
-    }
-  });
+	it("Tests that on_error hook is called on failure", async () => {
+		const server = await startMockServer([
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 500,
+				body: '{"error":{"code":"internal_error","message":"Internal server error","type":"server_error"}}',
+				streamChunks: [],
+			},
+		]);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-  it("Tests that on_error hook is called on failure", async () => {
-    const server = await startMockServer([{ path: "/chat/completions", method: "POST", status: 500, body: "{\"error\":{\"code\":\"internal_error\",\"message\":\"Internal server error\",\"type\":\"server_error\"}}", streamChunks: [] }]);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+			let hookCalled = false;
+			const hook = {
+				onError: async () => {
+					hookCalled = true;
+				},
+			};
+			client.addHook(hook);
+			const req = JSON.parse('{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}');
 
-      let hookCalled = false;
-      const hook = { onError: async () => { hookCalled = true; } };
-      client.addHook(hook);
-      const req = JSON.parse("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"gpt-4\"}");
+			let threw = false;
+			try {
+				await client.chat(req);
+			} catch (_e) {
+				threw = true;
+			}
+			expect(threw).toBe(true);
+			expect(hookCalled).toBe(true);
+		} finally {
+			server.close();
+		}
+	});
 
-      let threw = false;
-      try {
-        await client.chat(req);
-      } catch (_e) {
-        threw = true;
-      }
-      expect(threw).toBe(true);
-      expect(hookCalled).toBe(true);
-    } finally {
-      server.close();
-    }
-  });
+	it("Tests that on_request hook is called before the request", async () => {
+		const server = await startMockServer([
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 200,
+				body: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hello! How can I help you today?","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-hook-req-001","model":"gpt-4","object":"chat.completion","usage":{"completion_tokens":9,"prompt_tokens":8,"total_tokens":17}}',
+				streamChunks: [],
+			},
+		]);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-  it("Tests that on_request hook is called before the request", async () => {
-    const server = await startMockServer([{ path: "/chat/completions", method: "POST", status: 200, body: "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Hello! How can I help you today?\",\"role\":\"assistant\"}}],\"created\":1711000000,\"id\":\"chatcmpl-hook-req-001\",\"model\":\"gpt-4\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":9,\"prompt_tokens\":8,\"total_tokens\":17}}", streamChunks: [] }]);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+			let hookCalled = false;
+			const hook = {
+				onRequest: async () => {
+					hookCalled = true;
+				},
+			};
+			client.addHook(hook);
+			const req = JSON.parse('{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}');
 
-      let hookCalled = false;
-      const hook = { onRequest: async () => { hookCalled = true; } };
-      client.addHook(hook);
-      const req = JSON.parse("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"gpt-4\"}");
+			await client.chat(req);
+			expect(hookCalled).toBe(true);
+		} finally {
+			server.close();
+		}
+	});
 
-      await client.chat(req);
-      expect(hookCalled).toBe(true);
-    } finally {
-      server.close();
-    }
-  });
+	it("Tests that on_response hook is called with response data", async () => {
+		const server = await startMockServer([
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 200,
+				body: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hello! How can I help you today?","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-hook-resp-001","model":"gpt-4","object":"chat.completion","usage":{"completion_tokens":9,"prompt_tokens":8,"total_tokens":17}}',
+				streamChunks: [],
+			},
+		]);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-  it("Tests that on_response hook is called with response data", async () => {
-    const server = await startMockServer([{ path: "/chat/completions", method: "POST", status: 200, body: "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Hello! How can I help you today?\",\"role\":\"assistant\"}}],\"created\":1711000000,\"id\":\"chatcmpl-hook-resp-001\",\"model\":\"gpt-4\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":9,\"prompt_tokens\":8,\"total_tokens\":17}}", streamChunks: [] }]);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+			let hookCalled = false;
+			const hook = {
+				onResponse: async () => {
+					hookCalled = true;
+				},
+			};
+			client.addHook(hook);
+			const req = JSON.parse('{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}');
 
-      let hookCalled = false;
-      const hook = { onResponse: async () => { hookCalled = true; } };
-      client.addHook(hook);
-      const req = JSON.parse("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"gpt-4\"}");
-
-      await client.chat(req);
-      expect(hookCalled).toBe(true);
-    } finally {
-      server.close();
-    }
-  });
+			await client.chat(req);
+			expect(hookCalled).toBe(true);
+		} finally {
+			server.close();
+		}
+	});
 });

@@ -233,6 +233,54 @@ class StreamingTest {
     }
   }
 
+  /** Streaming chat completion via Ollama local provider with SSE chunks */
+  @Test
+  void localStreamOllama() throws Exception {
+    try (Helpers.MockServer server =
+        new Helpers.MockServer(
+            List.of(
+                new Helpers.MockRoute(
+                    "/chat/completions",
+                    "POST",
+                    200,
+                    "null",
+                    List.of(
+                        "{\"choices\":[{\"delta\":{\"content\":\"\",\"role\":\"assistant\"},\"finish_reason\":null,\"index\":0}],\"created\":1711000000,\"id\":\"chatcmpl-ollama-s1\",\"model\":\"qwen2:0.5b\",\"object\":\"chat.completion.chunk\"}",
+                        "{\"choices\":[{\"delta\":{\"content\":\"1"
+                            + " \"},\"finish_reason\":null,\"index\":0}],\"created\":1711000000,\"id\":\"chatcmpl-ollama-s1\",\"model\":\"qwen2:0.5b\",\"object\":\"chat.completion.chunk\"}",
+                        "{\"choices\":[{\"delta\":{\"content\":\"2"
+                            + " \"},\"finish_reason\":null,\"index\":0}],\"created\":1711000000,\"id\":\"chatcmpl-ollama-s1\",\"model\":\"qwen2:0.5b\",\"object\":\"chat.completion.chunk\"}",
+                        "{\"choices\":[{\"delta\":{\"content\":\"3\"},\"finish_reason\":null,\"index\":0}],\"created\":1711000000,\"id\":\"chatcmpl-ollama-s1\",\"model\":\"qwen2:0.5b\",\"object\":\"chat.completion.chunk\"}",
+                        "{\"choices\":[{\"delta\":{},\"finish_reason\":\"stop\",\"index\":0}],\"created\":1711000000,\"id\":\"chatcmpl-ollama-s1\",\"model\":\"qwen2:0.5b\",\"object\":\"chat.completion.chunk\"}"))))) {
+
+      HttpResponse<String> resp =
+          Helpers.postJson(
+              server.url,
+              "/chat/completions",
+              "{\"messages\":[{\"content\":\"Count to"
+                  + " 3\",\"role\":\"user\"}],\"model\":\"ollama/qwen2:0.5b\",\"stream\":true}");
+
+      assertEquals(200, resp.statusCode(), "HTTP status code");
+
+      List<String> chunks = Helpers.parseSseChunks(resp.body());
+      assertTrue(chunks.size() >= 3, "expected at least 3 chunk(s)");
+
+      StringBuilder content = new StringBuilder();
+      for (String rawChunk : chunks) {
+        try {
+          JsonNode chunk = Helpers.MAPPER.readTree(rawChunk);
+          JsonNode deltaContent = chunk.at("/choices/0/delta/content");
+          if (!deltaContent.isMissingNode() && deltaContent.isTextual()) {
+            content.append(deltaContent.asText());
+          }
+        } catch (Exception ignored) {
+          // Non-JSON chunks (role-only deltas etc.) are skipped.
+        }
+      }
+      assertEquals("1 2 3", content.toString(), "stream content");
+    }
+  }
+
   /** Verify that the [DONE] sentinel signal properly terminates the stream */
   @Test
   void streamDoneSignal() throws Exception {

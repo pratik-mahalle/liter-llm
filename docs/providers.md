@@ -1,10 +1,10 @@
 ---
-description: "Complete list of 142 supported LLM providers"
+description: "Complete list of 143 supported LLM providers"
 ---
 
 # Supported Providers
 
-Liter-LLM supports **142 providers** out of the box. Route requests to any provider using the `provider/model` prefix convention -- for example, `openai/gpt-4o` routes to OpenAI and `anthropic/claude-3-opus` routes to Anthropic. No extra configuration is needed beyond setting the provider's API key.
+Liter-LLM supports **143 providers** out of the box. Route requests to any provider using the `provider/model` prefix convention -- for example, `openai/gpt-4o` routes to OpenAI and `anthropic/claude-3-opus` routes to Anthropic. No extra configuration is needed beyond setting the provider's API key.
 
 | Provider | Prefix | Chat | Embeddings | Image | Audio | Moderation |
 | --- | --- | :---: | :---: | :---: | :---: | :---: |
@@ -84,9 +84,11 @@ Liter-LLM supports **142 providers** out of the box. Route requests to any provi
 | Lemonade | `lemonade/` | :white_check_mark: | -- | -- | -- | -- |
 | Linkup | `linkup/` | -- | -- | -- | -- | -- |
 | LiteLLM Proxy | `litellm_proxy/` | :white_check_mark: | :white_check_mark: | :white_check_mark: | -- | -- |
-| Llamafile | `llamafile/` | :white_check_mark: | -- | -- | -- | -- |
+| llama.cpp | `llamacpp/` | :white_check_mark: | :white_check_mark: | -- | -- | -- |
+| llamafile | `llamafile/` | :white_check_mark: | :white_check_mark: | -- | -- | -- |
 | LlamaGate | `llamagate/` | :white_check_mark: | -- | -- | -- | -- |
-| LM Studio | `lm_studio/` | :white_check_mark: | -- | -- | -- | -- |
+| LM Studio | `lmstudio/` | :white_check_mark: | :white_check_mark: | -- | -- | -- |
+| LocalAI | `localai/` | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | -- |
 | Manus | `manus/` | :white_check_mark: | -- | -- | -- | -- |
 | Maritalk | `maritalk/` | :white_check_mark: | -- | -- | -- | -- |
 | Meta - Llama API | `meta_llama/` | :white_check_mark: | -- | -- | -- | -- |
@@ -103,7 +105,6 @@ Liter-LLM supports **142 providers** out of the box. Route requests to any provi
 | Nvidia NIM | `nvidia_nim/` | :white_check_mark: | -- | -- | -- | -- |
 | OCI | `oci/` | :white_check_mark: | -- | -- | -- | -- |
 | Ollama | `ollama/` | :white_check_mark: | :white_check_mark: | -- | -- | -- |
-| Ollama Chat | `ollama_chat/` | :white_check_mark: | -- | -- | -- | -- |
 | Oobabooga | `oobabooga/` | :white_check_mark: | -- | -- | :white_check_mark: | :white_check_mark: |
 | OpenAI | `openai/` | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark: |
 | OpenAI-like | `openai_like/` | -- | :white_check_mark: | -- | -- | -- |
@@ -141,7 +142,7 @@ Liter-LLM supports **142 providers** out of the box. Route requests to any provi
 | Venice.ai | `venice/` | :white_check_mark: | -- | -- | -- | -- |
 | Vercel AI Gateway | `vercel_ai_gateway/` | :white_check_mark: | -- | -- | -- | -- |
 | Vertex AI Agent Engine | `vertex_ai/agent_engine/` | :white_check_mark: | -- | -- | -- | -- |
-| VLLM | `vllm/` | :white_check_mark: | :white_check_mark: | -- | -- | -- |
+| vLLM | `vllm/` | :white_check_mark: | :white_check_mark: | -- | -- | -- |
 | Volcengine | `volcengine/` | :white_check_mark: | -- | -- | -- | -- |
 | Voyage AI | `voyage/` | -- | :white_check_mark: | -- | -- | -- |
 | WandB Inference | `wandb/` | :white_check_mark: | -- | -- | -- | -- |
@@ -151,7 +152,7 @@ Liter-LLM supports **142 providers** out of the box. Route requests to any provi
 | Xinference | `xinference/` | -- | :white_check_mark: | -- | -- | -- |
 | Z.AI | `zai/` | :white_check_mark: | -- | -- | -- | -- |
 
-*142 providers total.*
+*143 providers total.*
 
 ## Usage
 

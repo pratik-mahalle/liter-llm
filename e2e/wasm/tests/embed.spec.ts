@@ -8,82 +8,141 @@ import type { MockServer } from "./helpers.js";
 // Run `wasm-pack build --target nodejs` in crates/liter-llm-wasm first.
 import { LlmClient } from "liter-llm-wasm";
 
-
 describe("Embedding request with multiple input strings returns one embedding object per input", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/embeddings", method: "POST", status: 200, body: "{\"data\":[{\"embedding\":[0.1,0.2,0.3,0.4,0.5],\"index\":0,\"object\":\"embedding\"},{\"embedding\":[0.5,0.4,0.3,0.2,0.1],\"index\":1,\"object\":\"embedding\"}],\"model\":\"text-embedding-3-small\",\"object\":\"list\",\"usage\":{\"completion_tokens\":0,\"prompt_tokens\":2,\"total_tokens\":2}}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/embeddings",
+				method: "POST",
+				status: 200,
+				body: '{"data":[{"embedding":[0.1,0.2,0.3,0.4,0.5],"index":0,"object":"embedding"},{"embedding":[0.5,0.4,0.3,0.2,0.1],"index":1,"object":"embedding"}],"model":"text-embedding-3-small","object":"list","usage":{"completion_tokens":0,"prompt_tokens":2,"total_tokens":2}}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("Embedding request with multiple input strings returns one embedding object per input", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("Embedding request with multiple input strings returns one embedding object per input", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    const req = JSON.parse("{\"input\":[\"Hello\",\"World\"],\"model\":\"text-embedding-3-small\"}");
-    const response = await client.embed(req);
-    expect((response as { data: unknown[] }).data).toHaveLength(2);
-  });
+		const req = JSON.parse('{"input":["Hello","World"],"model":"text-embedding-3-small"}');
+		const response = await client.embed(req);
+		expect((response as { data: unknown[] }).data).toHaveLength(2);
+	});
 });
 
 describe("Embedding request with explicit encoding_format of float returns float array embeddings", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/embeddings", method: "POST", status: 200, body: "{\"data\":[{\"embedding\":[0.123,0.456,0.789,0.012,0.345],\"index\":0,\"object\":\"embedding\"}],\"model\":\"text-embedding-3-small\",\"object\":\"list\",\"usage\":{\"completion_tokens\":0,\"prompt_tokens\":2,\"total_tokens\":2}}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/embeddings",
+				method: "POST",
+				status: 200,
+				body: '{"data":[{"embedding":[0.123,0.456,0.789,0.012,0.345],"index":0,"object":"embedding"}],"model":"text-embedding-3-small","object":"list","usage":{"completion_tokens":0,"prompt_tokens":2,"total_tokens":2}}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("Embedding request with explicit encoding_format of float returns float array embeddings", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("Embedding request with explicit encoding_format of float returns float array embeddings", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    const req = JSON.parse("{\"encoding_format\":\"float\",\"input\":\"Test input\",\"model\":\"text-embedding-3-small\"}");
-    const response = await client.embed(req);
-    expect((response as { data: unknown[] }).data).toHaveLength(1);
-  });
+		const req = JSON.parse('{"encoding_format":"float","input":"Test input","model":"text-embedding-3-small"}');
+		const response = await client.embed(req);
+		expect((response as { data: unknown[] }).data).toHaveLength(1);
+	});
 });
 
 describe("401 Unauthorized error on embedding request when API key is invalid", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/embeddings", method: "POST", status: 401, body: "{\"error\":{\"code\":\"invalid_api_key\",\"message\":\"Incorrect API key provided.\",\"param\":null,\"type\":\"invalid_request_error\"}}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/embeddings",
+				method: "POST",
+				status: 401,
+				body: '{"error":{"code":"invalid_api_key","message":"Incorrect API key provided.","param":null,"type":"invalid_request_error"}}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("401 Unauthorized error on embedding request when API key is invalid", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("401 Unauthorized error on embedding request when API key is invalid", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    const req = JSON.parse("{\"input\":\"Hello world\",\"model\":\"text-embedding-3-small\"}");
-    await expect(client.embed(req)).rejects.toThrow();
-  });
+		const req = JSON.parse('{"input":"Hello world","model":"text-embedding-3-small"}');
+		await expect(client.embed(req)).rejects.toThrow();
+	});
 });
 
 describe("Embedding request with explicit dimensions parameter returns embeddings of the requested size", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/embeddings", method: "POST", status: 200, body: "{\"data\":[{\"embedding\":[0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08],\"index\":0,\"object\":\"embedding\"}],\"model\":\"text-embedding-3-small\",\"object\":\"list\",\"usage\":{\"completion_tokens\":0,\"prompt_tokens\":2,\"total_tokens\":2}}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/embeddings",
+				method: "POST",
+				status: 200,
+				body: '{"data":[{"embedding":[0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08],"index":0,"object":"embedding"}],"model":"text-embedding-3-small","object":"list","usage":{"completion_tokens":0,"prompt_tokens":2,"total_tokens":2}}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("Embedding request with explicit dimensions parameter returns embeddings of the requested size", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("Embedding request with explicit dimensions parameter returns embeddings of the requested size", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    const req = JSON.parse("{\"dimensions\":256,\"input\":\"Hello world\",\"model\":\"text-embedding-3-small\"}");
-    const response = await client.embed(req);
-    expect((response as { data: unknown[] }).data).toHaveLength(1);
-  });
+		const req = JSON.parse('{"dimensions":256,"input":"Hello world","model":"text-embedding-3-small"}');
+		const response = await client.embed(req);
+		expect((response as { data: unknown[] }).data).toHaveLength(1);
+	});
+});
+
+describe("Embedding request via Ollama local provider with all-minilm model", () => {
+	let server: MockServer;
+
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/embeddings",
+				method: "POST",
+				status: 200,
+				body: '{"data":[{"embedding":[0.013,-0.008,0.027,0.041,-0.019,0.033,-0.012,0.005,0.029,-0.015,0.022,-0.031,0.017,0.044,-0.026,0.009,-0.038,0.014,0.036,-0.007,0.021,-0.029,0.011,0.048,-0.016,0.032,-0.023,0.006,0.039,-0.013,0.025,-0.035],"index":0,"object":"embedding"}],"model":"all-minilm","object":"list","usage":{"completion_tokens":0,"prompt_tokens":10,"total_tokens":10}}',
+				streamChunks: [],
+			},
+		]);
+	});
+
+	afterAll(() => {
+		server.close();
+	});
+
+	it("Embedding request via Ollama local provider with all-minilm model", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+
+		const req = JSON.parse('{"input":"The quick brown fox jumps over the lazy dog","model":"ollama/all-minilm"}');
+		const response = await client.embed(req);
+		expect((response as { data: unknown[] }).data).toHaveLength(1);
+	});
 });

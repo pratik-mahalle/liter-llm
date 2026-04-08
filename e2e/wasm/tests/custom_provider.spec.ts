@@ -9,34 +9,62 @@ import type { MockServer } from "./helpers.js";
 import { LlmClient } from "liter-llm-wasm";
 
 describe("custom_provider", () => {
+	it("Tests custom provider with custom auth header", async () => {
+		const server = await startMockServer([
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 200,
+				body: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hello with custom auth!","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-auth-001","model":"my-auth-model-v1","object":"chat.completion","usage":{"completion_tokens":6,"prompt_tokens":8,"total_tokens":14}}',
+				streamChunks: [],
+			},
+		]);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+			LlmClient.registerProvider(
+				JSON.stringify({
+					name: "my-auth-provider",
+					base_url: server.url,
+					auth_header: "api-key:X-Custom-Key",
+					model_prefixes: ["my-auth-"],
+				}),
+			);
 
-  it("Tests custom provider with custom auth header", async () => {
-    const server = await startMockServer([{ path: "/chat/completions", method: "POST", status: 200, body: "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Hello with custom auth!\",\"role\":\"assistant\"}}],\"created\":1711000000,\"id\":\"chatcmpl-auth-001\",\"model\":\"my-auth-model-v1\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":6,\"prompt_tokens\":8,\"total_tokens\":14}}", streamChunks: [] }]);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
-      LlmClient.registerProvider(JSON.stringify({ name: "my-auth-provider", base_url: server.url, auth_header: "api-key:X-Custom-Key", model_prefixes: ["my-auth-"] }));
+			const req = JSON.parse('{"messages":[{"content":"Hello","role":"user"}],"model":"my-auth-model-v1"}');
+			const response = await client.chat(req);
+			expect(response).toBeTruthy();
+			expect((response as { choices: { message: { content: string } }[] }).choices[0].message.content).toBe(
+				"Hello with custom auth!",
+			);
+		} finally {
+			server.close();
+		}
+	});
 
-      const req = JSON.parse("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"my-auth-model-v1\"}");
-      const response = await client.chat(req);
-      expect(response).toBeTruthy();
-      expect((response as { choices: { message: { content: string } }[] }).choices[0].message.content).toBe("Hello with custom auth!");
-    } finally {
-      server.close();
-    }
-  });
+	it("Tests that a custom provider can be registered and routes requests", async () => {
+		const server = await startMockServer([
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 200,
+				body: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hello from custom provider!","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-custom-001","model":"my-model-v1","object":"chat.completion","usage":{"completion_tokens":7,"prompt_tokens":8,"total_tokens":15}}',
+				streamChunks: [],
+			},
+		]);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+			LlmClient.registerProvider(
+				JSON.stringify({ name: "my-provider", base_url: server.url, auth_header: "Bearer", model_prefixes: ["my-"] }),
+			);
 
-  it("Tests that a custom provider can be registered and routes requests", async () => {
-    const server = await startMockServer([{ path: "/chat/completions", method: "POST", status: 200, body: "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Hello from custom provider!\",\"role\":\"assistant\"}}],\"created\":1711000000,\"id\":\"chatcmpl-custom-001\",\"model\":\"my-model-v1\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":7,\"prompt_tokens\":8,\"total_tokens\":15}}", streamChunks: [] }]);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
-      LlmClient.registerProvider(JSON.stringify({ name: "my-provider", base_url: server.url, auth_header: "Bearer", model_prefixes: ["my-"] }));
-
-      const req = JSON.parse("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"my-model-v1\"}");
-      const response = await client.chat(req);
-      expect(response).toBeTruthy();
-      expect((response as { choices: { message: { content: string } }[] }).choices[0].message.content).toBe("Hello from custom provider!");
-    } finally {
-      server.close();
-    }
-  });
+			const req = JSON.parse('{"messages":[{"content":"Hello","role":"user"}],"model":"my-model-v1"}');
+			const response = await client.chat(req);
+			expect(response).toBeTruthy();
+			expect((response as { choices: { message: { content: string } }[] }).choices[0].message.content).toBe(
+				"Hello from custom provider!",
+			);
+		} finally {
+			server.close();
+		}
+	});
 });

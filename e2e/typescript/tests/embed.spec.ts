@@ -5,111 +5,144 @@ import { startMockServer, type MockServer, type MockRoute } from "./helpers";
 import { LlmClient } from "@kreuzberg/liter-llm";
 
 describe("embed", () => {
-  // Embedding request with multiple input strings returns one embedding object per input
-  it("batch_embed", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/embeddings",
-        method: "POST",
-        status: 200,
-        body: `{"data":[{"embedding":[0.1,0.2,0.3,0.4,0.5],"index":0,"object":"embedding"},{"embedding":[0.5,0.4,0.3,0.2,0.1],"index":1,"object":"embedding"}],"model":"text-embedding-3-small","object":"list","usage":{"completion_tokens":0,"prompt_tokens":2,"total_tokens":2}}`,
-        streamChunks: [],
-      },
-    ];
+	// Embedding request with multiple input strings returns one embedding object per input
+	it("batch_embed", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/embeddings",
+				method: "POST",
+				status: 200,
+				body: `{"data":[{"embedding":[0.1,0.2,0.3,0.4,0.5],"index":0,"object":"embedding"},{"embedding":[0.5,0.4,0.3,0.2,0.1],"index":1,"object":"embedding"}],"model":"text-embedding-3-small","object":"list","usage":{"completion_tokens":0,"prompt_tokens":2,"total_tokens":2}}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
 
-      const response = await client.embed(JSON.parse(`{"input":["Hello","World"],"model":"text-embedding-3-small"}`));
+			const response = await client.embed(JSON.parse(`{"input":["Hello","World"],"model":"text-embedding-3-small"}`));
 
-      expect(response.data.length, "Expected at least 2 embedding(s)").toBeGreaterThanOrEqual(2);
-      expect(response.data.length, "Embedding count mismatch").toBe(2);
-      expect(response.data[0].embedding.length, "Embedding dimension mismatch").toBe(5);
-    } finally {
-      server.close();
-    }
-  });
+			expect(response.data.length, "Expected at least 2 embedding(s)").toBeGreaterThanOrEqual(2);
+			expect(response.data.length, "Embedding count mismatch").toBe(2);
+			expect(response.data[0].embedding.length, "Embedding dimension mismatch").toBe(5);
+		} finally {
+			server.close();
+		}
+	});
 
-  // Embedding request with explicit encoding_format of float returns float array embeddings
-  it("embed_encoding_format", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/embeddings",
-        method: "POST",
-        status: 200,
-        body: `{"data":[{"embedding":[0.123,0.456,0.789,0.012,0.345],"index":0,"object":"embedding"}],"model":"text-embedding-3-small","object":"list","usage":{"completion_tokens":0,"prompt_tokens":2,"total_tokens":2}}`,
-        streamChunks: [],
-      },
-    ];
+	// Embedding request with explicit encoding_format of float returns float array embeddings
+	it("embed_encoding_format", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/embeddings",
+				method: "POST",
+				status: 200,
+				body: `{"data":[{"embedding":[0.123,0.456,0.789,0.012,0.345],"index":0,"object":"embedding"}],"model":"text-embedding-3-small","object":"list","usage":{"completion_tokens":0,"prompt_tokens":2,"total_tokens":2}}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
 
-      const response = await client.embed(JSON.parse(`{"encoding_format":"float","input":"Test input","model":"text-embedding-3-small"}`));
+			const response = await client.embed(
+				JSON.parse(`{"encoding_format":"float","input":"Test input","model":"text-embedding-3-small"}`),
+			);
 
-      expect(response.data.length, "Expected at least 1 embedding(s)").toBeGreaterThanOrEqual(1);
-      expect(response.data.length, "Embedding count mismatch").toBe(1);
-      expect(response.data[0].embedding.length, "Embedding dimension mismatch").toBe(5);
-    } finally {
-      server.close();
-    }
-  });
+			expect(response.data.length, "Expected at least 1 embedding(s)").toBeGreaterThanOrEqual(1);
+			expect(response.data.length, "Embedding count mismatch").toBe(1);
+			expect(response.data[0].embedding.length, "Embedding dimension mismatch").toBe(5);
+		} finally {
+			server.close();
+		}
+	});
 
-  // 401 Unauthorized error on embedding request when API key is invalid
-  it("embed_error_401", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/embeddings",
-        method: "POST",
-        status: 401,
-        body: `{"error":{"code":"invalid_api_key","message":"Incorrect API key provided.","param":null,"type":"invalid_request_error"}}`,
-        streamChunks: [],
-      },
-    ];
+	// 401 Unauthorized error on embedding request when API key is invalid
+	it("embed_error_401", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/embeddings",
+				method: "POST",
+				status: 401,
+				body: `{"error":{"code":"invalid_api_key","message":"Incorrect API key provided.","param":null,"type":"invalid_request_error"}}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
 
-      let threw = false;
-      try {
-        await client.embed(JSON.parse(`{"input":"Hello world","model":"text-embedding-3-small"}`));
-      } catch (e) {
-        threw = true;
-        expect((e as Error).message ?? "", "Expected [Authentication] error").toMatch(/\[Authentication\]|Authentication/i);
-      }
-      expect(threw, "Expected client.embed to throw").toBe(true);
-    } finally {
-      server.close();
-    }
-  });
+			let threw = false;
+			try {
+				await client.embed(JSON.parse(`{"input":"Hello world","model":"text-embedding-3-small"}`));
+			} catch (e) {
+				threw = true;
+				expect((e as Error).message ?? "", "Expected [Authentication] error").toMatch(
+					/\[Authentication\]|Authentication/i,
+				);
+			}
+			expect(threw, "Expected client.embed to throw").toBe(true);
+		} finally {
+			server.close();
+		}
+	});
 
-  // Embedding request with explicit dimensions parameter returns embeddings of the requested size
-  it("embed_with_dimensions", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/embeddings",
-        method: "POST",
-        status: 200,
-        body: `{"data":[{"embedding":[0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08],"index":0,"object":"embedding"}],"model":"text-embedding-3-small","object":"list","usage":{"completion_tokens":0,"prompt_tokens":2,"total_tokens":2}}`,
-        streamChunks: [],
-      },
-    ];
+	// Embedding request with explicit dimensions parameter returns embeddings of the requested size
+	it("embed_with_dimensions", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/embeddings",
+				method: "POST",
+				status: 200,
+				body: `{"data":[{"embedding":[0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08],"index":0,"object":"embedding"}],"model":"text-embedding-3-small","object":"list","usage":{"completion_tokens":0,"prompt_tokens":2,"total_tokens":2}}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
 
-      const response = await client.embed(JSON.parse(`{"dimensions":256,"input":"Hello world","model":"text-embedding-3-small"}`));
+			const response = await client.embed(
+				JSON.parse(`{"dimensions":256,"input":"Hello world","model":"text-embedding-3-small"}`),
+			);
 
-      expect(response.data.length, "Expected at least 1 embedding(s)").toBeGreaterThanOrEqual(1);
-      expect(response.data.length, "Embedding count mismatch").toBe(1);
-      expect(response.data[0].embedding.length, "Embedding dimension mismatch").toBe(8);
-    } finally {
-      server.close();
-    }
-  });
+			expect(response.data.length, "Expected at least 1 embedding(s)").toBeGreaterThanOrEqual(1);
+			expect(response.data.length, "Embedding count mismatch").toBe(1);
+			expect(response.data[0].embedding.length, "Embedding dimension mismatch").toBe(8);
+		} finally {
+			server.close();
+		}
+	});
 
+	// Embedding request via Ollama local provider with all-minilm model
+	it("local_embed_ollama", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/embeddings",
+				method: "POST",
+				status: 200,
+				body: `{"data":[{"embedding":[0.013,-0.008,0.027,0.041,-0.019,0.033,-0.012,0.005,0.029,-0.015,0.022,-0.031,0.017,0.044,-0.026,0.009,-0.038,0.014,0.036,-0.007,0.021,-0.029,0.011,0.048,-0.016,0.032,-0.023,0.006,0.039,-0.013,0.025,-0.035],"index":0,"object":"embedding"}],"model":"all-minilm","object":"list","usage":{"completion_tokens":0,"prompt_tokens":10,"total_tokens":10}}`,
+				streamChunks: [],
+			},
+		];
+
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+
+			const response = await client.embed(
+				JSON.parse(`{"input":"The quick brown fox jumps over the lazy dog","model":"ollama/all-minilm"}`),
+			);
+
+			expect(response.data.length, "Expected at least 1 embedding(s)").toBeGreaterThanOrEqual(1);
+			expect(response.data.length, "Embedding count mismatch").toBe(1);
+			expect(response.data[0].embedding.length, "Embedding dimension mismatch").toBe(32);
+		} finally {
+			server.close();
+		}
+	});
 });

@@ -66,7 +66,7 @@
 </div>
 
 
-Universal LLM API client for Elixir. Access 142+ LLM providers through a single interface with native BEAM concurrency, OTP integration, and idiomatic Elixir API.
+Universal LLM API client for Elixir. Access 143+ LLM providers through a single interface with native BEAM concurrency, OTP integration, and idiomatic Elixir API.
 
 
 ## Installation
@@ -81,7 +81,7 @@ Add to your `mix.exs` dependencies:
 ```elixir
 def deps do
   [
-    {:liter_llm, "~> 1.1.1"}
+    {:liter_llm, "~> 1.2.0"}
   ]
 end
 ```
@@ -153,7 +153,7 @@ for chunk <- chunks, do: IO.inspect(chunk)
 
 ## Features
 
-### Supported Providers (142+)
+### Supported Providers (143+)
 
 Route to any provider using the `provider/model` prefix convention:
 
@@ -173,7 +173,8 @@ Route to any provider using the `provider/model` prefix convention:
 
 ### Key Capabilities
 
-- **Provider Routing** -- Single client for 142+ LLM providers via `provider/model` prefix
+- **Provider Routing** -- Single client for 143+ LLM providers via `provider/model` prefix
+- **Local LLMs** — Connect to locally-hosted models via Ollama, LM Studio, vLLM, llama.cpp, and other local inference servers
 - **Unified API** -- Consistent `chat`, `chat_stream`, `embeddings`, `list_models` interface
 
 - **Streaming** -- Real-time token streaming via `chat_stream`
@@ -199,7 +200,7 @@ Built on a compiled Rust core for speed and safety:
 
 ## Provider Routing
 
-Route to 142+ providers using the `provider/model` prefix convention:
+Route to 143+ providers using the `provider/model` prefix convention:
 
 ```text
 openai/gpt-4o
@@ -227,7 +228,7 @@ See the [proxy server documentation](https://docs.liter-llm.kreuzberg.dev/server
 
 - **[Documentation](https://docs.liter-llm.kreuzberg.dev)** -- Full docs and API reference
 - **[GitHub Repository](https://github.com/kreuzberg-dev/liter-llm)** -- Source, issues, and discussions
-- **[Provider Registry](https://github.com/kreuzberg-dev/liter-llm/blob/main/schemas/providers.json)** -- 142 supported providers
+- **[Provider Registry](https://github.com/kreuzberg-dev/liter-llm/blob/main/schemas/providers.json)** -- 143 supported providers
 
 Part of [kreuzberg.dev](https://kreuzberg.dev).
 

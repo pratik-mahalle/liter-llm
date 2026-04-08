@@ -143,3 +143,39 @@ async fn embed_with_dimensions() {
 
     server.shutdown();
 }
+
+/// Embedding request via Ollama local provider with all-minilm model
+#[tokio::test]
+async fn local_embed_ollama() {
+    let server = mock_server::MockServer::start(vec![
+        mock_server::MockRoute {
+            path: "/embeddings",
+            method: "POST",
+            status: 200,
+            body: r#"{"data":[{"embedding":[0.013,-0.008,0.027,0.041,-0.019,0.033,-0.012,0.005,0.029,-0.015,0.022,-0.031,0.017,0.044,-0.026,0.009,-0.038,0.014,0.036,-0.007,0.021,-0.029,0.011,0.048,-0.016,0.032,-0.023,0.006,0.039,-0.013,0.025,-0.035],"index":0,"object":"embedding"}],"model":"all-minilm","object":"list","usage":{"completion_tokens":0,"prompt_tokens":10,"total_tokens":10}}"#.to_string(),
+            stream_chunks: vec![],
+        },
+    ]).await;
+
+    let config = ClientConfigBuilder::new("test-key")
+        .base_url(&server.url)
+        .max_retries(0)
+        .build();
+    let client = DefaultClient::new(config, None).unwrap();
+
+    let req: liter_llm::EmbeddingRequest =
+        serde_json::from_str(r#"{"input":"The quick brown fox jumps over the lazy dog","model":"ollama/all-minilm"}"#)
+            .unwrap();
+
+    let response = client.embed(req).await.expect("embed call failed");
+
+    assert!(
+        response.data.len() >= 1,
+        "Expected at least 1 embedding(s), got {}",
+        response.data.len()
+    );
+    assert_eq!(response.data.len(), 1, "Embedding count mismatch");
+    assert_eq!(response.data[0].embedding.len(), 32, "Embedding dimension mismatch");
+
+    server.shutdown();
+}

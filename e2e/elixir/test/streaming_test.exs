@@ -164,6 +164,39 @@ defmodule LiterLlmE2E.StreamingTest do
     assert length(chunks) == 0
   end
 
+  test "Streaming chat completion via Ollama local provider with SSE chunks" do
+    routes = [
+      %{
+        path: "/chat/completions",
+        method: "POST",
+        status: 200,
+        body: "null",
+        stream_chunks: [
+          "{\"choices\":[{\"delta\":{\"content\":\"\",\"role\":\"assistant\"},\"finish_reason\":null,\"index\":0}],\"created\":1711000000,\"id\":\"chatcmpl-ollama-s1\",\"model\":\"qwen2:0.5b\",\"object\":\"chat.completion.chunk\"}",
+          "{\"choices\":[{\"delta\":{\"content\":\"1 \"},\"finish_reason\":null,\"index\":0}],\"created\":1711000000,\"id\":\"chatcmpl-ollama-s1\",\"model\":\"qwen2:0.5b\",\"object\":\"chat.completion.chunk\"}",
+          "{\"choices\":[{\"delta\":{\"content\":\"2 \"},\"finish_reason\":null,\"index\":0}],\"created\":1711000000,\"id\":\"chatcmpl-ollama-s1\",\"model\":\"qwen2:0.5b\",\"object\":\"chat.completion.chunk\"}",
+          "{\"choices\":[{\"delta\":{\"content\":\"3\"},\"finish_reason\":null,\"index\":0}],\"created\":1711000000,\"id\":\"chatcmpl-ollama-s1\",\"model\":\"qwen2:0.5b\",\"object\":\"chat.completion.chunk\"}",
+          "{\"choices\":[{\"delta\":{},\"finish_reason\":\"stop\",\"index\":0}],\"created\":1711000000,\"id\":\"chatcmpl-ollama-s1\",\"model\":\"qwen2:0.5b\",\"object\":\"chat.completion.chunk\"}"
+        ]
+      }
+    ]
+
+    {:ok, base_url} = MockServer.start(routes)
+
+    {:ok, resp} =
+      Req.post(base_url <> "/chat/completions",
+        body:
+          "{\"messages\":[{\"content\":\"Count to 3\",\"role\":\"user\"}],\"model\":\"ollama/qwen2:0.5b\",\"stream\":true}",
+        headers: [{"content-type", "application/json"}],
+        decode_body: false
+      )
+
+    assert resp.status == 200
+
+    chunks = LiterLlmE2E.Helpers.collect_sse_chunks(resp.body)
+    assert length(chunks) >= 3, "Expected at least 3 chunk(s), got #{length(chunks)}"
+  end
+
   test "Verify that the [DONE] sentinel signal properly terminates the stream" do
     routes = [
       %{

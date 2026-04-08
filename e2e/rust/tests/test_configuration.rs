@@ -97,3 +97,145 @@ async fn extra_headers() {
 
     server.shutdown();
 }
+
+/// llamacpp local provider routes requests via llamacpp/ model prefix with no auth
+#[tokio::test]
+async fn local_provider_llamacpp() {
+    let server = mock_server::MockServer::start(vec![
+        mock_server::MockRoute {
+            path: "/chat/completions",
+            method: "POST",
+            status: 200,
+            body: r#"{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hi there! I'm running locally.","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-llamacpp-001","model":"my-model","object":"chat.completion","usage":{"completion_tokens":6,"prompt_tokens":5,"total_tokens":11}}"#.to_string(),
+            stream_chunks: vec![],
+        },
+    ]).await;
+
+    let config = ClientConfigBuilder::new("test-key")
+        .base_url(&server.url)
+        .max_retries(0)
+        .build();
+    let client = DefaultClient::new(config, None).unwrap();
+
+    // Build request from fixture JSON.
+    let req: liter_llm::ChatCompletionRequest =
+        serde_json::from_str(r#"{"messages":[{"content":"Hello","role":"user"}],"model":"llamacpp/my-model"}"#)
+            .unwrap();
+
+    let response = client.chat(req).await.expect("chat call failed");
+    assert_eq!(response.choices.len(), 1, "Choices count mismatch");
+    assert_eq!(
+        response.choices[0].finish_reason,
+        Some(liter_llm::FinishReason::Stop),
+        "finish_reason mismatch"
+    );
+    assert_eq!(
+        response.choices[0].message.content.as_deref(),
+        Some("Hi there! I'm running locally."),
+        "message content mismatch"
+    );
+    assert!(response.usage.is_some(), "Expected usage object");
+    assert_eq!(
+        response.usage.as_ref().unwrap().total_tokens,
+        11,
+        "total_tokens mismatch"
+    );
+    assert_eq!(response.model, "my-model", "model mismatch");
+
+    server.shutdown();
+}
+
+/// Ollama local provider routes requests via ollama/ model prefix with no auth
+#[tokio::test]
+async fn local_provider_ollama() {
+    let server = mock_server::MockServer::start(vec![
+        mock_server::MockRoute {
+            path: "/chat/completions",
+            method: "POST",
+            status: 200,
+            body: r#"{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hello! How can I help you today?","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-ollama-001","model":"qwen2:0.5b","object":"chat.completion","usage":{"completion_tokens":8,"prompt_tokens":5,"total_tokens":13}}"#.to_string(),
+            stream_chunks: vec![],
+        },
+    ]).await;
+
+    let config = ClientConfigBuilder::new("test-key")
+        .base_url(&server.url)
+        .max_retries(0)
+        .build();
+    let client = DefaultClient::new(config, None).unwrap();
+
+    // Build request from fixture JSON.
+    let req: liter_llm::ChatCompletionRequest =
+        serde_json::from_str(r#"{"messages":[{"content":"Hello","role":"user"}],"model":"ollama/qwen2:0.5b"}"#)
+            .unwrap();
+
+    let response = client.chat(req).await.expect("chat call failed");
+    assert_eq!(response.choices.len(), 1, "Choices count mismatch");
+    assert_eq!(
+        response.choices[0].finish_reason,
+        Some(liter_llm::FinishReason::Stop),
+        "finish_reason mismatch"
+    );
+    assert_eq!(
+        response.choices[0].message.content.as_deref(),
+        Some("Hello! How can I help you today?"),
+        "message content mismatch"
+    );
+    assert!(response.usage.is_some(), "Expected usage object");
+    assert_eq!(
+        response.usage.as_ref().unwrap().total_tokens,
+        13,
+        "total_tokens mismatch"
+    );
+    assert_eq!(response.model, "qwen2:0.5b", "model mismatch");
+
+    server.shutdown();
+}
+
+/// vLLM local provider routes requests via vllm/ model prefix with no auth
+#[tokio::test]
+async fn local_provider_vllm() {
+    let server = mock_server::MockServer::start(vec![
+        mock_server::MockRoute {
+            path: "/chat/completions",
+            method: "POST",
+            status: 200,
+            body: r#"{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hello! How may I assist you?","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-vllm-001","model":"meta-llama/Llama-3.2-1B","object":"chat.completion","usage":{"completion_tokens":7,"prompt_tokens":5,"total_tokens":12}}"#.to_string(),
+            stream_chunks: vec![],
+        },
+    ]).await;
+
+    let config = ClientConfigBuilder::new("test-key")
+        .base_url(&server.url)
+        .max_retries(0)
+        .build();
+    let client = DefaultClient::new(config, None).unwrap();
+
+    // Build request from fixture JSON.
+    let req: liter_llm::ChatCompletionRequest = serde_json::from_str(
+        r#"{"messages":[{"content":"Hello","role":"user"}],"model":"vllm/meta-llama/Llama-3.2-1B"}"#,
+    )
+    .unwrap();
+
+    let response = client.chat(req).await.expect("chat call failed");
+    assert_eq!(response.choices.len(), 1, "Choices count mismatch");
+    assert_eq!(
+        response.choices[0].finish_reason,
+        Some(liter_llm::FinishReason::Stop),
+        "finish_reason mismatch"
+    );
+    assert_eq!(
+        response.choices[0].message.content.as_deref(),
+        Some("Hello! How may I assist you?"),
+        "message content mismatch"
+    );
+    assert!(response.usage.is_some(), "Expected usage object");
+    assert_eq!(
+        response.usage.as_ref().unwrap().total_tokens,
+        12,
+        "total_tokens mismatch"
+    );
+    assert_eq!(response.model, "meta-llama/Llama-3.2-1B", "model mismatch");
+
+    server.shutdown();
+}

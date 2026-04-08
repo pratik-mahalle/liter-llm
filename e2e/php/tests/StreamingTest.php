@@ -136,6 +136,32 @@ final class StreamingTest extends TestCase
         $this->assertGreaterThanOrEqual(0, count($chunks), 'Expected at least 0 chunk(s)');
     }
 
+    /** Streaming chat completion via Ollama local provider with SSE chunks */
+    public function testLocalStreamOllama(): void
+    {
+        $routes = [
+            new MockRoute(
+                path: '/chat/completions',
+                method: 'POST',
+                status: 200,
+                body: 'null',
+                streamChunks: [
+                    '{"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"created":1711000000,"id":"chatcmpl-ollama-s1","model":"qwen2:0.5b","object":"chat.completion.chunk"}',
+                    '{"choices":[{"delta":{"content":"1 "},"finish_reason":null,"index":0}],"created":1711000000,"id":"chatcmpl-ollama-s1","model":"qwen2:0.5b","object":"chat.completion.chunk"}',
+                    '{"choices":[{"delta":{"content":"2 "},"finish_reason":null,"index":0}],"created":1711000000,"id":"chatcmpl-ollama-s1","model":"qwen2:0.5b","object":"chat.completion.chunk"}',
+                    '{"choices":[{"delta":{"content":"3"},"finish_reason":null,"index":0}],"created":1711000000,"id":"chatcmpl-ollama-s1","model":"qwen2:0.5b","object":"chat.completion.chunk"}',
+                    '{"choices":[{"delta":{},"finish_reason":"stop","index":0}],"created":1711000000,"id":"chatcmpl-ollama-s1","model":"qwen2:0.5b","object":"chat.completion.chunk"}',
+                ],
+            ),
+        ];
+
+        $server = new MockServer($routes);
+        $chunks = readSseChunks($server->url . '/chat/completions', 'POST', '{"messages":[{"content":"Count to 3","role":"user"}],"model":"ollama/qwen2:0.5b","stream":true}');
+        $server->stop();
+
+        $this->assertGreaterThanOrEqual(3, count($chunks), 'Expected at least 3 chunk(s)');
+    }
+
     /** Verify that the [DONE] sentinel signal properly terminates the stream */
     public function testStreamDoneSignal(): void
     {

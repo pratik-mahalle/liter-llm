@@ -74,6 +74,33 @@ async def test_cache_miss_ttl(mock_server: MockServerInfo) -> None:
                 "/chat/completions",
                 "POST",
                 200,
+                '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hi there!","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-opendal-mem-001","model":"gpt-4o","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":5,"total_tokens":7}}',
+            ),
+        ]
+    ],
+    indirect=True,
+)
+async def test_cache_opendal_memory(mock_server: MockServerInfo) -> None:
+    """Cache hit with OpenDAL memory backend returns cached response on repeat request"""
+    client = LlmClient(
+        api_key="test-key", base_url=mock_server.url, max_retries=0, cache={"max_entries": 10, "ttl_seconds": 60}
+    )
+    request = json.loads('{"messages":[{"content":"Hello","role":"user"}],"model":"openai/gpt-4o"}')
+    response1 = await client.chat(**request)
+    response2 = await client.chat(**request)
+    # Second identical request should be a cache hit
+    assert response2.choices[0].message.content == response1.choices[0].message.content
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "mock_server",
+    [
+        [
+            MockRoute(
+                "/chat/completions",
+                "POST",
+                200,
                 '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hello! How can I help you today?","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-stream-bypass-001","model":"gpt-4","object":"chat.completion","usage":{"completion_tokens":9,"prompt_tokens":8,"total_tokens":17}}',
             ),
         ]

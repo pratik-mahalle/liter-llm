@@ -189,6 +189,43 @@ async def test_empty_stream(mock_server: MockServerInfo) -> None:
                 "POST",
                 200,
                 stream_chunks=[
+                    '{"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"created":1711000000,"id":"chatcmpl-ollama-s1","model":"qwen2:0.5b","object":"chat.completion.chunk"}',
+                    '{"choices":[{"delta":{"content":"1 "},"finish_reason":null,"index":0}],"created":1711000000,"id":"chatcmpl-ollama-s1","model":"qwen2:0.5b","object":"chat.completion.chunk"}',
+                    '{"choices":[{"delta":{"content":"2 "},"finish_reason":null,"index":0}],"created":1711000000,"id":"chatcmpl-ollama-s1","model":"qwen2:0.5b","object":"chat.completion.chunk"}',
+                    '{"choices":[{"delta":{"content":"3"},"finish_reason":null,"index":0}],"created":1711000000,"id":"chatcmpl-ollama-s1","model":"qwen2:0.5b","object":"chat.completion.chunk"}',
+                    '{"choices":[{"delta":{},"finish_reason":"stop","index":0}],"created":1711000000,"id":"chatcmpl-ollama-s1","model":"qwen2:0.5b","object":"chat.completion.chunk"}',
+                ],
+            ),
+        ]
+    ],
+    indirect=True,
+)
+async def test_local_stream_ollama(mock_server: MockServerInfo) -> None:
+    """Streaming chat completion via Ollama local provider with SSE chunks"""
+    import json
+
+    client = LlmClient(api_key="test-key", base_url=mock_server.url, max_retries=0)
+    request = json.loads(
+        '{"messages":[{"content":"Count to 3","role":"user"}],"model":"ollama/qwen2:0.5b","stream":true}'
+    )
+    chunks = []
+    async for chunk in await client.chat_stream(**request):
+        chunks.append(chunk)
+    assert len(chunks) >= 3, f"Expected at least 3 chunk(s), got {len(chunks)}"
+    content = "".join(c.choices[0].delta.content or "" for c in chunks if c.choices)
+    assert content == "1 2 3", f"Stream content mismatch: {content!r}"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "mock_server",
+    [
+        [
+            MockRoute(
+                "/chat/completions",
+                "POST",
+                200,
+                stream_chunks=[
                     '{"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"created":1711000001,"id":"chatcmpl-done001","model":"gpt-4","object":"chat.completion.chunk"}',
                     '{"choices":[{"delta":{"content":"Done"},"finish_reason":null,"index":0}],"created":1711000001,"id":"chatcmpl-done001","model":"gpt-4","object":"chat.completion.chunk"}',
                     '{"choices":[{"delta":{},"finish_reason":"stop","index":0}],"created":1711000001,"id":"chatcmpl-done001","model":"gpt-4","object":"chat.completion.chunk"}',

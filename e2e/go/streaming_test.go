@@ -261,6 +261,61 @@ func TestStreaming(t *testing.T) {
 		AssertTrue(t, "expected 0 chunks for empty stream", len(chunks) == 0)
 	})
 
+	t.Run("local_stream_ollama", func(t *testing.T) {
+		// Streaming chat completion via Ollama local provider with SSE chunks
+		server := NewMockServer([]MockRoute{
+			{
+				Path:   "/chat/completions",
+				Method: "POST",
+				Status: 200,
+				Body:   `null`,
+				StreamChunks: []string{
+					`{"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"created":1711000000,"id":"chatcmpl-ollama-s1","model":"qwen2:0.5b","object":"chat.completion.chunk"}`,
+					`{"choices":[{"delta":{"content":"1 "},"finish_reason":null,"index":0}],"created":1711000000,"id":"chatcmpl-ollama-s1","model":"qwen2:0.5b","object":"chat.completion.chunk"}`,
+					`{"choices":[{"delta":{"content":"2 "},"finish_reason":null,"index":0}],"created":1711000000,"id":"chatcmpl-ollama-s1","model":"qwen2:0.5b","object":"chat.completion.chunk"}`,
+					`{"choices":[{"delta":{"content":"3"},"finish_reason":null,"index":0}],"created":1711000000,"id":"chatcmpl-ollama-s1","model":"qwen2:0.5b","object":"chat.completion.chunk"}`,
+					`{"choices":[{"delta":{},"finish_reason":"stop","index":0}],"created":1711000000,"id":"chatcmpl-ollama-s1","model":"qwen2:0.5b","object":"chat.completion.chunk"}`,
+				},
+			},
+		})
+		defer server.Close()
+
+		reqBody := bytes.NewBufferString("{\"messages\":[{\"content\":\"Count to 3\",\"role\":\"user\"}],\"model\":\"ollama/qwen2:0.5b\",\"stream\":true}")
+		resp, err := http.Post(server.URL+"/chat/completions", "application/json", reqBody)
+		if err != nil {
+			t.Fatalf("http.Post failed: %v", err)
+		}
+		defer resp.Body.Close()
+
+		AssertEqual(t, "HTTP status code", 200, resp.StatusCode)
+
+		chunks, err := ReadSSEChunks(resp.Body)
+		if err != nil {
+			t.Fatalf("ReadSSEChunks: %v", err)
+		}
+
+		AssertTrue(t, "expected at least 3 chunk(s)", len(chunks) >= 3)
+
+		// Verify each chunk is valid JSON and reconstruct content.
+		var content string
+		for _, rawChunk := range chunks {
+			var chunk map[string]interface{}
+			if err := json.Unmarshal([]byte(rawChunk), &chunk); err != nil {
+				continue // some chunks may not decode cleanly
+			}
+			if choices, ok := chunk["choices"].([]interface{}); ok && len(choices) > 0 {
+				if choice, ok := choices[0].(map[string]interface{}); ok {
+					if delta, ok := choice["delta"].(map[string]interface{}); ok {
+						if c, ok := delta["content"].(string); ok {
+							content += c
+						}
+					}
+				}
+			}
+		}
+		AssertEqual(t, "stream content", "1 2 3", content)
+	})
+
 	t.Run("stream_done_signal", func(t *testing.T) {
 		// Verify that the [DONE] sentinel signal properly terminates the stream
 		server := NewMockServer([]MockRoute{

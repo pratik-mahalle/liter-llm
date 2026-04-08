@@ -94,4 +94,130 @@ func TestConfiguration(t *testing.T) {
 		AssertEqual(t, "total_tokens", float64(16), usage["total_tokens"])
 	})
 
+	t.Run("local_provider_llamacpp", func(t *testing.T) {
+		// llamacpp local provider routes requests via llamacpp/ model prefix with no auth
+		server := NewMockServer([]MockRoute{
+			{
+				Path:         "/chat/completions",
+				Method:       "POST",
+				Status:       200,
+				Body:         `{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hi there! I'm running locally.","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-llamacpp-001","model":"my-model","object":"chat.completion","usage":{"completion_tokens":6,"prompt_tokens":5,"total_tokens":11}}`,
+				StreamChunks: nil,
+			},
+		})
+		defer server.Close()
+
+		reqBody := bytes.NewBufferString("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"llamacpp/my-model\"}")
+		resp, err := http.Post(server.URL+"/chat/completions", "application/json", reqBody)
+		if err != nil {
+			t.Fatalf("http.Post failed: %v", err)
+		}
+		defer resp.Body.Close()
+
+		AssertEqual(t, "status code", 200, resp.StatusCode)
+
+		var result map[string]interface{}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			t.Fatalf("decode response: %v", err)
+		}
+
+		choices, _ := result["choices"].([]interface{})
+		AssertEqual(t, "choices count", 1, len(choices))
+
+		if len(choices) > 0 {
+			choice, _ := choices[0].(map[string]interface{})
+			message, _ := choice["message"].(map[string]interface{})
+			AssertEqual(t, "first choice content", "Hi there! I'm running locally.", message["content"])
+		}
+		AssertEqual(t, "model", "my-model", result["model"])
+
+		usage, _ := result["usage"].(map[string]interface{})
+		AssertTrue(t, "usage not nil", usage != nil)
+		AssertEqual(t, "total_tokens", float64(11), usage["total_tokens"])
+	})
+
+	t.Run("local_provider_ollama", func(t *testing.T) {
+		// Ollama local provider routes requests via ollama/ model prefix with no auth
+		server := NewMockServer([]MockRoute{
+			{
+				Path:         "/chat/completions",
+				Method:       "POST",
+				Status:       200,
+				Body:         `{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hello! How can I help you today?","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-ollama-001","model":"qwen2:0.5b","object":"chat.completion","usage":{"completion_tokens":8,"prompt_tokens":5,"total_tokens":13}}`,
+				StreamChunks: nil,
+			},
+		})
+		defer server.Close()
+
+		reqBody := bytes.NewBufferString("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"ollama/qwen2:0.5b\"}")
+		resp, err := http.Post(server.URL+"/chat/completions", "application/json", reqBody)
+		if err != nil {
+			t.Fatalf("http.Post failed: %v", err)
+		}
+		defer resp.Body.Close()
+
+		AssertEqual(t, "status code", 200, resp.StatusCode)
+
+		var result map[string]interface{}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			t.Fatalf("decode response: %v", err)
+		}
+
+		choices, _ := result["choices"].([]interface{})
+		AssertEqual(t, "choices count", 1, len(choices))
+
+		if len(choices) > 0 {
+			choice, _ := choices[0].(map[string]interface{})
+			message, _ := choice["message"].(map[string]interface{})
+			AssertEqual(t, "first choice content", "Hello! How can I help you today?", message["content"])
+		}
+		AssertEqual(t, "model", "qwen2:0.5b", result["model"])
+
+		usage, _ := result["usage"].(map[string]interface{})
+		AssertTrue(t, "usage not nil", usage != nil)
+		AssertEqual(t, "total_tokens", float64(13), usage["total_tokens"])
+	})
+
+	t.Run("local_provider_vllm", func(t *testing.T) {
+		// vLLM local provider routes requests via vllm/ model prefix with no auth
+		server := NewMockServer([]MockRoute{
+			{
+				Path:         "/chat/completions",
+				Method:       "POST",
+				Status:       200,
+				Body:         `{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hello! How may I assist you?","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-vllm-001","model":"meta-llama/Llama-3.2-1B","object":"chat.completion","usage":{"completion_tokens":7,"prompt_tokens":5,"total_tokens":12}}`,
+				StreamChunks: nil,
+			},
+		})
+		defer server.Close()
+
+		reqBody := bytes.NewBufferString("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"vllm/meta-llama/Llama-3.2-1B\"}")
+		resp, err := http.Post(server.URL+"/chat/completions", "application/json", reqBody)
+		if err != nil {
+			t.Fatalf("http.Post failed: %v", err)
+		}
+		defer resp.Body.Close()
+
+		AssertEqual(t, "status code", 200, resp.StatusCode)
+
+		var result map[string]interface{}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			t.Fatalf("decode response: %v", err)
+		}
+
+		choices, _ := result["choices"].([]interface{})
+		AssertEqual(t, "choices count", 1, len(choices))
+
+		if len(choices) > 0 {
+			choice, _ := choices[0].(map[string]interface{})
+			message, _ := choice["message"].(map[string]interface{})
+			AssertEqual(t, "first choice content", "Hello! How may I assist you?", message["content"])
+		}
+		AssertEqual(t, "model", "meta-llama/Llama-3.2-1B", result["model"])
+
+		usage, _ := result["usage"].(map[string]interface{})
+		AssertTrue(t, "usage not nil", usage != nil)
+		AssertEqual(t, "total_tokens", float64(12), usage["total_tokens"])
+	})
+
 }

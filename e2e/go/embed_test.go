@@ -129,4 +129,35 @@ func TestEmbed(t *testing.T) {
 		AssertEqual(t, "embedding count", 1, len(data))
 	})
 
+	t.Run("local_embed_ollama", func(t *testing.T) {
+		// Embedding request via Ollama local provider with all-minilm model
+		server := NewMockServer([]MockRoute{
+			{
+				Path:         "/embeddings",
+				Method:       "POST",
+				Status:       200,
+				Body:         `{"data":[{"embedding":[0.013,-0.008,0.027,0.041,-0.019,0.033,-0.012,0.005,0.029,-0.015,0.022,-0.031,0.017,0.044,-0.026,0.009,-0.038,0.014,0.036,-0.007,0.021,-0.029,0.011,0.048,-0.016,0.032,-0.023,0.006,0.039,-0.013,0.025,-0.035],"index":0,"object":"embedding"}],"model":"all-minilm","object":"list","usage":{"completion_tokens":0,"prompt_tokens":10,"total_tokens":10}}`,
+				StreamChunks: nil,
+			},
+		})
+		defer server.Close()
+
+		reqBody := bytes.NewBufferString("{\"input\":\"The quick brown fox jumps over the lazy dog\",\"model\":\"ollama/all-minilm\"}")
+		resp, err := http.Post(server.URL+"/embeddings", "application/json", reqBody)
+		if err != nil {
+			t.Fatalf("http.Post failed: %v", err)
+		}
+		defer resp.Body.Close()
+
+		AssertEqual(t, "HTTP status code", 200, resp.StatusCode)
+
+		var result map[string]interface{}
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			t.Fatalf("decode response: %v", err)
+		}
+
+		data, _ := result["data"].([]interface{})
+		AssertEqual(t, "embedding count", 1, len(data))
+	})
+
 }

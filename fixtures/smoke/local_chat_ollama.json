@@ -1,0 +1,19 @@
+{
+	"id": "local_chat_ollama",
+	"category": "smoke",
+	"description": "Chat completion against local Ollama with qwen2:0.5b model",
+	"api": {
+		"method": "chat",
+		"request": {
+			"model": "ollama/qwen2:0.5b",
+			"messages": [{ "role": "user", "content": "Say hello in one word." }],
+			"max_tokens": 10
+		}
+	},
+	"assertions": {
+		"status": "success",
+		"response_not_null": true,
+		"has_choices": true
+	},
+	"tags": ["smoke", "local", "ollama"]
+}

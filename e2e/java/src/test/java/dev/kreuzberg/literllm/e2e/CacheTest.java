@@ -76,6 +76,38 @@ class CacheTest {
     }
   }
 
+  /** Cache hit with OpenDAL memory backend returns cached response on repeat request */
+  @Test
+  void cacheOpendalMemory() throws Exception {
+    try (Helpers.MockServer server =
+        new Helpers.MockServer(
+            List.of(
+                new Helpers.MockRoute(
+                    "/chat/completions",
+                    "POST",
+                    200,
+                    "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Hi"
+                        + " there!\",\"role\":\"assistant\"}}],\"created\":1711000000,\"id\":\"chatcmpl-opendal-mem-001\",\"model\":\"gpt-4o\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":2,\"prompt_tokens\":5,\"total_tokens\":7}}")))) {
+      String mockUrl = server.url;
+
+      // TDD: Cache tests — will fail until cache feature is implemented.
+      var config =
+          new LlmClientConfig.Builder()
+              .apiKey("test-key")
+              .baseUrl(mockUrl)
+              .cache(new CacheConfig(10, 60))
+              .build();
+      var client = new LlmClient(config);
+
+      // First call populates cache, second call should hit cache.
+      var request =
+          "{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"openai/gpt-4o\"}";
+      var resp1 = client.chat(request);
+      var resp2 = client.chat(request);
+      assertTrue(resp2.isCacheHit(), "Expected cache hit on second call");
+    }
+  }
+
   /** Tests that streaming requests bypass cache entirely */
   @Test
   void cacheStreamBypass() throws Exception {

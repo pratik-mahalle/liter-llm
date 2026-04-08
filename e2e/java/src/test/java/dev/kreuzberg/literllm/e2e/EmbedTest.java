@@ -113,4 +113,30 @@ class EmbedTest {
       assertEquals(1, body.get("data").size(), "embedding count");
     }
   }
+
+  /** Embedding request via Ollama local provider with all-minilm model */
+  @Test
+  void localEmbedOllama() throws Exception {
+    try (Helpers.MockServer server =
+        new Helpers.MockServer(
+            List.of(
+                new Helpers.MockRoute(
+                    "/embeddings",
+                    "POST",
+                    200,
+                    "{\"data\":[{\"embedding\":[0.013,-0.008,0.027,0.041,-0.019,0.033,-0.012,0.005,0.029,-0.015,0.022,-0.031,0.017,0.044,-0.026,0.009,-0.038,0.014,0.036,-0.007,0.021,-0.029,0.011,0.048,-0.016,0.032,-0.023,0.006,0.039,-0.013,0.025,-0.035],\"index\":0,\"object\":\"embedding\"}],\"model\":\"all-minilm\",\"object\":\"list\",\"usage\":{\"completion_tokens\":0,\"prompt_tokens\":10,\"total_tokens\":10}}")))) {
+
+      HttpResponse<String> resp =
+          Helpers.postJson(
+              server.url,
+              "/embeddings",
+              "{\"input\":\"The quick brown fox jumps over the lazy"
+                  + " dog\",\"model\":\"ollama/all-minilm\"}");
+
+      assertEquals(200, resp.statusCode(), "HTTP status code");
+
+      JsonNode body = Helpers.MAPPER.readTree(resp.body());
+      assertEquals(1, body.get("data").size(), "embedding count");
+    }
+  }
 }

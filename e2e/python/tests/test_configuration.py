@@ -68,3 +68,96 @@ async def test_extra_headers(mock_server: MockServerInfo) -> None:
     assert response.usage is not None, "Expected usage object"
     assert response.usage.total_tokens == 16, "total_tokens mismatch"
     assert response.model == "gpt-4", "model mismatch"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "mock_server",
+    [
+        [
+            MockRoute(
+                "/chat/completions",
+                "POST",
+                200,
+                '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hi there! I\'m running locally.","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-llamacpp-001","model":"my-model","object":"chat.completion","usage":{"completion_tokens":6,"prompt_tokens":5,"total_tokens":11}}',
+            ),
+        ]
+    ],
+    indirect=True,
+)
+async def test_local_provider_llamacpp(mock_server: MockServerInfo) -> None:
+    """llamacpp local provider routes requests via llamacpp/ model prefix with no auth"""
+    import json
+
+    client = LlmClient(api_key="test-key", base_url=mock_server.url, max_retries=0)
+    request = json.loads('{"messages":[{"content":"Hello","role":"user"}],"model":"llamacpp/my-model"}')
+    response = await client.chat(**request)
+
+    assert len(response.choices) == 1, f"Expected 1 choice(s), got {len(response.choices)}"
+    assert response.choices[0].message.content == "Hi there! I'm running locally.", "message content mismatch"
+    assert response.choices[0].finish_reason == "stop", "finish_reason mismatch"
+    assert response.usage is not None, "Expected usage object"
+    assert response.usage.total_tokens == 11, "total_tokens mismatch"
+    assert response.model == "my-model", "model mismatch"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "mock_server",
+    [
+        [
+            MockRoute(
+                "/chat/completions",
+                "POST",
+                200,
+                '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hello! How can I help you today?","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-ollama-001","model":"qwen2:0.5b","object":"chat.completion","usage":{"completion_tokens":8,"prompt_tokens":5,"total_tokens":13}}',
+            ),
+        ]
+    ],
+    indirect=True,
+)
+async def test_local_provider_ollama(mock_server: MockServerInfo) -> None:
+    """Ollama local provider routes requests via ollama/ model prefix with no auth"""
+    import json
+
+    client = LlmClient(api_key="test-key", base_url=mock_server.url, max_retries=0)
+    request = json.loads('{"messages":[{"content":"Hello","role":"user"}],"model":"ollama/qwen2:0.5b"}')
+    response = await client.chat(**request)
+
+    assert len(response.choices) == 1, f"Expected 1 choice(s), got {len(response.choices)}"
+    assert response.choices[0].message.content == "Hello! How can I help you today?", "message content mismatch"
+    assert response.choices[0].finish_reason == "stop", "finish_reason mismatch"
+    assert response.usage is not None, "Expected usage object"
+    assert response.usage.total_tokens == 13, "total_tokens mismatch"
+    assert response.model == "qwen2:0.5b", "model mismatch"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "mock_server",
+    [
+        [
+            MockRoute(
+                "/chat/completions",
+                "POST",
+                200,
+                '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hello! How may I assist you?","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-vllm-001","model":"meta-llama/Llama-3.2-1B","object":"chat.completion","usage":{"completion_tokens":7,"prompt_tokens":5,"total_tokens":12}}',
+            ),
+        ]
+    ],
+    indirect=True,
+)
+async def test_local_provider_vllm(mock_server: MockServerInfo) -> None:
+    """vLLM local provider routes requests via vllm/ model prefix with no auth"""
+    import json
+
+    client = LlmClient(api_key="test-key", base_url=mock_server.url, max_retries=0)
+    request = json.loads('{"messages":[{"content":"Hello","role":"user"}],"model":"vllm/meta-llama/Llama-3.2-1B"}')
+    response = await client.chat(**request)
+
+    assert len(response.choices) == 1, f"Expected 1 choice(s), got {len(response.choices)}"
+    assert response.choices[0].message.content == "Hello! How may I assist you?", "message content mismatch"
+    assert response.choices[0].finish_reason == "stop", "finish_reason mismatch"
+    assert response.usage is not None, "Expected usage object"
+    assert response.usage.total_tokens == 12, "total_tokens mismatch"
+    assert response.model == "meta-llama/Llama-3.2-1B", "model mismatch"

@@ -91,6 +91,134 @@ static void test_extra_headers(void) {
   }
 }
 
+/* llamacpp local provider routes requests via llamacpp/ model prefix with no
+ * auth */
+static void test_local_provider_llamacpp(void) {
+  /* Pre-recorded mock response body. */
+  const char *mock_body =
+      "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{"
+      "\"content\":\"Hi there! I'm running "
+      "locally.\",\"role\":\"assistant\"}}],\"created\":1711000000,\"id\":"
+      "\"chatcmpl-llamacpp-001\",\"model\":\"my-model\",\"object\":\"chat."
+      "completion\",\"usage\":{\"completion_tokens\":6,\"prompt_tokens\":5,"
+      "\"total_tokens\":11}}";
+
+  const char *base_url = getenv("LITER_LLM_TEST_BASE_URL");
+  if (base_url != NULL) {
+    /* Live HTTP test against a real server. */
+    char url[1024];
+    snprintf(url, sizeof(url), "%s/chat/completions", base_url);
+
+    LiterLlmResponse *resp = liter_llm_http_post(
+        url, "{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],"
+             "\"model\":\"llamacpp/my-model\"}");
+    assert(resp != NULL);
+    liter_llm_assert_status(resp, 200L, "test_local_provider_llamacpp");
+    liter_llm_assert_json_array_len(resp->body, "choices", 1,
+                                    "test_local_provider_llamacpp");
+    liter_llm_assert_json_field(resp->body, "content",
+                                "Hi there! I'm running locally.",
+                                "test_local_provider_llamacpp");
+    liter_llm_assert_json_field(resp->body, "model", "my-model",
+                                "test_local_provider_llamacpp");
+    liter_llm_response_free(resp);
+  } else {
+    /* Offline: assert against pre-recorded mock body. */
+    liter_llm_assert_json_array_len(mock_body, "choices", 1,
+                                    "test_local_provider_llamacpp");
+    liter_llm_assert_json_field(mock_body, "content",
+                                "Hi there! I'm running locally.",
+                                "test_local_provider_llamacpp");
+    liter_llm_assert_json_field(mock_body, "model", "my-model",
+                                "test_local_provider_llamacpp");
+  }
+}
+
+/* Ollama local provider routes requests via ollama/ model prefix with no auth
+ */
+static void test_local_provider_ollama(void) {
+  /* Pre-recorded mock response body. */
+  const char *mock_body =
+      "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{"
+      "\"content\":\"Hello! How can I help you "
+      "today?\",\"role\":\"assistant\"}}],\"created\":1711000000,\"id\":"
+      "\"chatcmpl-ollama-001\",\"model\":\"qwen2:0.5b\",\"object\":\"chat."
+      "completion\",\"usage\":{\"completion_tokens\":8,\"prompt_tokens\":5,"
+      "\"total_tokens\":13}}";
+
+  const char *base_url = getenv("LITER_LLM_TEST_BASE_URL");
+  if (base_url != NULL) {
+    /* Live HTTP test against a real server. */
+    char url[1024];
+    snprintf(url, sizeof(url), "%s/chat/completions", base_url);
+
+    LiterLlmResponse *resp = liter_llm_http_post(
+        url, "{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],"
+             "\"model\":\"ollama/qwen2:0.5b\"}");
+    assert(resp != NULL);
+    liter_llm_assert_status(resp, 200L, "test_local_provider_ollama");
+    liter_llm_assert_json_array_len(resp->body, "choices", 1,
+                                    "test_local_provider_ollama");
+    liter_llm_assert_json_field(resp->body, "content",
+                                "Hello! How can I help you today?",
+                                "test_local_provider_ollama");
+    liter_llm_assert_json_field(resp->body, "model", "qwen2:0.5b",
+                                "test_local_provider_ollama");
+    liter_llm_response_free(resp);
+  } else {
+    /* Offline: assert against pre-recorded mock body. */
+    liter_llm_assert_json_array_len(mock_body, "choices", 1,
+                                    "test_local_provider_ollama");
+    liter_llm_assert_json_field(mock_body, "content",
+                                "Hello! How can I help you today?",
+                                "test_local_provider_ollama");
+    liter_llm_assert_json_field(mock_body, "model", "qwen2:0.5b",
+                                "test_local_provider_ollama");
+  }
+}
+
+/* vLLM local provider routes requests via vllm/ model prefix with no auth */
+static void test_local_provider_vllm(void) {
+  /* Pre-recorded mock response body. */
+  const char *mock_body =
+      "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{"
+      "\"content\":\"Hello! How may I assist "
+      "you?\",\"role\":\"assistant\"}}],\"created\":1711000000,\"id\":"
+      "\"chatcmpl-vllm-001\",\"model\":\"meta-llama/"
+      "Llama-3.2-1B\",\"object\":\"chat.completion\",\"usage\":{\"completion_"
+      "tokens\":7,\"prompt_tokens\":5,\"total_tokens\":12}}";
+
+  const char *base_url = getenv("LITER_LLM_TEST_BASE_URL");
+  if (base_url != NULL) {
+    /* Live HTTP test against a real server. */
+    char url[1024];
+    snprintf(url, sizeof(url), "%s/chat/completions", base_url);
+
+    LiterLlmResponse *resp = liter_llm_http_post(
+        url, "{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],"
+             "\"model\":\"vllm/meta-llama/Llama-3.2-1B\"}");
+    assert(resp != NULL);
+    liter_llm_assert_status(resp, 200L, "test_local_provider_vllm");
+    liter_llm_assert_json_array_len(resp->body, "choices", 1,
+                                    "test_local_provider_vllm");
+    liter_llm_assert_json_field(resp->body, "content",
+                                "Hello! How may I assist you?",
+                                "test_local_provider_vllm");
+    liter_llm_assert_json_field(resp->body, "model", "meta-llama/Llama-3.2-1B",
+                                "test_local_provider_vllm");
+    liter_llm_response_free(resp);
+  } else {
+    /* Offline: assert against pre-recorded mock body. */
+    liter_llm_assert_json_array_len(mock_body, "choices", 1,
+                                    "test_local_provider_vllm");
+    liter_llm_assert_json_field(mock_body, "content",
+                                "Hello! How may I assist you?",
+                                "test_local_provider_vllm");
+    liter_llm_assert_json_field(mock_body, "model", "meta-llama/Llama-3.2-1B",
+                                "test_local_provider_vllm");
+  }
+}
+
 int main(void) {
   test_custom_base_url();
   printf("PASS: Client configured with a custom base URL routes all requests "
@@ -98,6 +226,15 @@ int main(void) {
   test_extra_headers();
   printf("PASS: Client configured with extra custom headers successfully "
          "completes a chat request\n");
+  test_local_provider_llamacpp();
+  printf("PASS: llamacpp local provider routes requests via llamacpp/ model "
+         "prefix with no auth\n");
+  test_local_provider_ollama();
+  printf("PASS: Ollama local provider routes requests via ollama/ model prefix "
+         "with no auth\n");
+  test_local_provider_vllm();
+  printf("PASS: vLLM local provider routes requests via vllm/ model prefix "
+         "with no auth\n");
   printf("All configuration tests passed.\n");
   return 0;
 }

@@ -5,58 +5,59 @@ import { startMockServer, type MockServer, type MockRoute } from "./helpers";
 import { LlmClient } from "@kreuzberg/liter-llm";
 
 describe("list-models", () => {
-  // List models response returns an empty data array when no models are available
-  it("empty_model_list", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/models",
-        method: "GET",
-        status: 200,
-        body: `{"data":[],"object":"list"}`,
-        streamChunks: [],
-      },
-    ];
+	// List models response returns an empty data array when no models are available
+	it("empty_model_list", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/models",
+				method: "GET",
+				status: 200,
+				body: `{"data":[],"object":"list"}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
 
-      const response = await client.listModels();
+			const response = await client.listModels();
 
-      expect(response.data.length, "Expected at least 0 model(s)").toBeGreaterThanOrEqual(0);
-      expect(response.data.length, "Model count mismatch").toBe(0);
-    } finally {
-      server.close();
-    }
-  });
+			expect(response.data.length, "Expected at least 0 model(s)").toBeGreaterThanOrEqual(0);
+			expect(response.data.length, "Model count mismatch").toBe(0);
+		} finally {
+			server.close();
+		}
+	});
 
-  // 401 Unauthorized error on list models request when API key is invalid
-  it("list_models_error_401", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/models",
-        method: "GET",
-        status: 401,
-        body: `{"error":{"code":"invalid_api_key","message":"Incorrect API key provided.","param":null,"type":"invalid_request_error"}}`,
-        streamChunks: [],
-      },
-    ];
+	// 401 Unauthorized error on list models request when API key is invalid
+	it("list_models_error_401", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/models",
+				method: "GET",
+				status: 401,
+				body: `{"error":{"code":"invalid_api_key","message":"Incorrect API key provided.","param":null,"type":"invalid_request_error"}}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
 
-      let threw = false;
-      try {
-        await client.listModels();
-      } catch (e) {
-        threw = true;
-        expect((e as Error).message ?? "", "Expected [Authentication] error").toMatch(/\[Authentication\]|Authentication/i);
-      }
-      expect(threw, "Expected client.listModels to throw").toBe(true);
-    } finally {
-      server.close();
-    }
-  });
-
+			let threw = false;
+			try {
+				await client.listModels();
+			} catch (e) {
+				threw = true;
+				expect((e as Error).message ?? "", "Expected [Authentication] error").toMatch(
+					/\[Authentication\]|Authentication/i,
+				);
+			}
+			expect(threw, "Expected client.listModels to throw").toBe(true);
+		} finally {
+			server.close();
+		}
+	});
 });

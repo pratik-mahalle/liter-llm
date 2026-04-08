@@ -186,6 +186,46 @@ RSpec.describe 'streaming' do
     server&.stop
   end
 
+  it 'local_stream_ollama' do
+    # Streaming chat completion via Ollama local provider with SSE chunks
+    route = E2EHelpers::MockRoute.new(
+      path: '/chat/completions',
+      method: 'POST',
+      status: 200,
+      body: 'null',
+      stream_chunks: [
+        '{"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"created":1711000000,"id":"chatcmpl-ollama-s1","model":"qwen2:0.5b","object":"chat.completion.chunk"}',
+        '{"choices":[{"delta":{"content":"1 "},"finish_reason":null,"index":0}],"created":1711000000,"id":"chatcmpl-ollama-s1","model":"qwen2:0.5b","object":"chat.completion.chunk"}',
+        '{"choices":[{"delta":{"content":"2 "},"finish_reason":null,"index":0}],"created":1711000000,"id":"chatcmpl-ollama-s1","model":"qwen2:0.5b","object":"chat.completion.chunk"}',
+        '{"choices":[{"delta":{"content":"3"},"finish_reason":null,"index":0}],"created":1711000000,"id":"chatcmpl-ollama-s1","model":"qwen2:0.5b","object":"chat.completion.chunk"}',
+        '{"choices":[{"delta":{},"finish_reason":"stop","index":0}],"created":1711000000,"id":"chatcmpl-ollama-s1","model":"qwen2:0.5b","object":"chat.completion.chunk"}'
+      ]
+    )
+    server = E2EHelpers::MockServer.new([route])
+
+    response = post_json(server.url, '/chat/completions',
+                         '{"messages":[{"content":"Count to 3","role":"user"}],"model":"ollama/qwen2:0.5b","stream":true}')
+
+    expect(response.code.to_i).to eq(200)
+
+    chunks = parse_sse_chunks(response.body)
+    expect(chunks.size).to be >= 3
+
+    content = chunks.filter_map do |raw|
+      parsed = begin
+        JSON.parse(raw)
+      rescue StandardError
+        nil
+      end
+      next unless parsed
+
+      parsed.dig('choices', 0, 'delta', 'content')
+    end.join
+    expect(content).to eq('1 2 3')
+  ensure
+    server&.stop
+  end
+
   it 'stream_done_signal' do
     # Verify that the [DONE] sentinel signal properly terminates the stream
     route = E2EHelpers::MockRoute.new(

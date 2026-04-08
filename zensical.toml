@@ -17,6 +17,7 @@ nav = [
         { "Media (Images, Speech, Transcription)" = "usage/media.md" },
         { "Search & OCR" = "usage/search-ocr.md" },
         { "Files & Batches" = "usage/files.md" },
+        { "Local LLMs" = "usage/local-llms.md" },
         { "Configuration" = "usage/configuration.md" },
     ] },
     { "API Reference" = [

@@ -8,269 +8,386 @@ import type { MockServer } from "./helpers.js";
 // Run `wasm-pack build --target nodejs` in crates/liter-llm-wasm first.
 import { LlmClient } from "liter-llm-wasm";
 
-
 describe("401 Authentication error returned by the Anthropic API when the API key is invalid", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/chat/completions", method: "POST", status: 401, body: "{\"error\":{\"message\":\"invalid x-api-key\",\"type\":\"authentication_error\"},\"type\":\"error\"}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 401,
+				body: '{"error":{"message":"invalid x-api-key","type":"authentication_error"},"type":"error"}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("401 Authentication error returned by the Anthropic API when the API key is invalid", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("401 Authentication error returned by the Anthropic API when the API key is invalid", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    const req = JSON.parse("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"anthropic/claude-3-5-sonnet-20241022\"}");
-    await expect(client.chat(req)).rejects.toThrow();
-  });
+		const req = JSON.parse(
+			'{"messages":[{"content":"Hello","role":"user"}],"model":"anthropic/claude-3-5-sonnet-20241022"}',
+		);
+		await expect(client.chat(req)).rejects.toThrow();
+	});
 });
 
 describe("401 Unauthorized error when API key is invalid or missing", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/chat/completions", method: "POST", status: 401, body: "{\"error\":{\"code\":\"invalid_api_key\",\"message\":\"Incorrect API key provided. You can find your API key at https://platform.openai.com/account/api-keys.\",\"param\":null,\"type\":\"invalid_request_error\"}}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 401,
+				body: '{"error":{"code":"invalid_api_key","message":"Incorrect API key provided. You can find your API key at https://platform.openai.com/account/api-keys.","param":null,"type":"invalid_request_error"}}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("401 Unauthorized error when API key is invalid or missing", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("401 Unauthorized error when API key is invalid or missing", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    const req = JSON.parse("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"gpt-4\"}");
-    await expect(client.chat(req)).rejects.toThrow();
-  });
+		const req = JSON.parse('{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}');
+		await expect(client.chat(req)).rejects.toThrow();
+	});
 });
 
 describe("Azure OpenAI returns a 401 Unauthorized error when the API key is missing or invalid — uses Azure's error envelope shape with code AccessDenied", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/chat/completions", method: "POST", status: 401, body: "{\"error\":{\"code\":\"401\",\"message\":\"Access denied due to invalid subscription key or wrong API endpoint. Make sure to provide a valid key for an active subscription and use a correct regional API endpoint for your resource.\",\"param\":null,\"type\":\"invalid_request_error\"}}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 401,
+				body: '{"error":{"code":"401","message":"Access denied due to invalid subscription key or wrong API endpoint. Make sure to provide a valid key for an active subscription and use a correct regional API endpoint for your resource.","param":null,"type":"invalid_request_error"}}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("Azure OpenAI returns a 401 Unauthorized error when the API key is missing or invalid — uses Azure's error envelope shape with code AccessDenied", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("Azure OpenAI returns a 401 Unauthorized error when the API key is missing or invalid — uses Azure's error envelope shape with code AccessDenied", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    const req = JSON.parse("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"azure/gpt-4\"}");
-    await expect(client.chat(req)).rejects.toThrow();
-  });
+		const req = JSON.parse('{"messages":[{"content":"Hello","role":"user"}],"model":"azure/gpt-4"}');
+		await expect(client.chat(req)).rejects.toThrow();
+	});
 });
 
 describe("400 Bad Request error when a parameter value is invalid", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/chat/completions", method: "POST", status: 400, body: "{\"error\":{\"message\":\"Invalid parameter: temperature must be between 0 and 2\",\"type\":\"invalid_request_error\"}}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 400,
+				body: '{"error":{"message":"Invalid parameter: temperature must be between 0 and 2","type":"invalid_request_error"}}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("400 Bad Request error when a parameter value is invalid", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("400 Bad Request error when a parameter value is invalid", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    const req = JSON.parse("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"gpt-4\",\"temperature\":5.0}");
-    await expect(client.chat(req)).rejects.toThrow();
-  });
+		const req = JSON.parse('{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4","temperature":5.0}');
+		await expect(client.chat(req)).rejects.toThrow();
+	});
 });
 
 describe("AWS Bedrock returns 403 Forbidden (not 401) when credentials are missing, expired, or the IAM role lacks bedrock:InvokeModel permission — verifies the error is mapped to Authentication", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/chat/completions", method: "POST", status: 403, body: "{\"message\":\"You don't have access to the model with the specified model ID.\"}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 403,
+				body: '{"message":"You don\'t have access to the model with the specified model ID."}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("AWS Bedrock returns 403 Forbidden (not 401) when credentials are missing, expired, or the IAM role lacks bedrock:InvokeModel permission — verifies the error is mapped to Authentication", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("AWS Bedrock returns 403 Forbidden (not 401) when credentials are missing, expired, or the IAM role lacks bedrock:InvokeModel permission — verifies the error is mapped to Authentication", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    const req = JSON.parse("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"bedrock/anthropic.claude-3-sonnet-20240229-v1:0\"}");
-    await expect(client.chat(req)).rejects.toThrow();
-  });
+		const req = JSON.parse(
+			'{"messages":[{"content":"Hello","role":"user"}],"model":"bedrock/anthropic.claude-3-sonnet-20240229-v1:0"}',
+		);
+		await expect(client.chat(req)).rejects.toThrow();
+	});
 });
 
 describe("400 error when a request is rejected due to content policy", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/chat/completions", method: "POST", status: 400, body: "{\"error\":{\"message\":\"Your request was rejected as a result of our content_policy\",\"type\":\"invalid_request_error\"}}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 400,
+				body: '{"error":{"message":"Your request was rejected as a result of our content_policy","type":"invalid_request_error"}}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("400 error when a request is rejected due to content policy", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("400 error when a request is rejected due to content policy", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    const req = JSON.parse("{\"messages\":[{\"content\":\"Generate harmful content\",\"role\":\"user\"}],\"model\":\"gpt-4\"}");
-    await expect(client.chat(req)).rejects.toThrow();
-  });
+		const req = JSON.parse('{"messages":[{"content":"Generate harmful content","role":"user"}],"model":"gpt-4"}');
+		await expect(client.chat(req)).rejects.toThrow();
+	});
 });
 
 describe("400 error when the prompt exceeds the model's maximum context length", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/chat/completions", method: "POST", status: 400, body: "{\"error\":{\"code\":\"context_length_exceeded\",\"message\":\"This model's maximum context length is 8192 tokens\",\"type\":\"invalid_request_error\"}}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 400,
+				body: '{"error":{"code":"context_length_exceeded","message":"This model\'s maximum context length is 8192 tokens","type":"invalid_request_error"}}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("400 error when the prompt exceeds the model's maximum context length", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("400 error when the prompt exceeds the model's maximum context length", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    const req = JSON.parse("{\"messages\":[{\"content\":\"Very long prompt that exceeds the context window...\",\"role\":\"user\"}],\"model\":\"gpt-4\"}");
-    await expect(client.chat(req)).rejects.toThrow();
-  });
+		const req = JSON.parse(
+			'{"messages":[{"content":"Very long prompt that exceeds the context window...","role":"user"}],"model":"gpt-4"}',
+		);
+		await expect(client.chat(req)).rejects.toThrow();
+	});
 });
 
 describe("403 Forbidden error when the API key does not have access to the requested resource", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/chat/completions", method: "POST", status: 403, body: "{\"error\":{\"message\":\"Access denied\",\"type\":\"access_denied\"}}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 403,
+				body: '{"error":{"message":"Access denied","type":"access_denied"}}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("403 Forbidden error when the API key does not have access to the requested resource", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("403 Forbidden error when the API key does not have access to the requested resource", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    const req = JSON.parse("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"gpt-4\"}");
-    await expect(client.chat(req)).rejects.toThrow();
-  });
+		const req = JSON.parse('{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}');
+		await expect(client.chat(req)).rejects.toThrow();
+	});
 });
 
 describe("504 Gateway Timeout error when the upstream service times out", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/chat/completions", method: "POST", status: 504, body: "{\"error\":{\"message\":\"Gateway timeout\",\"type\":\"server_error\"}}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 504,
+				body: '{"error":{"message":"Gateway timeout","type":"server_error"}}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("504 Gateway Timeout error when the upstream service times out", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("504 Gateway Timeout error when the upstream service times out", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    const req = JSON.parse("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"gpt-4\"}");
-    await expect(client.chat(req)).rejects.toThrow();
-  });
+		const req = JSON.parse('{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}');
+		await expect(client.chat(req)).rejects.toThrow();
+	});
 });
 
 describe("404 Not Found error when requesting a model that does not exist", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/chat/completions", method: "POST", status: 404, body: "{\"error\":{\"message\":\"Model not found\",\"type\":\"not_found_error\"}}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 404,
+				body: '{"error":{"message":"Model not found","type":"not_found_error"}}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("404 Not Found error when requesting a model that does not exist", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("404 Not Found error when requesting a model that does not exist", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    const req = JSON.parse("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"gpt-99\"}");
-    await expect(client.chat(req)).rejects.toThrow();
-  });
+		const req = JSON.parse('{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-99"}');
+		await expect(client.chat(req)).rejects.toThrow();
+	});
 });
 
 describe("429 Too Many Requests error when the rate limit is exceeded", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/chat/completions", method: "POST", status: 429, body: "{\"error\":{\"code\":\"rate_limit_exceeded\",\"message\":\"Rate limit reached for gpt-4 in organization org-abc123 on tokens per min. Limit: 10000, Used: 10000, Requested: 100. Please try again in 600ms.\",\"param\":null,\"type\":\"requests\"}}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 429,
+				body: '{"error":{"code":"rate_limit_exceeded","message":"Rate limit reached for gpt-4 in organization org-abc123 on tokens per min. Limit: 10000, Used: 10000, Requested: 100. Please try again in 600ms.","param":null,"type":"requests"}}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("429 Too Many Requests error when the rate limit is exceeded", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("429 Too Many Requests error when the rate limit is exceeded", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    const req = JSON.parse("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"gpt-4\"}");
-    await expect(client.chat(req)).rejects.toThrow();
-  });
+		const req = JSON.parse('{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}');
+		await expect(client.chat(req)).rejects.toThrow();
+	});
 });
 
 describe("500 Internal Server Error from the upstream API", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/chat/completions", method: "POST", status: 500, body: "{\"error\":{\"code\":null,\"message\":\"The server had an error while processing your request. Sorry about that!\",\"param\":null,\"type\":\"server_error\"}}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 500,
+				body: '{"error":{"code":null,"message":"The server had an error while processing your request. Sorry about that!","param":null,"type":"server_error"}}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("500 Internal Server Error from the upstream API", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("500 Internal Server Error from the upstream API", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    const req = JSON.parse("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"gpt-4\"}");
-    await expect(client.chat(req)).rejects.toThrow();
-  });
+		const req = JSON.parse('{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}');
+		await expect(client.chat(req)).rejects.toThrow();
+	});
 });
 
 describe("502 Bad Gateway error when the upstream service is unavailable", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/chat/completions", method: "POST", status: 502, body: "{\"error\":{\"message\":\"Bad gateway\",\"type\":\"server_error\"}}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 502,
+				body: '{"error":{"message":"Bad gateway","type":"server_error"}}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("502 Bad Gateway error when the upstream service is unavailable", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("502 Bad Gateway error when the upstream service is unavailable", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    const req = JSON.parse("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"gpt-4\"}");
-    await expect(client.chat(req)).rejects.toThrow();
-  });
+		const req = JSON.parse('{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}');
+		await expect(client.chat(req)).rejects.toThrow();
+	});
 });
 
 describe("Google Vertex AI returns 401 Unauthorized when the OAuth2 token is missing, expired, or the service account lacks aiplatform.endpoints.predict permission — verifies the error is mapped to Authentication", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/chat/completions", method: "POST", status: 401, body: "{\"error\":{\"code\":401,\"message\":\"Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project.\",\"status\":\"UNAUTHENTICATED\"}}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 401,
+				body: '{"error":{"code":401,"message":"Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project.","status":"UNAUTHENTICATED"}}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("Google Vertex AI returns 401 Unauthorized when the OAuth2 token is missing, expired, or the service account lacks aiplatform.endpoints.predict permission — verifies the error is mapped to Authentication", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("Google Vertex AI returns 401 Unauthorized when the OAuth2 token is missing, expired, or the service account lacks aiplatform.endpoints.predict permission — verifies the error is mapped to Authentication", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    const req = JSON.parse("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"vertex_ai/gemini-2.0-flash\"}");
-    await expect(client.chat(req)).rejects.toThrow();
-  });
+		const req = JSON.parse('{"messages":[{"content":"Hello","role":"user"}],"model":"vertex_ai/gemini-2.0-flash"}');
+		await expect(client.chat(req)).rejects.toThrow();
+	});
 });

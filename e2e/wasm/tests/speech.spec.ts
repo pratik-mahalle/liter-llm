@@ -8,93 +8,132 @@ import type { MockServer } from "./helpers.js";
 // Run `wasm-pack build --target nodejs` in crates/liter-llm-wasm first.
 import { LlmClient } from "liter-llm-wasm";
 
-
 describe("Speech generation with a very long input text", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/audio/speech", method: "POST", status: 200, body: "{\"_binary\":true,\"_content_type\":\"audio/mpeg\",\"_description\":\"Mock binary audio data for long text\"}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/audio/speech",
+				method: "POST",
+				status: 200,
+				body: '{"_binary":true,"_content_type":"audio/mpeg","_description":"Mock binary audio data for long text"}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("Speech generation with a very long input text", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("Speech generation with a very long input text", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    // TODO: unknown method "speech"
-  });
+		// TODO: unknown method "speech"
+	});
 });
 
 describe("401 Unauthorized for speech generation with invalid API key", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/audio/speech", method: "POST", status: 401, body: "{\"error\":{\"code\":\"invalid_api_key\",\"message\":\"Incorrect API key provided.\",\"param\":null,\"type\":\"invalid_request_error\"}}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/audio/speech",
+				method: "POST",
+				status: 401,
+				body: '{"error":{"code":"invalid_api_key","message":"Incorrect API key provided.","param":null,"type":"invalid_request_error"}}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("401 Unauthorized for speech generation with invalid API key", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("401 Unauthorized for speech generation with invalid API key", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    // TODO: unknown method "speech"
-  });
+		// TODO: unknown method "speech"
+	});
 });
 
 describe("400 Bad Request for speech with unsupported model", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/audio/speech", method: "POST", status: 400, body: "{\"error\":{\"code\":\"model_not_found\",\"message\":\"The model 'tts-nonexistent' does not exist.\",\"param\":\"model\",\"type\":\"invalid_request_error\"}}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/audio/speech",
+				method: "POST",
+				status: 400,
+				body: '{"error":{"code":"model_not_found","message":"The model \'tts-nonexistent\' does not exist.","param":"model","type":"invalid_request_error"}}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("400 Bad Request for speech with unsupported model", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("400 Bad Request for speech with unsupported model", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    // TODO: unknown method "speech"
-  });
+		// TODO: unknown method "speech"
+	});
 });
 
 describe("Basic text-to-speech generation", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/audio/speech", method: "POST", status: 200, body: "{\"_binary\":true,\"_content_type\":\"audio/mpeg\",\"_description\":\"Mock binary audio data\"}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/audio/speech",
+				method: "POST",
+				status: 200,
+				body: '{"_binary":true,"_content_type":"audio/mpeg","_description":"Mock binary audio data"}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("Basic text-to-speech generation", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("Basic text-to-speech generation", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    // TODO: unknown method "speech"
-  });
+		// TODO: unknown method "speech"
+	});
 });
 
 describe("Text-to-speech with explicit MP3 response format", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/audio/speech", method: "POST", status: 200, body: "{\"_binary\":true,\"_content_type\":\"audio/mpeg\",\"_description\":\"Mock MP3 audio data\"}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/audio/speech",
+				method: "POST",
+				status: 200,
+				body: '{"_binary":true,"_content_type":"audio/mpeg","_description":"Mock MP3 audio data"}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("Text-to-speech with explicit MP3 response format", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("Text-to-speech with explicit MP3 response format", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    // TODO: unknown method "speech"
-  });
+		// TODO: unknown method "speech"
+	});
 });

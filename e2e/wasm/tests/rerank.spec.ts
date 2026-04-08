@@ -8,129 +8,184 @@ import type { MockServer } from "./helpers.js";
 // Run `wasm-pack build --target nodejs` in crates/liter-llm-wasm first.
 import { LlmClient } from "liter-llm-wasm";
 
-
 describe("Reranking with an empty query string", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/rerank", method: "POST", status: 200, body: "{\"id\":\"rerank-empty001\",\"meta\":{\"api_version\":{\"version\":\"2\"},\"billed_units\":{\"search_units\":1}},\"results\":[{\"index\":0,\"relevance_score\":0.5},{\"index\":1,\"relevance_score\":0.48}]}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/rerank",
+				method: "POST",
+				status: 200,
+				body: '{"id":"rerank-empty001","meta":{"api_version":{"version":"2"},"billed_units":{"search_units":1}},"results":[{"index":0,"relevance_score":0.5},{"index":1,"relevance_score":0.48}]}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("Reranking with an empty query string", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("Reranking with an empty query string", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    // TODO: unknown method "rerank"
-  });
+		// TODO: unknown method "rerank"
+	});
 });
 
 describe("Reranking with only a single document", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/rerank", method: "POST", status: 200, body: "{\"id\":\"rerank-single001\",\"meta\":{\"api_version\":{\"version\":\"2\"},\"billed_units\":{\"search_units\":1}},\"results\":[{\"index\":0,\"relevance_score\":0.98}]}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/rerank",
+				method: "POST",
+				status: 200,
+				body: '{"id":"rerank-single001","meta":{"api_version":{"version":"2"},"billed_units":{"search_units":1}},"results":[{"index":0,"relevance_score":0.98}]}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("Reranking with only a single document", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("Reranking with only a single document", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    // TODO: unknown method "rerank"
-  });
+		// TODO: unknown method "rerank"
+	});
 });
 
 describe("401 Unauthorized for reranking with invalid API key", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/rerank", method: "POST", status: 401, body: "{\"error\":{\"code\":\"invalid_api_key\",\"message\":\"Incorrect API key provided.\",\"param\":null,\"type\":\"invalid_request_error\"}}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/rerank",
+				method: "POST",
+				status: 401,
+				body: '{"error":{"code":"invalid_api_key","message":"Incorrect API key provided.","param":null,"type":"invalid_request_error"}}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("401 Unauthorized for reranking with invalid API key", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("401 Unauthorized for reranking with invalid API key", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    // TODO: unknown method "rerank"
-  });
+		// TODO: unknown method "rerank"
+	});
 });
 
 describe("400 Bad Request for reranking with invalid model", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/rerank", method: "POST", status: 400, body: "{\"error\":{\"code\":\"model_not_found\",\"message\":\"The model 'nonexistent-rerank' does not exist.\",\"param\":\"model\",\"type\":\"invalid_request_error\"}}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/rerank",
+				method: "POST",
+				status: 400,
+				body: '{"error":{"code":"model_not_found","message":"The model \'nonexistent-rerank\' does not exist.","param":"model","type":"invalid_request_error"}}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("400 Bad Request for reranking with invalid model", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("400 Bad Request for reranking with invalid model", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    // TODO: unknown method "rerank"
-  });
+		// TODO: unknown method "rerank"
+	});
 });
 
 describe("Basic reranking of documents against a query", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/rerank", method: "POST", status: 200, body: "{\"id\":\"rerank-abc123\",\"meta\":{\"api_version\":{\"version\":\"2\"},\"billed_units\":{\"search_units\":1}},\"results\":[{\"index\":0,\"relevance_score\":0.95},{\"index\":2,\"relevance_score\":0.82},{\"index\":1,\"relevance_score\":0.05}]}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/rerank",
+				method: "POST",
+				status: 200,
+				body: '{"id":"rerank-abc123","meta":{"api_version":{"version":"2"},"billed_units":{"search_units":1}},"results":[{"index":0,"relevance_score":0.95},{"index":2,"relevance_score":0.82},{"index":1,"relevance_score":0.05}]}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("Basic reranking of documents against a query", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("Basic reranking of documents against a query", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    // TODO: unknown method "rerank"
-  });
+		// TODO: unknown method "rerank"
+	});
 });
 
 describe("Reranking with return_documents flag to include document text", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/rerank", method: "POST", status: 200, body: "{\"id\":\"rerank-ghi789\",\"meta\":{\"api_version\":{\"version\":\"2\"},\"billed_units\":{\"search_units\":1}},\"results\":[{\"document\":{\"text\":\"Rust is a systems programming language.\"},\"index\":0,\"relevance_score\":0.96},{\"document\":{\"text\":\"Iron rusts when exposed to water.\"},\"index\":1,\"relevance_score\":0.12}]}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/rerank",
+				method: "POST",
+				status: 200,
+				body: '{"id":"rerank-ghi789","meta":{"api_version":{"version":"2"},"billed_units":{"search_units":1}},"results":[{"document":{"text":"Rust is a systems programming language."},"index":0,"relevance_score":0.96},{"document":{"text":"Iron rusts when exposed to water."},"index":1,"relevance_score":0.12}]}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("Reranking with return_documents flag to include document text", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("Reranking with return_documents flag to include document text", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    // TODO: unknown method "rerank"
-  });
+		// TODO: unknown method "rerank"
+	});
 });
 
 describe("Reranking with top_n parameter to limit results", () => {
-  let server: MockServer;
+	let server: MockServer;
 
-  beforeAll(async () => {
-    server = await startMockServer([{ path: "/rerank", method: "POST", status: 200, body: "{\"id\":\"rerank-def456\",\"meta\":{\"api_version\":{\"version\":\"2\"},\"billed_units\":{\"search_units\":1}},\"results\":[{\"index\":0,\"relevance_score\":0.97},{\"index\":2,\"relevance_score\":0.91}]}", streamChunks: [] }]);
-  });
+	beforeAll(async () => {
+		server = await startMockServer([
+			{
+				path: "/rerank",
+				method: "POST",
+				status: 200,
+				body: '{"id":"rerank-def456","meta":{"api_version":{"version":"2"},"billed_units":{"search_units":1}},"results":[{"index":0,"relevance_score":0.97},{"index":2,"relevance_score":0.91}]}',
+				streamChunks: [],
+			},
+		]);
+	});
 
-  afterAll(() => {
-    server.close();
-  });
+	afterAll(() => {
+		server.close();
+	});
 
-  it("Reranking with top_n parameter to limit results", async () => {
-    const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
+	it("Reranking with top_n parameter to limit results", async () => {
+		const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, maxRetries: 0 });
 
-    // TODO: unknown method "rerank"
-  });
+		// TODO: unknown method "rerank"
+	});
 });

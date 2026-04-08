@@ -70,4 +70,109 @@ defmodule LiterLlmE2E.ConfigurationTest do
     assert get_in(doc, ["usage", "total_tokens"]) == 16
     assert doc["model"] == "gpt-4"
   end
+
+  test "llamacpp local provider routes requests via llamacpp/ model prefix with no auth" do
+    routes = [
+      %{
+        path: "/chat/completions",
+        method: "POST",
+        status: 200,
+        body:
+          "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Hi there! I'm running locally.\",\"role\":\"assistant\"}}],\"created\":1711000000,\"id\":\"chatcmpl-llamacpp-001\",\"model\":\"my-model\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":6,\"prompt_tokens\":5,\"total_tokens\":11}}",
+        stream_chunks: []
+      }
+    ]
+
+    {:ok, base_url} = MockServer.start(routes)
+
+    {:ok, resp} =
+      Req.post(base_url <> "/chat/completions",
+        body:
+          "{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"llamacpp/my-model\"}",
+        headers: [{"content-type", "application/json"}],
+        decode_body: false
+      )
+
+    assert resp.status == 200
+    doc = Jason.decode!(resp.body)
+
+    assert length(doc["choices"]) == 1, "Expected 1 choice(s)"
+
+    assert get_in(doc, ["choices", Access.at(0), "message", "content"]) ==
+             "Hi there! I'm running locally."
+
+    assert get_in(doc, ["choices", Access.at(0), "finish_reason"]) == "stop"
+    assert get_in(doc, ["usage", "total_tokens"]) == 11
+    assert doc["model"] == "my-model"
+  end
+
+  test "Ollama local provider routes requests via ollama/ model prefix with no auth" do
+    routes = [
+      %{
+        path: "/chat/completions",
+        method: "POST",
+        status: 200,
+        body:
+          "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Hello! How can I help you today?\",\"role\":\"assistant\"}}],\"created\":1711000000,\"id\":\"chatcmpl-ollama-001\",\"model\":\"qwen2:0.5b\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":8,\"prompt_tokens\":5,\"total_tokens\":13}}",
+        stream_chunks: []
+      }
+    ]
+
+    {:ok, base_url} = MockServer.start(routes)
+
+    {:ok, resp} =
+      Req.post(base_url <> "/chat/completions",
+        body:
+          "{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"ollama/qwen2:0.5b\"}",
+        headers: [{"content-type", "application/json"}],
+        decode_body: false
+      )
+
+    assert resp.status == 200
+    doc = Jason.decode!(resp.body)
+
+    assert length(doc["choices"]) == 1, "Expected 1 choice(s)"
+
+    assert get_in(doc, ["choices", Access.at(0), "message", "content"]) ==
+             "Hello! How can I help you today?"
+
+    assert get_in(doc, ["choices", Access.at(0), "finish_reason"]) == "stop"
+    assert get_in(doc, ["usage", "total_tokens"]) == 13
+    assert doc["model"] == "qwen2:0.5b"
+  end
+
+  test "vLLM local provider routes requests via vllm/ model prefix with no auth" do
+    routes = [
+      %{
+        path: "/chat/completions",
+        method: "POST",
+        status: 200,
+        body:
+          "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Hello! How may I assist you?\",\"role\":\"assistant\"}}],\"created\":1711000000,\"id\":\"chatcmpl-vllm-001\",\"model\":\"meta-llama/Llama-3.2-1B\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":7,\"prompt_tokens\":5,\"total_tokens\":12}}",
+        stream_chunks: []
+      }
+    ]
+
+    {:ok, base_url} = MockServer.start(routes)
+
+    {:ok, resp} =
+      Req.post(base_url <> "/chat/completions",
+        body:
+          "{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"vllm/meta-llama/Llama-3.2-1B\"}",
+        headers: [{"content-type", "application/json"}],
+        decode_body: false
+      )
+
+    assert resp.status == 200
+    doc = Jason.decode!(resp.body)
+
+    assert length(doc["choices"]) == 1, "Expected 1 choice(s)"
+
+    assert get_in(doc, ["choices", Access.at(0), "message", "content"]) ==
+             "Hello! How may I assist you?"
+
+    assert get_in(doc, ["choices", Access.at(0), "finish_reason"]) == "stop"
+    assert get_in(doc, ["usage", "total_tokens"]) == 12
+    assert doc["model"] == "meta-llama/Llama-3.2-1B"
+  end
 end

@@ -65,4 +65,85 @@ final class ConfigurationTest extends TestCase
         $this->assertEquals(16, $doc['usage']['total_tokens']);
         $this->assertEquals('gpt-4', $doc['model']);
     }
+
+    /** llamacpp local provider routes requests via llamacpp/ model prefix with no auth */
+    public function testLocalProviderLlamacpp(): void
+    {
+        $routes = [
+            new MockRoute(
+                path: '/chat/completions',
+                method: 'POST',
+                status: 200,
+                body: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hi there! I\'m running locally.","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-llamacpp-001","model":"my-model","object":"chat.completion","usage":{"completion_tokens":6,"prompt_tokens":5,"total_tokens":11}}',
+                streamChunks: [],
+            ),
+        ];
+
+        $server = new MockServer($routes);
+        $result = httpRequest($server->url . '/chat/completions', 'POST', '{"messages":[{"content":"Hello","role":"user"}],"model":"llamacpp/my-model"}');
+        $server->stop();
+
+        $this->assertEquals(200, $result['status']);
+        $doc = json_decode($result['body'], true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertCount(1, $doc['choices']);
+        $this->assertEquals('Hi there! I\'m running locally.', $doc['choices'][0]['message']['content']);
+        $this->assertEquals('stop', $doc['choices'][0]['finish_reason']);
+        $this->assertEquals(11, $doc['usage']['total_tokens']);
+        $this->assertEquals('my-model', $doc['model']);
+    }
+
+    /** Ollama local provider routes requests via ollama/ model prefix with no auth */
+    public function testLocalProviderOllama(): void
+    {
+        $routes = [
+            new MockRoute(
+                path: '/chat/completions',
+                method: 'POST',
+                status: 200,
+                body: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hello! How can I help you today?","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-ollama-001","model":"qwen2:0.5b","object":"chat.completion","usage":{"completion_tokens":8,"prompt_tokens":5,"total_tokens":13}}',
+                streamChunks: [],
+            ),
+        ];
+
+        $server = new MockServer($routes);
+        $result = httpRequest($server->url . '/chat/completions', 'POST', '{"messages":[{"content":"Hello","role":"user"}],"model":"ollama/qwen2:0.5b"}');
+        $server->stop();
+
+        $this->assertEquals(200, $result['status']);
+        $doc = json_decode($result['body'], true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertCount(1, $doc['choices']);
+        $this->assertEquals('Hello! How can I help you today?', $doc['choices'][0]['message']['content']);
+        $this->assertEquals('stop', $doc['choices'][0]['finish_reason']);
+        $this->assertEquals(13, $doc['usage']['total_tokens']);
+        $this->assertEquals('qwen2:0.5b', $doc['model']);
+    }
+
+    /** vLLM local provider routes requests via vllm/ model prefix with no auth */
+    public function testLocalProviderVllm(): void
+    {
+        $routes = [
+            new MockRoute(
+                path: '/chat/completions',
+                method: 'POST',
+                status: 200,
+                body: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hello! How may I assist you?","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-vllm-001","model":"meta-llama/Llama-3.2-1B","object":"chat.completion","usage":{"completion_tokens":7,"prompt_tokens":5,"total_tokens":12}}',
+                streamChunks: [],
+            ),
+        ];
+
+        $server = new MockServer($routes);
+        $result = httpRequest($server->url . '/chat/completions', 'POST', '{"messages":[{"content":"Hello","role":"user"}],"model":"vllm/meta-llama/Llama-3.2-1B"}');
+        $server->stop();
+
+        $this->assertEquals(200, $result['status']);
+        $doc = json_decode($result['body'], true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertCount(1, $doc['choices']);
+        $this->assertEquals('Hello! How may I assist you?', $doc['choices'][0]['message']['content']);
+        $this->assertEquals('stop', $doc['choices'][0]['finish_reason']);
+        $this->assertEquals(12, $doc['usage']['total_tokens']);
+        $this->assertEquals('meta-llama/Llama-3.2-1B', $doc['model']);
+    }
 }

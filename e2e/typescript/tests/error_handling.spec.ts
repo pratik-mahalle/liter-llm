@@ -5,410 +5,445 @@ import { startMockServer, type MockServer, type MockRoute } from "./helpers";
 import { LlmClient } from "@kreuzberg/liter-llm";
 
 describe("error-handling", () => {
-  // 401 Authentication error returned by the Anthropic API when the API key is invalid
-  it("anthropic_error_auth", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/chat/completions",
-        method: "POST",
-        status: 401,
-        body: `{"error":{"message":"invalid x-api-key","type":"authentication_error"},"type":"error"}`,
-        streamChunks: [],
-      },
-    ];
+	// 401 Authentication error returned by the Anthropic API when the API key is invalid
+	it("anthropic_error_auth", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 401,
+				body: `{"error":{"message":"invalid x-api-key","type":"authentication_error"},"type":"error"}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
 
-      let threw = false;
-      try {
-        await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"anthropic/claude-3-5-sonnet-20241022"}`));
-      } catch (e) {
-        threw = true;
-        expect((e as Error).message ?? "", "Expected [Authentication] error").toMatch(/\[Authentication\]|Authentication/i);
-      }
-      expect(threw, "Expected client.chat to throw").toBe(true);
-    } finally {
-      server.close();
-    }
-  });
+			let threw = false;
+			try {
+				await client.chat(
+					JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"anthropic/claude-3-5-sonnet-20241022"}`),
+				);
+			} catch (e) {
+				threw = true;
+				expect((e as Error).message ?? "", "Expected [Authentication] error").toMatch(
+					/\[Authentication\]|Authentication/i,
+				);
+			}
+			expect(threw, "Expected client.chat to throw").toBe(true);
+		} finally {
+			server.close();
+		}
+	});
 
-  // 401 Unauthorized error when API key is invalid or missing
-  it("auth_401", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/chat/completions",
-        method: "POST",
-        status: 401,
-        body: `{"error":{"code":"invalid_api_key","message":"Incorrect API key provided. You can find your API key at https://platform.openai.com/account/api-keys.","param":null,"type":"invalid_request_error"}}`,
-        streamChunks: [],
-      },
-    ];
+	// 401 Unauthorized error when API key is invalid or missing
+	it("auth_401", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 401,
+				body: `{"error":{"code":"invalid_api_key","message":"Incorrect API key provided. You can find your API key at https://platform.openai.com/account/api-keys.","param":null,"type":"invalid_request_error"}}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
 
-      let threw = false;
-      try {
-        await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}`));
-      } catch (e) {
-        threw = true;
-        expect((e as Error).message ?? "", "Expected [Authentication] error").toMatch(/\[Authentication\]|Authentication/i);
-      }
-      expect(threw, "Expected client.chat to throw").toBe(true);
-    } finally {
-      server.close();
-    }
-  });
+			let threw = false;
+			try {
+				await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}`));
+			} catch (e) {
+				threw = true;
+				expect((e as Error).message ?? "", "Expected [Authentication] error").toMatch(
+					/\[Authentication\]|Authentication/i,
+				);
+			}
+			expect(threw, "Expected client.chat to throw").toBe(true);
+		} finally {
+			server.close();
+		}
+	});
 
-  // Azure OpenAI returns a 401 Unauthorized error when the API key is missing or invalid — uses Azure's error envelope shape with code AccessDenied
-  it("azure_error_auth", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/chat/completions",
-        method: "POST",
-        status: 401,
-        body: `{"error":{"code":"401","message":"Access denied due to invalid subscription key or wrong API endpoint. Make sure to provide a valid key for an active subscription and use a correct regional API endpoint for your resource.","param":null,"type":"invalid_request_error"}}`,
-        streamChunks: [],
-      },
-    ];
+	// Azure OpenAI returns a 401 Unauthorized error when the API key is missing or invalid — uses Azure's error envelope shape with code AccessDenied
+	it("azure_error_auth", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 401,
+				body: `{"error":{"code":"401","message":"Access denied due to invalid subscription key or wrong API endpoint. Make sure to provide a valid key for an active subscription and use a correct regional API endpoint for your resource.","param":null,"type":"invalid_request_error"}}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
 
-      let threw = false;
-      try {
-        await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"azure/gpt-4"}`));
-      } catch (e) {
-        threw = true;
-        expect((e as Error).message ?? "", "Expected [Authentication] error").toMatch(/\[Authentication\]|Authentication/i);
-      }
-      expect(threw, "Expected client.chat to throw").toBe(true);
-    } finally {
-      server.close();
-    }
-  });
+			let threw = false;
+			try {
+				await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"azure/gpt-4"}`));
+			} catch (e) {
+				threw = true;
+				expect((e as Error).message ?? "", "Expected [Authentication] error").toMatch(
+					/\[Authentication\]|Authentication/i,
+				);
+			}
+			expect(threw, "Expected client.chat to throw").toBe(true);
+		} finally {
+			server.close();
+		}
+	});
 
-  // 400 Bad Request error when a parameter value is invalid
-  it("bad_request_400", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/chat/completions",
-        method: "POST",
-        status: 400,
-        body: `{"error":{"message":"Invalid parameter: temperature must be between 0 and 2","type":"invalid_request_error"}}`,
-        streamChunks: [],
-      },
-    ];
+	// 400 Bad Request error when a parameter value is invalid
+	it("bad_request_400", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 400,
+				body: `{"error":{"message":"Invalid parameter: temperature must be between 0 and 2","type":"invalid_request_error"}}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
 
-      let threw = false;
-      try {
-        await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4","temperature":5.0}`));
-      } catch (e) {
-        threw = true;
-        expect((e as Error).message ?? "", "Expected [BadRequest] error").toMatch(/\[BadRequest\]|BadRequest/i);
-      }
-      expect(threw, "Expected client.chat to throw").toBe(true);
-    } finally {
-      server.close();
-    }
-  });
+			let threw = false;
+			try {
+				await client.chat(
+					JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4","temperature":5.0}`),
+				);
+			} catch (e) {
+				threw = true;
+				expect((e as Error).message ?? "", "Expected [BadRequest] error").toMatch(/\[BadRequest\]|BadRequest/i);
+			}
+			expect(threw, "Expected client.chat to throw").toBe(true);
+		} finally {
+			server.close();
+		}
+	});
 
-  // AWS Bedrock returns 403 Forbidden (not 401) when credentials are missing, expired, or the IAM role lacks bedrock:InvokeModel permission — verifies the error is mapped to Authentication
-  it("bedrock_error_auth", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/chat/completions",
-        method: "POST",
-        status: 403,
-        body: `{"message":"You don't have access to the model with the specified model ID."}`,
-        streamChunks: [],
-      },
-    ];
+	// AWS Bedrock returns 403 Forbidden (not 401) when credentials are missing, expired, or the IAM role lacks bedrock:InvokeModel permission — verifies the error is mapped to Authentication
+	it("bedrock_error_auth", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 403,
+				body: `{"message":"You don't have access to the model with the specified model ID."}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
 
-      let threw = false;
-      try {
-        await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"bedrock/anthropic.claude-3-sonnet-20240229-v1:0"}`));
-      } catch (e) {
-        threw = true;
-        expect((e as Error).message ?? "", "Expected [Authentication] error").toMatch(/\[Authentication\]|Authentication/i);
-      }
-      expect(threw, "Expected client.chat to throw").toBe(true);
-    } finally {
-      server.close();
-    }
-  });
+			let threw = false;
+			try {
+				await client.chat(
+					JSON.parse(
+						`{"messages":[{"content":"Hello","role":"user"}],"model":"bedrock/anthropic.claude-3-sonnet-20240229-v1:0"}`,
+					),
+				);
+			} catch (e) {
+				threw = true;
+				expect((e as Error).message ?? "", "Expected [Authentication] error").toMatch(
+					/\[Authentication\]|Authentication/i,
+				);
+			}
+			expect(threw, "Expected client.chat to throw").toBe(true);
+		} finally {
+			server.close();
+		}
+	});
 
-  // 400 error when a request is rejected due to content policy
-  it("content_policy_violation", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/chat/completions",
-        method: "POST",
-        status: 400,
-        body: `{"error":{"message":"Your request was rejected as a result of our content_policy","type":"invalid_request_error"}}`,
-        streamChunks: [],
-      },
-    ];
+	// 400 error when a request is rejected due to content policy
+	it("content_policy_violation", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 400,
+				body: `{"error":{"message":"Your request was rejected as a result of our content_policy","type":"invalid_request_error"}}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
 
-      let threw = false;
-      try {
-        await client.chat(JSON.parse(`{"messages":[{"content":"Generate harmful content","role":"user"}],"model":"gpt-4"}`));
-      } catch (e) {
-        threw = true;
-        expect((e as Error).message ?? "", "Expected [ContentPolicy] error").toMatch(/\[ContentPolicy\]|ContentPolicy/i);
-      }
-      expect(threw, "Expected client.chat to throw").toBe(true);
-    } finally {
-      server.close();
-    }
-  });
+			let threw = false;
+			try {
+				await client.chat(
+					JSON.parse(`{"messages":[{"content":"Generate harmful content","role":"user"}],"model":"gpt-4"}`),
+				);
+			} catch (e) {
+				threw = true;
+				expect((e as Error).message ?? "", "Expected [ContentPolicy] error").toMatch(
+					/\[ContentPolicy\]|ContentPolicy/i,
+				);
+			}
+			expect(threw, "Expected client.chat to throw").toBe(true);
+		} finally {
+			server.close();
+		}
+	});
 
-  // 400 error when the prompt exceeds the model's maximum context length
-  it("context_window_exceeded", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/chat/completions",
-        method: "POST",
-        status: 400,
-        body: `{"error":{"code":"context_length_exceeded","message":"This model's maximum context length is 8192 tokens","type":"invalid_request_error"}}`,
-        streamChunks: [],
-      },
-    ];
+	// 400 error when the prompt exceeds the model's maximum context length
+	it("context_window_exceeded", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 400,
+				body: `{"error":{"code":"context_length_exceeded","message":"This model's maximum context length is 8192 tokens","type":"invalid_request_error"}}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
 
-      let threw = false;
-      try {
-        await client.chat(JSON.parse(`{"messages":[{"content":"Very long prompt that exceeds the context window...","role":"user"}],"model":"gpt-4"}`));
-      } catch (e) {
-        threw = true;
-        expect((e as Error).message ?? "", "Expected [ContextWindowExceeded] error").toMatch(/\[ContextWindowExceeded\]|ContextWindowExceeded/i);
-      }
-      expect(threw, "Expected client.chat to throw").toBe(true);
-    } finally {
-      server.close();
-    }
-  });
+			let threw = false;
+			try {
+				await client.chat(
+					JSON.parse(
+						`{"messages":[{"content":"Very long prompt that exceeds the context window...","role":"user"}],"model":"gpt-4"}`,
+					),
+				);
+			} catch (e) {
+				threw = true;
+				expect((e as Error).message ?? "", "Expected [ContextWindowExceeded] error").toMatch(
+					/\[ContextWindowExceeded\]|ContextWindowExceeded/i,
+				);
+			}
+			expect(threw, "Expected client.chat to throw").toBe(true);
+		} finally {
+			server.close();
+		}
+	});
 
-  // 403 Forbidden error when the API key does not have access to the requested resource
-  it("forbidden_403", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/chat/completions",
-        method: "POST",
-        status: 403,
-        body: `{"error":{"message":"Access denied","type":"access_denied"}}`,
-        streamChunks: [],
-      },
-    ];
+	// 403 Forbidden error when the API key does not have access to the requested resource
+	it("forbidden_403", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 403,
+				body: `{"error":{"message":"Access denied","type":"access_denied"}}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
 
-      let threw = false;
-      try {
-        await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}`));
-      } catch (e) {
-        threw = true;
-        expect((e as Error).message ?? "", "Expected [Authentication] error").toMatch(/\[Authentication\]|Authentication/i);
-      }
-      expect(threw, "Expected client.chat to throw").toBe(true);
-    } finally {
-      server.close();
-    }
-  });
+			let threw = false;
+			try {
+				await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}`));
+			} catch (e) {
+				threw = true;
+				expect((e as Error).message ?? "", "Expected [Authentication] error").toMatch(
+					/\[Authentication\]|Authentication/i,
+				);
+			}
+			expect(threw, "Expected client.chat to throw").toBe(true);
+		} finally {
+			server.close();
+		}
+	});
 
-  // 504 Gateway Timeout error when the upstream service times out
-  it("gateway_timeout_504", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/chat/completions",
-        method: "POST",
-        status: 504,
-        body: `{"error":{"message":"Gateway timeout","type":"server_error"}}`,
-        streamChunks: [],
-      },
-    ];
+	// 504 Gateway Timeout error when the upstream service times out
+	it("gateway_timeout_504", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 504,
+				body: `{"error":{"message":"Gateway timeout","type":"server_error"}}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
 
-      let threw = false;
-      try {
-        await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}`));
-      } catch (e) {
-        threw = true;
-        expect((e as Error).message ?? "", "Expected [ServiceUnavailable] error").toMatch(/\[ServiceUnavailable\]|ServiceUnavailable/i);
-      }
-      expect(threw, "Expected client.chat to throw").toBe(true);
-    } finally {
-      server.close();
-    }
-  });
+			let threw = false;
+			try {
+				await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}`));
+			} catch (e) {
+				threw = true;
+				expect((e as Error).message ?? "", "Expected [ServiceUnavailable] error").toMatch(
+					/\[ServiceUnavailable\]|ServiceUnavailable/i,
+				);
+			}
+			expect(threw, "Expected client.chat to throw").toBe(true);
+		} finally {
+			server.close();
+		}
+	});
 
-  // 404 Not Found error when requesting a model that does not exist
-  it("not_found_404", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/chat/completions",
-        method: "POST",
-        status: 404,
-        body: `{"error":{"message":"Model not found","type":"not_found_error"}}`,
-        streamChunks: [],
-      },
-    ];
+	// 404 Not Found error when requesting a model that does not exist
+	it("not_found_404", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 404,
+				body: `{"error":{"message":"Model not found","type":"not_found_error"}}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
 
-      let threw = false;
-      try {
-        await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-99"}`));
-      } catch (e) {
-        threw = true;
-        expect((e as Error).message ?? "", "Expected [NotFound] error").toMatch(/\[NotFound\]|NotFound/i);
-      }
-      expect(threw, "Expected client.chat to throw").toBe(true);
-    } finally {
-      server.close();
-    }
-  });
+			let threw = false;
+			try {
+				await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-99"}`));
+			} catch (e) {
+				threw = true;
+				expect((e as Error).message ?? "", "Expected [NotFound] error").toMatch(/\[NotFound\]|NotFound/i);
+			}
+			expect(threw, "Expected client.chat to throw").toBe(true);
+		} finally {
+			server.close();
+		}
+	});
 
-  // 429 Too Many Requests error when the rate limit is exceeded
-  it("rate_limit_429", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/chat/completions",
-        method: "POST",
-        status: 429,
-        body: `{"error":{"code":"rate_limit_exceeded","message":"Rate limit reached for gpt-4 in organization org-abc123 on tokens per min. Limit: 10000, Used: 10000, Requested: 100. Please try again in 600ms.","param":null,"type":"requests"}}`,
-        streamChunks: [],
-      },
-    ];
+	// 429 Too Many Requests error when the rate limit is exceeded
+	it("rate_limit_429", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 429,
+				body: `{"error":{"code":"rate_limit_exceeded","message":"Rate limit reached for gpt-4 in organization org-abc123 on tokens per min. Limit: 10000, Used: 10000, Requested: 100. Please try again in 600ms.","param":null,"type":"requests"}}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
 
-      let threw = false;
-      try {
-        await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}`));
-      } catch (e) {
-        threw = true;
-        expect((e as Error).message ?? "", "Expected [RateLimited] error").toMatch(/\[RateLimited\]|RateLimited/i);
-      }
-      expect(threw, "Expected client.chat to throw").toBe(true);
-    } finally {
-      server.close();
-    }
-  });
+			let threw = false;
+			try {
+				await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}`));
+			} catch (e) {
+				threw = true;
+				expect((e as Error).message ?? "", "Expected [RateLimited] error").toMatch(/\[RateLimited\]|RateLimited/i);
+			}
+			expect(threw, "Expected client.chat to throw").toBe(true);
+		} finally {
+			server.close();
+		}
+	});
 
-  // 500 Internal Server Error from the upstream API
-  it("server_error_500", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/chat/completions",
-        method: "POST",
-        status: 500,
-        body: `{"error":{"code":null,"message":"The server had an error while processing your request. Sorry about that!","param":null,"type":"server_error"}}`,
-        streamChunks: [],
-      },
-    ];
+	// 500 Internal Server Error from the upstream API
+	it("server_error_500", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 500,
+				body: `{"error":{"code":null,"message":"The server had an error while processing your request. Sorry about that!","param":null,"type":"server_error"}}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
 
-      let threw = false;
-      try {
-        await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}`));
-      } catch (e) {
-        threw = true;
-        expect((e as Error).message ?? "", "Expected [ServerError] error").toMatch(/\[ServerError\]|ServerError/i);
-      }
-      expect(threw, "Expected client.chat to throw").toBe(true);
-    } finally {
-      server.close();
-    }
-  });
+			let threw = false;
+			try {
+				await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}`));
+			} catch (e) {
+				threw = true;
+				expect((e as Error).message ?? "", "Expected [ServerError] error").toMatch(/\[ServerError\]|ServerError/i);
+			}
+			expect(threw, "Expected client.chat to throw").toBe(true);
+		} finally {
+			server.close();
+		}
+	});
 
-  // 502 Bad Gateway error when the upstream service is unavailable
-  it("service_unavailable_502", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/chat/completions",
-        method: "POST",
-        status: 502,
-        body: `{"error":{"message":"Bad gateway","type":"server_error"}}`,
-        streamChunks: [],
-      },
-    ];
+	// 502 Bad Gateway error when the upstream service is unavailable
+	it("service_unavailable_502", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 502,
+				body: `{"error":{"message":"Bad gateway","type":"server_error"}}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
 
-      let threw = false;
-      try {
-        await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}`));
-      } catch (e) {
-        threw = true;
-        expect((e as Error).message ?? "", "Expected [ServiceUnavailable] error").toMatch(/\[ServiceUnavailable\]|ServiceUnavailable/i);
-      }
-      expect(threw, "Expected client.chat to throw").toBe(true);
-    } finally {
-      server.close();
-    }
-  });
+			let threw = false;
+			try {
+				await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}`));
+			} catch (e) {
+				threw = true;
+				expect((e as Error).message ?? "", "Expected [ServiceUnavailable] error").toMatch(
+					/\[ServiceUnavailable\]|ServiceUnavailable/i,
+				);
+			}
+			expect(threw, "Expected client.chat to throw").toBe(true);
+		} finally {
+			server.close();
+		}
+	});
 
-  // Google Vertex AI returns 401 Unauthorized when the OAuth2 token is missing, expired, or the service account lacks aiplatform.endpoints.predict permission — verifies the error is mapped to Authentication
-  it("vertex_error_auth", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/chat/completions",
-        method: "POST",
-        status: 401,
-        body: `{"error":{"code":401,"message":"Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project.","status":"UNAUTHENTICATED"}}`,
-        streamChunks: [],
-      },
-    ];
+	// Google Vertex AI returns 401 Unauthorized when the OAuth2 token is missing, expired, or the service account lacks aiplatform.endpoints.predict permission — verifies the error is mapped to Authentication
+	it("vertex_error_auth", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 401,
+				body: `{"error":{"code":401,"message":"Request had invalid authentication credentials. Expected OAuth 2 access token, login cookie or other valid authentication credential. See https://developers.google.com/identity/sign-in/web/devconsole-project.","status":"UNAUTHENTICATED"}}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
 
-      let threw = false;
-      try {
-        await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"vertex_ai/gemini-2.0-flash"}`));
-      } catch (e) {
-        threw = true;
-        expect((e as Error).message ?? "", "Expected [Authentication] error").toMatch(/\[Authentication\]|Authentication/i);
-      }
-      expect(threw, "Expected client.chat to throw").toBe(true);
-    } finally {
-      server.close();
-    }
-  });
-
+			let threw = false;
+			try {
+				await client.chat(
+					JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"vertex_ai/gemini-2.0-flash"}`),
+				);
+			} catch (e) {
+				threw = true;
+				expect((e as Error).message ?? "", "Expected [Authentication] error").toMatch(
+					/\[Authentication\]|Authentication/i,
+				);
+			}
+			expect(threw, "Expected client.chat to throw").toBe(true);
+		} finally {
+			server.close();
+		}
+	});
 });

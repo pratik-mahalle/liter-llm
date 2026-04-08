@@ -9,49 +9,118 @@ import type { MockServer } from "./helpers.js";
 import { LlmClient } from "liter-llm-wasm";
 
 describe("cache", () => {
+	it("Tests that identical chat requests return cached response", async () => {
+		const server = await startMockServer([
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 200,
+				body: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hello! How can I help you today?","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-cache-hit-001","model":"gpt-4","object":"chat.completion","usage":{"completion_tokens":9,"prompt_tokens":8,"total_tokens":17}}',
+				streamChunks: [],
+			},
+		]);
+		try {
+			const client = new LlmClient({
+				apiKey: "test-key",
+				baseUrl: server.url,
+				cache: { maxEntries: 10, ttlSeconds: 60 },
+				maxRetries: 0,
+			});
+			const req = JSON.parse('{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}');
 
-  it("Tests that identical chat requests return cached response", async () => {
-    const server = await startMockServer([{ path: "/chat/completions", method: "POST", status: 200, body: "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Hello! How can I help you today?\",\"role\":\"assistant\"}}],\"created\":1711000000,\"id\":\"chatcmpl-cache-hit-001\",\"model\":\"gpt-4\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":9,\"prompt_tokens\":8,\"total_tokens\":17}}", streamChunks: [] }]);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, cache: { maxEntries: 10, ttlSeconds: 60 }, maxRetries: 0 });
-      const req = JSON.parse("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"gpt-4\"}");
+			const resp1 = await client.chat(req);
+			const resp2 = await client.chat(req);
+			expect(JSON.stringify(resp2)).toBe(JSON.stringify(resp1));
+		} finally {
+			server.close();
+		}
+	});
 
-      const resp1 = await client.chat(req);
-      const resp2 = await client.chat(req);
-      expect(JSON.stringify(resp2)).toBe(JSON.stringify(resp1));
-    } finally {
-      server.close();
-    }
-  });
+	it("Tests that cache expires after TTL", async () => {
+		const server = await startMockServer([
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 200,
+				body: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hello! How can I help you today?","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-cache-miss-001","model":"gpt-4","object":"chat.completion","usage":{"completion_tokens":9,"prompt_tokens":8,"total_tokens":17}}',
+				streamChunks: [],
+			},
+		]);
+		try {
+			const client = new LlmClient({
+				apiKey: "test-key",
+				baseUrl: server.url,
+				cache: { maxEntries: 10, ttlSeconds: 60 },
+				maxRetries: 0,
+			});
+			const req = JSON.parse('{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}');
 
-  it("Tests that cache expires after TTL", async () => {
-    const server = await startMockServer([{ path: "/chat/completions", method: "POST", status: 200, body: "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Hello! How can I help you today?\",\"role\":\"assistant\"}}],\"created\":1711000000,\"id\":\"chatcmpl-cache-miss-001\",\"model\":\"gpt-4\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":9,\"prompt_tokens\":8,\"total_tokens\":17}}", streamChunks: [] }]);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, cache: { maxEntries: 10, ttlSeconds: 60 }, maxRetries: 0 });
-      const req = JSON.parse("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"gpt-4\"}");
+			const resp1 = await client.chat(req);
+			const resp2 = await client.chat(req);
+			expect(resp1).toBeTruthy();
+			expect(resp2).toBeTruthy();
+		} finally {
+			server.close();
+		}
+	});
 
-      const resp1 = await client.chat(req);
-      const resp2 = await client.chat(req);
-      expect(resp1).toBeTruthy();
-      expect(resp2).toBeTruthy();
-    } finally {
-      server.close();
-    }
-  });
+	it("Cache hit with OpenDAL memory backend returns cached response on repeat request", async () => {
+		const server = await startMockServer([
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 200,
+				body: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hi there!","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-opendal-mem-001","model":"gpt-4o","object":"chat.completion","usage":{"completion_tokens":2,"prompt_tokens":5,"total_tokens":7}}',
+				streamChunks: [],
+			},
+		]);
+		try {
+			const client = new LlmClient({
+				apiKey: "test-key",
+				baseUrl: server.url,
+				cache: { maxEntries: 10, ttlSeconds: 60 },
+				maxRetries: 0,
+			});
+			const req = JSON.parse('{"messages":[{"content":"Hello","role":"user"}],"model":"openai/gpt-4o"}');
 
-  it("Tests that streaming requests bypass cache entirely", async () => {
-    const server = await startMockServer([{ path: "/chat/completions", method: "POST", status: 200, body: "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Hello! How can I help you today?\",\"role\":\"assistant\"}}],\"created\":1711000000,\"id\":\"chatcmpl-stream-bypass-001\",\"model\":\"gpt-4\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":9,\"prompt_tokens\":8,\"total_tokens\":17}}", streamChunks: [] }]);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, cache: { maxEntries: 10, ttlSeconds: 60 }, maxRetries: 0 });
-      const req = JSON.parse("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"gpt-4\"}");
+			const resp1 = await client.chat(req);
+			const resp2 = await client.chat(req);
+			expect(JSON.stringify(resp2)).toBe(JSON.stringify(resp1));
+		} finally {
+			server.close();
+		}
+	});
 
-      // Streaming should bypass cache.
-      const stream1 = await client.chatStream(req);
-      for await (const _c of stream1) { /* drain */ }
-      const stream2 = await client.chatStream(req);
-      for await (const _c of stream2) { /* drain */ }
-    } finally {
-      server.close();
-    }
-  });
+	it("Tests that streaming requests bypass cache entirely", async () => {
+		const server = await startMockServer([
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 200,
+				body: '{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hello! How can I help you today?","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-stream-bypass-001","model":"gpt-4","object":"chat.completion","usage":{"completion_tokens":9,"prompt_tokens":8,"total_tokens":17}}',
+				streamChunks: [],
+			},
+		]);
+		try {
+			const client = new LlmClient({
+				apiKey: "test-key",
+				baseUrl: server.url,
+				cache: { maxEntries: 10, ttlSeconds: 60 },
+				maxRetries: 0,
+			});
+			const req = JSON.parse('{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}');
+
+			// Streaming should bypass cache.
+			const stream1 = await client.chatStream(req);
+			for await (const _c of stream1) {
+				/* drain */
+			}
+			const stream2 = await client.chatStream(req);
+			for await (const _c of stream2) {
+				/* drain */
+			}
+		} finally {
+			server.close();
+		}
+	});
 });

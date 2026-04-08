@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-04-07
+
+### Added
+
+- Local LLM provider support: Ollama, LM Studio, vLLM, llama.cpp, LocalAI, llamafile -- use any local inference engine via OpenAI-compatible API
+- Docker Compose setup for local LLM integration testing with Ollama
+- Integration test suite for local LLM providers
+
 ### Fixed
 
 - PHP `onError` hook now passes a proper `\Exception` object instead of a plain string (PHP strict types requires `\Throwable`)
@@ -194,7 +202,8 @@ All bindings expose the full API surface with language-idiomatic conventions:
 
 </details>
 
-[Unreleased]: https://github.com/kreuzberg-dev/liter-llm/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/kreuzberg-dev/liter-llm/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/kreuzberg-dev/liter-llm/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/kreuzberg-dev/liter-llm/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/kreuzberg-dev/liter-llm/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/kreuzberg-dev/liter-llm/releases/tag/v1.0.0

@@ -68,6 +68,11 @@ Generate vector embeddings from text. Embeddings are fixed-length numeric arrays
 | Google Vertex AI | `vertex_ai/` | `text-embedding-004` |
 | AWS Bedrock | `bedrock/` | `amazon.titan-embed-text-v2:0` |
 | Ollama | `ollama/` | `nomic-embed-text` |
+| LM Studio | `lmstudio/` | Depends on loaded model |
+| vLLM | `vllm/` | `BAAI/bge-base-en-v1.5` |
+| llama.cpp | `llamacpp/` | Depends on loaded GGUF |
+| LocalAI | `localai/` | Depends on configuration |
+| llamafile | `llamafile/` | Depends on loaded model |
 | Jina AI | `jina_ai/` | `jina-embeddings-v3` |
 
 See the [Providers](../providers.md) page for the complete capability matrix.

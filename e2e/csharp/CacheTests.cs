@@ -74,6 +74,38 @@ public sealed class CacheTests
         Assert.False(resp2.IsCacheHit, "Expected cache miss after TTL expiry");
     }
 
+    /// <summary>Cache hit with OpenDAL memory backend returns cached response on repeat request</summary>
+    [Fact]
+    public async Task CacheOpendalMemory()
+    {
+        var routes = new[]
+        {
+            new MockRoute(
+                Path: "/chat/completions",
+                Method: "POST",
+                Status: 200,
+                Body: "{\"choices\":[{\"finish_reason\":\"stop\",\"index\":0,\"message\":{\"content\":\"Hi there!\",\"role\":\"assistant\"}}],\"created\":1711000000,\"id\":\"chatcmpl-opendal-mem-001\",\"model\":\"gpt-4o\",\"object\":\"chat.completion\",\"usage\":{\"completion_tokens\":2,\"prompt_tokens\":5,\"total_tokens\":7}}",
+                StreamChunks: Array.Empty<string>()
+            ),
+        };
+
+        using var server = new MockServer(routes);
+        var mockUrl = server.Url;
+
+        // TDD: Cache tests -- will fail until cache feature is implemented.
+        var config = new LlmClientConfig.Builder()
+            .WithApiKey("test-key")
+            .WithBaseUrl(mockUrl)
+            .WithCache(new CacheConfig(MaxEntries: 10, TtlSeconds: 60))
+            .Build();
+        var client = new LlmClient(config);
+
+        var request = "{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"openai/gpt-4o\"}";
+        var resp1 = await client.ChatAsync(request);
+        var resp2 = await client.ChatAsync(request);
+        Assert.True(resp2.IsCacheHit, "Expected cache hit on second call");
+    }
+
     /// <summary>Tests that streaming requests bypass cache entirely</summary>
     [Fact]
     public async Task CacheStreamBypass()

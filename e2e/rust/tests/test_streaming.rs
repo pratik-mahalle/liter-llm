@@ -255,6 +255,61 @@ async fn empty_stream() {
     server.shutdown();
 }
 
+/// Streaming chat completion via Ollama local provider with SSE chunks
+#[tokio::test]
+async fn local_stream_ollama() {
+    let server = mock_server::MockServer::start(vec![
+        mock_server::MockRoute {
+            path: "/chat/completions",
+            method: "POST",
+            status: 200,
+            body: r#"null"#.to_string(),
+            stream_chunks: vec![
+                r#"{"choices":[{"delta":{"content":"","role":"assistant"},"finish_reason":null,"index":0}],"created":1711000000,"id":"chatcmpl-ollama-s1","model":"qwen2:0.5b","object":"chat.completion.chunk"}"#.to_string(),
+                r#"{"choices":[{"delta":{"content":"1 "},"finish_reason":null,"index":0}],"created":1711000000,"id":"chatcmpl-ollama-s1","model":"qwen2:0.5b","object":"chat.completion.chunk"}"#.to_string(),
+                r#"{"choices":[{"delta":{"content":"2 "},"finish_reason":null,"index":0}],"created":1711000000,"id":"chatcmpl-ollama-s1","model":"qwen2:0.5b","object":"chat.completion.chunk"}"#.to_string(),
+                r#"{"choices":[{"delta":{"content":"3"},"finish_reason":null,"index":0}],"created":1711000000,"id":"chatcmpl-ollama-s1","model":"qwen2:0.5b","object":"chat.completion.chunk"}"#.to_string(),
+                r#"{"choices":[{"delta":{},"finish_reason":"stop","index":0}],"created":1711000000,"id":"chatcmpl-ollama-s1","model":"qwen2:0.5b","object":"chat.completion.chunk"}"#.to_string(),
+            ],
+        },
+    ]).await;
+
+    let config = ClientConfigBuilder::new("test-key")
+        .base_url(&server.url)
+        .max_retries(0)
+        .build();
+    let client = DefaultClient::new(config, None).unwrap();
+
+    let req: liter_llm::ChatCompletionRequest = serde_json::from_str(
+        r#"{"messages":[{"content":"Count to 3","role":"user"}],"model":"ollama/qwen2:0.5b","stream":true}"#,
+    )
+    .unwrap();
+
+    let stream = client.chat_stream(req).await.expect("chat_stream call failed");
+
+    use tokio_stream::StreamExt as _;
+    let chunks: Vec<_> = stream.collect::<Vec<_>>().await;
+    let ok_chunks: Vec<_> = chunks.iter().filter_map(|c| c.as_ref().ok()).collect();
+    assert!(
+        ok_chunks.len() >= 3,
+        "Expected to receive at least 3 stream chunk(s), got {}",
+        ok_chunks.len()
+    );
+    let content: String = ok_chunks
+        .iter()
+        .flat_map(|c| c.choices.iter())
+        .filter_map(|ch| ch.delta.content.as_deref())
+        .collect();
+    assert!(
+        ok_chunks.len() >= 3,
+        "Expected at least 3 chunk(s), got {}",
+        ok_chunks.len()
+    );
+    assert_eq!(content, "1 2 3", "Stream content mismatch");
+
+    server.shutdown();
+}
+
 /// Verify that the [DONE] sentinel signal properly terminates the stream
 #[tokio::test]
 async fn stream_done_signal() {

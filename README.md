@@ -60,11 +60,11 @@
   </a>
 </div>
 
-**A lighter, faster, safer universal LLM API client** -- one Rust core, 11 native language bindings, 142 providers.
+**A lighter, faster, safer universal LLM API client** -- one Rust core, 11 native language bindings, 143 providers.
 
 ## Why liter-llm?
 
-A universal LLM API client, compiled from the ground up in Rust. No interpreter, no transitive dependency tree, no supply chain surface area. One binary, 11 native language bindings, 142 providers.
+A universal LLM API client, compiled from the ground up in Rust. No interpreter, no transitive dependency tree, no supply chain surface area. One binary, 11 native language bindings, 143 providers.
 
 - **Compiled Rust core.** No `pip install` supply chain. No `.pth` auto-execution hooks. No runtime dependency tree to compromise. The kind of [supply chain attack that hit litellm](https://www.xda-developers.com/popular-python-library-backdoor-machine/) in 2026 is structurally impossible here.
 - **Secrets stay secret.** API keys are wrapped in [`secrecy::SecretString`](https://docs.rs/secrecy/) -- zeroed on drop, redacted in logs, never serialized.
@@ -82,7 +82,7 @@ An honest look at where things stand. We're newer and leaner -- litellm has brea
 |---|---|---|
 | **Language** | Rust (compiled, memory-safe) | Python |
 | **Bindings** | 11 native (Rust, Python, TS, Go, Java, Ruby, PHP, C#, Elixir, WASM, C) | Python (+ OpenAI-compatible proxy) |
-| **Providers** | 142 (compiled at build time) | 100+ (runtime resolution) |
+| **Providers** | 143 (compiled at build time) | 100+ (runtime resolution) |
 | **Streaming** | SSE + AWS EventStream binary protocol | SSE + AWS EventStream |
 | **Observability** | Built-in OpenTelemetry (GenAI semconv) | 40+ callback integrations |
 | **API key safety** | `secrecy::SecretString` (zeroed, redacted) | Plain strings |
@@ -111,7 +111,7 @@ An honest look at where things stand. We're newer and leaner -- litellm has brea
 
 ## Key Features
 
-- **142 providers** -- OpenAI, Anthropic, Google, AWS Bedrock, Groq, Mistral, Together AI, Fireworks, Perplexity, DeepSeek, Cohere, and [130+ more](schemas/providers.json)
+- **143 providers** -- OpenAI, Anthropic, Google, AWS Bedrock, Groq, Mistral, Together AI, Fireworks, Perplexity, DeepSeek, Cohere, and [130+ more](schemas/providers.json)
 - **11 native bindings** -- Rust, Python, TypeScript/Node.js, Go, Java, Ruby, PHP, C#, Elixir, WebAssembly, C/FFI
 - **First-class streaming** -- SSE and AWS EventStream binary protocol with zero-copy buffers
 - **TOML configuration** -- `liter-llm.toml` with auto-discovery, custom providers, cache backends, middleware config
@@ -122,6 +122,7 @@ An honest look at where things stand. We're newer and leaner -- litellm has brea
 - **Embeddings** -- Dimension selection, base64 format, multi-provider support
 - **Per-request routing** -- Automatic provider detection from model name prefix, custom provider registration at runtime
 - **Schema-driven** -- Provider registry and API types compiled from JSON schemas, no runtime lookups
+- **Local LLM support** — Run models locally with Ollama, LM Studio, vLLM, llama.cpp, LocalAI, and llamafile via OpenAI-compatible APIs
 
 ## Proxy Server & Docker
 

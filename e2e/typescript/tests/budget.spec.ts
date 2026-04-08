@@ -5,87 +5,96 @@ import { startMockServer, type MockServer, type MockRoute } from "./helpers";
 import { LlmClient } from "@kreuzberg/liter-llm";
 
 describe("budget", () => {
-  // Tests that a request is rejected when budget is exceeded
-  it("budget_enforced", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/chat/completions",
-        method: "POST",
-        status: 200,
-        body: `{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"This should not be reached","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-budget-enforced-001","model":"gpt-4","object":"chat.completion","usage":{"completion_tokens":6,"prompt_tokens":8,"total_tokens":14}}`,
-        streamChunks: [],
-      },
-    ];
+	// Tests that a request is rejected when budget is exceeded
+	it("budget_enforced", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 200,
+				body: `{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"This should not be reached","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-budget-enforced-001","model":"gpt-4","object":"chat.completion","usage":{"completion_tokens":6,"prompt_tokens":8,"total_tokens":14}}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, budget: JSON.parse(`{"enforcement":"hard","globalLimit":0.0}`) });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({
+				apiKey: "test-key",
+				baseUrl: server.url,
+				budget: JSON.parse(`{"enforcement":"hard","globalLimit":0.0}`),
+			});
 
-      let threw = false;
-      try {
-        await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}`));
-      } catch (e) {
-        threw = true;
-        expect((e as Error).message ?? "", "Expected BudgetExceeded error").toMatch(/BudgetExceeded|budget/i);
-      }
-      expect(threw, "Expected budget enforcement to reject request").toBe(true);
-    } finally {
-      server.close();
-    }
-  });
+			let threw = false;
+			try {
+				await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}`));
+			} catch (e) {
+				threw = true;
+				expect((e as Error).message ?? "", "Expected BudgetExceeded error").toMatch(/BudgetExceeded|budget/i);
+			}
+			expect(threw, "Expected budget enforcement to reject request").toBe(true);
+		} finally {
+			server.close();
+		}
+	});
 
-  // Tests per-model budget limit
-  it("budget_per_model", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/chat/completions",
-        method: "POST",
-        status: 200,
-        body: `{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"This should not be reached","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-budget-per-model-001","model":"gpt-4","object":"chat.completion","usage":{"completion_tokens":6,"prompt_tokens":8,"total_tokens":14}}`,
-        streamChunks: [],
-      },
-    ];
+	// Tests per-model budget limit
+	it("budget_per_model", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 200,
+				body: `{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"This should not be reached","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-budget-per-model-001","model":"gpt-4","object":"chat.completion","usage":{"completion_tokens":6,"prompt_tokens":8,"total_tokens":14}}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, budget: JSON.parse(`{"enforcement":"hard","modelLimits":{"gpt-4":0.0}}`) });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({
+				apiKey: "test-key",
+				baseUrl: server.url,
+				budget: JSON.parse(`{"enforcement":"hard","modelLimits":{"gpt-4":0.0}}`),
+			});
 
-      let threw = false;
-      try {
-        await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}`));
-      } catch (e) {
-        threw = true;
-        expect((e as Error).message ?? "", "Expected BudgetExceeded error").toMatch(/BudgetExceeded|budget/i);
-      }
-      expect(threw, "Expected budget enforcement to reject request").toBe(true);
-    } finally {
-      server.close();
-    }
-  });
+			let threw = false;
+			try {
+				await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}`));
+			} catch (e) {
+				threw = true;
+				expect((e as Error).message ?? "", "Expected BudgetExceeded error").toMatch(/BudgetExceeded|budget/i);
+			}
+			expect(threw, "Expected budget enforcement to reject request").toBe(true);
+		} finally {
+			server.close();
+		}
+	});
 
-  // Tests that cost is tracked after a successful response
-  it("budget_tracked", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/chat/completions",
-        method: "POST",
-        status: 200,
-        body: `{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hello! How can I help you today?","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-budget-tracked-001","model":"gpt-4","object":"chat.completion","usage":{"completion_tokens":9,"prompt_tokens":8,"total_tokens":17}}`,
-        streamChunks: [],
-      },
-    ];
+	// Tests that cost is tracked after a successful response
+	it("budget_tracked", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 200,
+				body: `{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hello! How can I help you today?","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-budget-tracked-001","model":"gpt-4","object":"chat.completion","usage":{"completion_tokens":9,"prompt_tokens":8,"total_tokens":17}}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, budget: JSON.parse(`{}`) });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url, budget: JSON.parse(`{}`) });
 
-      const response = await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}`));
-      expect(response).toBeTruthy();
-      // Verify cost tracking is active — binding should expose budget usage.
-      expect(client.budgetUsed).toBeGreaterThan(0);
-    } finally {
-      server.close();
-    }
-  });
-
+			const response = await client.chat(
+				JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}`),
+			);
+			expect(response).toBeTruthy();
+			// Verify cost tracking is active — binding should expose budget usage.
+			expect(client.budgetUsed).toBeGreaterThan(0);
+		} finally {
+			server.close();
+		}
+	});
 });

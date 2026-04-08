@@ -5,62 +5,158 @@ import { startMockServer, type MockServer, type MockRoute } from "./helpers";
 import { LlmClient } from "@kreuzberg/liter-llm";
 
 describe("configuration", () => {
-  // Client configured with a custom base URL routes all requests to that endpoint
-  it("custom_base_url", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/chat/completions",
-        method: "POST",
-        status: 200,
-        body: `{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hi there!","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-local-001","model":"local-model","object":"chat.completion","usage":{"completion_tokens":4,"prompt_tokens":3,"total_tokens":7}}`,
-        streamChunks: [],
-      },
-    ];
+	// Client configured with a custom base URL routes all requests to that endpoint
+	it("custom_base_url", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 200,
+				body: `{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hi there!","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-local-001","model":"local-model","object":"chat.completion","usage":{"completion_tokens":4,"prompt_tokens":3,"total_tokens":7}}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
 
-      const response = await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"local-model"}`));
+			const response = await client.chat(
+				JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"local-model"}`),
+			);
 
-      expect(response.choices.length, "Choices count mismatch").toBe(1);
-      expect(response.choices[0].finishReason, "finish_reason mismatch").toBe("stop");
-      expect(response.choices[0].message.content, "message content mismatch").toBe("Hi there!");
-      expect(response.usage, "Expected usage object").toBeTruthy();
-      expect(response.usage.totalTokens, "total_tokens mismatch").toBe(7);
-      expect(response.model, "model mismatch").toBe("local-model");
-    } finally {
-      server.close();
-    }
-  });
+			expect(response.choices.length, "Choices count mismatch").toBe(1);
+			expect(response.choices[0].finishReason, "finish_reason mismatch").toBe("stop");
+			expect(response.choices[0].message.content, "message content mismatch").toBe("Hi there!");
+			expect(response.usage, "Expected usage object").toBeTruthy();
+			expect(response.usage.totalTokens, "total_tokens mismatch").toBe(7);
+			expect(response.model, "model mismatch").toBe("local-model");
+		} finally {
+			server.close();
+		}
+	});
 
-  // Client configured with extra custom headers successfully completes a chat request
-  it("extra_headers", async () => {
-    const routes: MockRoute[] = [
-      {
-        path: "/chat/completions",
-        method: "POST",
-        status: 200,
-        body: `{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hello! How can I help you?","role":"assistant"}}],"created":1711000140,"id":"chatcmpl-headers001","model":"gpt-4","object":"chat.completion","usage":{"completion_tokens":8,"prompt_tokens":8,"total_tokens":16}}`,
-        streamChunks: [],
-      },
-    ];
+	// Client configured with extra custom headers successfully completes a chat request
+	it("extra_headers", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 200,
+				body: `{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hello! How can I help you?","role":"assistant"}}],"created":1711000140,"id":"chatcmpl-headers001","model":"gpt-4","object":"chat.completion","usage":{"completion_tokens":8,"prompt_tokens":8,"total_tokens":16}}`,
+				streamChunks: [],
+			},
+		];
 
-    const server = await startMockServer(routes);
-    try {
-      const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
 
-      const response = await client.chat(JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}`));
+			const response = await client.chat(
+				JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"gpt-4"}`),
+			);
 
-      expect(response.choices.length, "Choices count mismatch").toBe(1);
-      expect(response.choices[0].finishReason, "finish_reason mismatch").toBe("stop");
-      expect(response.choices[0].message.content, "message content mismatch").toBe("Hello! How can I help you?");
-      expect(response.usage, "Expected usage object").toBeTruthy();
-      expect(response.usage.totalTokens, "total_tokens mismatch").toBe(16);
-      expect(response.model, "model mismatch").toBe("gpt-4");
-    } finally {
-      server.close();
-    }
-  });
+			expect(response.choices.length, "Choices count mismatch").toBe(1);
+			expect(response.choices[0].finishReason, "finish_reason mismatch").toBe("stop");
+			expect(response.choices[0].message.content, "message content mismatch").toBe("Hello! How can I help you?");
+			expect(response.usage, "Expected usage object").toBeTruthy();
+			expect(response.usage.totalTokens, "total_tokens mismatch").toBe(16);
+			expect(response.model, "model mismatch").toBe("gpt-4");
+		} finally {
+			server.close();
+		}
+	});
 
+	// llamacpp local provider routes requests via llamacpp/ model prefix with no auth
+	it("local_provider_llamacpp", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 200,
+				body: `{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hi there! I'm running locally.","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-llamacpp-001","model":"my-model","object":"chat.completion","usage":{"completion_tokens":6,"prompt_tokens":5,"total_tokens":11}}`,
+				streamChunks: [],
+			},
+		];
+
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+
+			const response = await client.chat(
+				JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"llamacpp/my-model"}`),
+			);
+
+			expect(response.choices.length, "Choices count mismatch").toBe(1);
+			expect(response.choices[0].finishReason, "finish_reason mismatch").toBe("stop");
+			expect(response.choices[0].message.content, "message content mismatch").toBe("Hi there! I'm running locally.");
+			expect(response.usage, "Expected usage object").toBeTruthy();
+			expect(response.usage.totalTokens, "total_tokens mismatch").toBe(11);
+			expect(response.model, "model mismatch").toBe("my-model");
+		} finally {
+			server.close();
+		}
+	});
+
+	// Ollama local provider routes requests via ollama/ model prefix with no auth
+	it("local_provider_ollama", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 200,
+				body: `{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hello! How can I help you today?","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-ollama-001","model":"qwen2:0.5b","object":"chat.completion","usage":{"completion_tokens":8,"prompt_tokens":5,"total_tokens":13}}`,
+				streamChunks: [],
+			},
+		];
+
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+
+			const response = await client.chat(
+				JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"ollama/qwen2:0.5b"}`),
+			);
+
+			expect(response.choices.length, "Choices count mismatch").toBe(1);
+			expect(response.choices[0].finishReason, "finish_reason mismatch").toBe("stop");
+			expect(response.choices[0].message.content, "message content mismatch").toBe("Hello! How can I help you today?");
+			expect(response.usage, "Expected usage object").toBeTruthy();
+			expect(response.usage.totalTokens, "total_tokens mismatch").toBe(13);
+			expect(response.model, "model mismatch").toBe("qwen2:0.5b");
+		} finally {
+			server.close();
+		}
+	});
+
+	// vLLM local provider routes requests via vllm/ model prefix with no auth
+	it("local_provider_vllm", async () => {
+		const routes: MockRoute[] = [
+			{
+				path: "/chat/completions",
+				method: "POST",
+				status: 200,
+				body: `{"choices":[{"finish_reason":"stop","index":0,"message":{"content":"Hello! How may I assist you?","role":"assistant"}}],"created":1711000000,"id":"chatcmpl-vllm-001","model":"meta-llama/Llama-3.2-1B","object":"chat.completion","usage":{"completion_tokens":7,"prompt_tokens":5,"total_tokens":12}}`,
+				streamChunks: [],
+			},
+		];
+
+		const server = await startMockServer(routes);
+		try {
+			const client = new LlmClient({ apiKey: "test-key", baseUrl: server.url });
+
+			const response = await client.chat(
+				JSON.parse(`{"messages":[{"content":"Hello","role":"user"}],"model":"vllm/meta-llama/Llama-3.2-1B"}`),
+			);
+
+			expect(response.choices.length, "Choices count mismatch").toBe(1);
+			expect(response.choices[0].finishReason, "finish_reason mismatch").toBe("stop");
+			expect(response.choices[0].message.content, "message content mismatch").toBe("Hello! How may I assist you?");
+			expect(response.usage, "Expected usage object").toBeTruthy();
+			expect(response.usage.totalTokens, "total_tokens mismatch").toBe(12);
+			expect(response.model, "model mismatch").toBe("meta-llama/Llama-3.2-1B");
+		} finally {
+			server.close();
+		}
+	});
 });
