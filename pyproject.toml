@@ -46,7 +46,6 @@ dev = [
   "uv-bump",
 ]
 doc = [
-  "mkdocstrings[python]>=1.0.0",
   "zensical",
 ]
 

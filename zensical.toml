@@ -1,0 +1,200 @@
+[project]
+site_name = "liter-llm"
+site_description = "Universal LLM API client for 142+ providers with polyglot bindings."
+site_url = "https://docs.liter-llm.kreuzberg.dev"
+site_author = "kreuzberg.dev"
+repo_name = "kreuzberg-dev/liter-llm"
+repo_url = "https://github.com/kreuzberg-dev/liter-llm"
+edit_uri = "edit/main/docs/"
+copyright = "Copyright &copy; 2024-2026 Kreuzberg.dev"
+extra_css = ["css/extra.css"]
+nav = [
+    { "Home" = "index.md" },
+    { "Installation" = "getting-started/installation.md" },
+    { "Usage" = [
+        { "Chat & Streaming" = "usage/chat.md" },
+        { "Embeddings & Rerank" = "usage/embeddings.md" },
+        { "Media (Images, Speech, Transcription)" = "usage/media.md" },
+        { "Search & OCR" = "usage/search-ocr.md" },
+        { "Files & Batches" = "usage/files.md" },
+        { "Configuration" = "usage/configuration.md" },
+    ] },
+    { "API Reference" = [
+        { "Python" = "api/python.md" },
+        { "TypeScript / Node.js" = "api/typescript.md" },
+        { "Rust" = "api/rust.md" },
+        { "Go" = "api/go.md" },
+        { "Java" = "api/java.md" },
+        { "C# / .NET" = "api/csharp.md" },
+        { "Ruby" = "api/ruby.md" },
+        { "Elixir" = "api/elixir.md" },
+        { "PHP" = "api/php.md" },
+        { "WebAssembly" = "api/wasm.md" },
+        { "C / FFI" = "api/c-ffi.md" },
+    ] },
+    { "Providers" = "providers.md" },
+    { "Changelog" = "CHANGELOG.md" },
+    { "Contributing" = "contributing.md" },
+]
+
+[project.theme]
+variant = "classic"
+custom_dir = "docs/overrides"
+logo = "assets/logo.svg"
+favicon = "assets/favicon.ico"
+language = "en"
+features = [
+    "content.code.copy",
+    "content.code.annotate",
+    "content.tabs.link",
+    "navigation.instant",
+    "navigation.instant.progress",
+    "navigation.path",
+    "navigation.prune",
+    "navigation.indexes",
+    "navigation.sections",
+    "navigation.tabs",
+    "navigation.tabs.sticky",
+    "navigation.tracking",
+    "navigation.top",
+    "navigation.footer",
+    "search.highlight",
+    "search.share",
+    "search.suggest",
+    "toc.follow",
+    "toc.integrate",
+    "announce.dismiss",
+    "content.action.edit",
+    "content.action.view",
+]
+
+[project.theme.font]
+text = "Inter"
+code = "JetBrains Mono"
+
+[project.theme.icon]
+repo = "github"
+search = "search"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+primary = "custom"
+accent = "custom"
+toggle.icon = "sun"
+toggle.name = "Switch to light mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+primary = "custom"
+accent = "custom"
+toggle.icon = "moon"
+toggle.name = "Switch to dark mode"
+
+# Markdown extensions
+
+[project.markdown_extensions.admonition]
+[project.markdown_extensions.attr_list]
+[project.markdown_extensions.def_list]
+[project.markdown_extensions.footnotes]
+[project.markdown_extensions.md_in_html]
+[project.markdown_extensions.tables]
+
+[project.markdown_extensions.toc]
+permalink = true
+toc_depth = 3
+
+[project.markdown_extensions.pymdownx.details]
+
+[project.markdown_extensions.pymdownx.emoji]
+emoji_index = "zensical.extensions.emoji.twemoji"
+emoji_generator = "zensical.extensions.emoji.to_svg"
+options.custom_icons = ["docs/overrides/.icons"]
+
+[project.markdown_extensions.pymdownx.highlight]
+anchor_linenums = true
+line_spans = "__span"
+pygments_lang_class = true
+linenums = false
+use_pygments = true
+
+[project.markdown_extensions.pymdownx.inlinehilite]
+[project.markdown_extensions.pymdownx.keys]
+[project.markdown_extensions.pymdownx.mark]
+[project.markdown_extensions.pymdownx.smartsymbols]
+
+[project.markdown_extensions.pymdownx.snippets]
+base_path = ["docs", "."]
+check_paths = true
+
+[project.markdown_extensions.pymdownx.superfences]
+custom_fences = [
+    { name = "mermaid", class = "mermaid", format = "pymdownx.superfences.fence_code_format" },
+]
+
+[project.markdown_extensions.pymdownx.tabbed]
+alternate_style = true
+combine_header_slug = true
+
+[project.markdown_extensions.pymdownx.tabbed.slugify]
+object = "pymdownx.slugs.slugify"
+kwds = { case = "lower" }
+
+[project.markdown_extensions.pymdownx.tasklist]
+custom_checkbox = true
+
+# Plugins
+
+[project.plugins.search]
+
+[project.plugins.social]
+cards = false
+
+[project.plugins.tags]
+
+[project.plugins.minify]
+minify_html = true
+
+# Extra
+
+[project.extra]
+status.new = "Recently added"
+status.deprecated = "Deprecated"
+repo.stars = true
+repo.forks = true
+
+[[project.extra.social]]
+icon = "fontawesome/brands/github"
+link = "https://github.com/kreuzberg-dev/liter-llm"
+name = "View on GitHub"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/python"
+link = "https://pypi.org/project/liter-llm/"
+name = "View on PyPI"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/docker"
+link = "https://github.com/kreuzberg-dev/liter-llm/pkgs/container/liter-llm"
+name = "View on GitHub Container Registry"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/npm"
+link = "https://www.npmjs.com/package/@kreuzberg/liter-llm"
+name = "View on npm"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/rust"
+link = "https://crates.io/crates/liter-llm"
+name = "View on crates.io"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/discord"
+link = "https://discord.gg/xt9WY3GnKR"
+name = "Join our Discord"
+
+[[project.extra.social]]
+icon = "fontawesome/solid/globe"
+link = "https://kreuzberg.dev"
+name = "kreuzberg.dev"

@@ -6,7 +6,7 @@ on:
     paths:
       - "docs/**"
       - "tools/snippet-runner/**"
-      - "mkdocs.yaml"
+      - "zensical.toml"
       - "pyproject.toml"
       - ".github/workflows/ci-docs.yaml"
   pull_request:
@@ -14,7 +14,7 @@ on:
     paths:
       - "docs/**"
       - "tools/snippet-runner/**"
-      - "mkdocs.yaml"
+      - "zensical.toml"
       - "pyproject.toml"
       - ".github/workflows/ci-docs.yaml"
   workflow_dispatch:
