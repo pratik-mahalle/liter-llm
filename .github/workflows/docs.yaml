@@ -6,7 +6,7 @@ on:
     paths:
       - "docs/**"
       - "pyproject.toml"
-      - "mkdocs.yaml"
+      - "zensical.toml"
       - ".github/workflows/docs.yaml"
   workflow_dispatch:
 
