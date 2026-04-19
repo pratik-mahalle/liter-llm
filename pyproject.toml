@@ -78,6 +78,10 @@ lint.ignore = [
   "TD",     # we allow todo and fixme comments
   "TRY",    # Try except block, rules are too strict
 ]
+lint.per-file-ignores."**/*.pyi" = [
+  "A002", # builtin shadowing in type stubs (id, format, object)
+  "D",    # docstrings not required in type stubs
+]
 lint.per-file-ignores."scripts/**/*.*" = [
   "B904",    # raise without from
   "BLE001",  # broad exception catch

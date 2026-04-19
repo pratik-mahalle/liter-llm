@@ -9,6 +9,8 @@ from typing import Any
 
 
 class ImageDetail(str, Enum):
+    """Image detail."""
+
     LOW = "low"
     HIGH = "high"
     AUTO = "auto"
@@ -45,24 +47,32 @@ class FunctionCall:
 
 @dataclass
 class SystemMessage:
+    """System message."""
+
     content: str = ""
     name: str | None = None
 
 
 @dataclass
 class UserMessage:
+    """User message."""
+
     content: dict[str, Any] | None = None
     name: str | None = None
 
 
 @dataclass
 class ImageUrl:
+    """Image url."""
+
     url: str = ""
     detail: str | None = None
 
 
 @dataclass
 class DocumentContent:
+    """Document content."""
+
     data: str = ""
     """Base64-encoded document data or URL."""
 
@@ -72,6 +82,8 @@ class DocumentContent:
 
 @dataclass
 class AudioContent:
+    """Audio content."""
+
     data: str = ""
     """Base64-encoded audio data."""
 
@@ -81,6 +93,8 @@ class AudioContent:
 
 @dataclass
 class AssistantMessage:
+    """Assistant message."""
+
     content: str | None = None
     name: str | None = None
     tool_calls: list[Any] | None = None
@@ -91,6 +105,8 @@ class AssistantMessage:
 
 @dataclass
 class ToolMessage:
+    """Tool message."""
+
     content: str = ""
     tool_call_id: str = ""
     name: str | None = None
@@ -98,6 +114,8 @@ class ToolMessage:
 
 @dataclass
 class DeveloperMessage:
+    """Developer message."""
+
     content: str = ""
     name: str | None = None
 
@@ -112,17 +130,23 @@ class FunctionMessage:
 
 @dataclass
 class SpecificToolChoice:
+    """Specific tool choice."""
+
     choice_type: str = "function"
     function: Any | None = None
 
 
 @dataclass
 class SpecificFunction:
+    """Specific function."""
+
     name: str = ""
 
 
 @dataclass
 class JsonSchemaFormat:
+    """Json schema format."""
+
     name: str = ""
     description: str | None = None
     schema: str = ""
@@ -131,6 +155,8 @@ class JsonSchemaFormat:
 
 @dataclass
 class Usage:
+    """Usage."""
+
     prompt_tokens: int = 0
     """Prompt tokens used. Defaults to 0 when absent (some providers omit this)."""
 
@@ -143,6 +169,8 @@ class Usage:
 
 @dataclass
 class ChatCompletionRequest:
+    """Chat completion request."""
+
     model: str = ""
     messages: list[dict[str, Any]] = field(default_factory=list)
     temperature: float | None = None
@@ -172,11 +200,15 @@ class ChatCompletionRequest:
 
 @dataclass
 class StreamOptions:
+    """Stream options."""
+
     include_usage: bool | None = None
 
 
 @dataclass
 class ChatCompletionResponse:
+    """Chat completion response."""
+
     id: str = ""
     object: str = ""
     """Always `"chat.completion"` from OpenAI-compatible APIs.  Stored as a"""
@@ -191,6 +223,8 @@ class ChatCompletionResponse:
 
 @dataclass
 class Choice:
+    """Choice."""
+
     index: int = 0
     message: Any | None = None
     finish_reason: str | None = None
@@ -198,6 +232,8 @@ class Choice:
 
 @dataclass
 class ChatCompletionChunk:
+    """Chat completion chunk."""
+
     id: str = ""
     object: str = ""
     """Always `"chat.completion.chunk"` from OpenAI-compatible APIs.  Stored"""
@@ -212,6 +248,8 @@ class ChatCompletionChunk:
 
 @dataclass
 class StreamChoice:
+    """Stream choice."""
+
     index: int = 0
     delta: Any | None = None
     finish_reason: str | None = None
@@ -219,6 +257,8 @@ class StreamChoice:
 
 @dataclass
 class StreamDelta:
+    """Stream delta."""
+
     role: str | None = None
     content: str | None = None
     tool_calls: list[Any] | None = None
@@ -230,6 +270,8 @@ class StreamDelta:
 
 @dataclass
 class StreamToolCall:
+    """Stream tool call."""
+
     index: int = 0
     id: str | None = None
     call_type: str | None = None
@@ -238,6 +280,8 @@ class StreamToolCall:
 
 @dataclass
 class StreamFunctionCall:
+    """Stream function call."""
+
     name: str | None = None
     arguments: str | None = None
 
@@ -340,6 +384,8 @@ class SearchRequest:
 
 @dataclass
 class ModelsListResponse:
+    """Models list response."""
+
     object: str = ""
     """Always `"list"` from OpenAI-compatible APIs.  Stored as a plain"""
 
@@ -348,6 +394,8 @@ class ModelsListResponse:
 
 @dataclass
 class ModelObject:
+    """Model object."""
+
     id: str = ""
     object: str = ""
     """Always `"model"` from OpenAI-compatible APIs.  Stored as a plain"""

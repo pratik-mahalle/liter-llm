@@ -9,22 +9,18 @@ includes:
     source: https://github.com/kreuzberg-dev/ai-rulez.git
     path: modules/core
     merge_strategy: local-override
-    local_override: ../ai-rulez
   - name: kreuzberg-languages
     source: https://github.com/kreuzberg-dev/ai-rulez.git
     path: modules/languages
     merge_strategy: local-override
-    local_override: ../ai-rulez
   - name: kreuzberg-cicd
     source: https://github.com/kreuzberg-dev/ai-rulez.git
     path: modules/cicd
     merge_strategy: local-override
-    local_override: ../ai-rulez
   - name: kreuzberg-e2e-generator
     source: https://github.com/kreuzberg-dev/ai-rulez.git
     path: modules/e2e-generator
     merge_strategy: local-override
-    local_override: ../ai-rulez
 builtins:
   - rust
   - python
@@ -48,5 +44,5 @@ presets:
 version: "3.0"
 installed_skills:
   - name: alef
-    source: ../alef
+    source: https://github.com/kreuzberg-dev/alef.git
     description: Generate fully-typed polyglot language bindings for Rust libraries using Alef

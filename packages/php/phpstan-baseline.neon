@@ -1,6 +1,2 @@
 parameters:
-	ignoreErrors:
-		-
-			identifier: constructor.unusedParameter
-			count: 12
-			path: src/LlmClient.php
+	ignoreErrors: []

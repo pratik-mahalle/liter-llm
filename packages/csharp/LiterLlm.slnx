@@ -1,4 +1,3 @@
 <Solution>
   <Project Path="LiterLlm/LiterLlm.csproj" />
-  <Project Path="LiterLlm.Tests/LiterLlm.Tests.csproj" />
 </Solution>
