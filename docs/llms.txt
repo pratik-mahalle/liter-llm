@@ -1,0 +1,43 @@
+# liter-llm
+
+> Universal LLM API client for 142+ providers with native bindings for 11 languages.
+
+liter-llm provides unified access to 142+ LLM providers through a single API. Built in Rust with native bindings for Python, TypeScript, Go, Java, Ruby, PHP, C#, Elixir, WebAssembly, and C/FFI. Features include chat completions, streaming, embeddings, tool calling, image generation, audio, moderation, search, OCR, and an OpenAI-compatible proxy server.
+
+## Getting Started
+
+- [Installation](https://docs.liter-llm.kreuzberg.dev/getting-started/installation): Install liter-llm for your language and platform
+- [Configuration](https://docs.liter-llm.kreuzberg.dev/usage/configuration): Set API keys and configure client options
+
+## Usage
+
+- [Chat & Streaming](https://docs.liter-llm.kreuzberg.dev/usage/chat): Chat completions with streaming support
+- [Embeddings & Rerank](https://docs.liter-llm.kreuzberg.dev/usage/embeddings): Generate text embeddings and rerank results
+- [Media (Images, Speech, Transcription)](https://docs.liter-llm.kreuzberg.dev/usage/media): Image generation, text-to-speech, speech-to-text
+- [Search & OCR](https://docs.liter-llm.kreuzberg.dev/usage/search-ocr): Web search and optical character recognition
+- [Files & Batches](https://docs.liter-llm.kreuzberg.dev/usage/files): File uploads, batch processing, and async operations
+- [Local LLMs](https://docs.liter-llm.kreuzberg.dev/usage/local-llms): Run local models with Ollama and other runtimes
+- [MCP & IDE Integration](https://docs.liter-llm.kreuzberg.dev/usage/mcp-integration): Model Context Protocol support and IDE plugins
+
+## API Reference
+
+- [Python](https://docs.liter-llm.kreuzberg.dev/api/python): Python bindings and API reference
+- [TypeScript / Node.js](https://docs.liter-llm.kreuzberg.dev/api/typescript): TypeScript/JavaScript API reference
+- [Rust](https://docs.liter-llm.kreuzberg.dev/api/rust): Rust API reference and core library
+- [Go](https://docs.liter-llm.kreuzberg.dev/api/go): Go module bindings
+- [Java](https://docs.liter-llm.kreuzberg.dev/api/java): Java wrapper API reference
+- [C# / .NET](https://docs.liter-llm.kreuzberg.dev/api/csharp): .NET binding API reference
+- [Ruby](https://docs.liter-llm.kreuzberg.dev/api/ruby): Ruby gem API reference
+- [Elixir](https://docs.liter-llm.kreuzberg.dev/api/elixir): Elixir package API reference
+- [PHP](https://docs.liter-llm.kreuzberg.dev/api/php): PHP extension API reference
+- [WebAssembly](https://docs.liter-llm.kreuzberg.dev/api/wasm): WebAssembly bindings for JavaScript
+- [C / FFI](https://docs.liter-llm.kreuzberg.dev/api/c-ffi): C FFI layer and headers
+
+## Providers
+
+- [Provider Registry](https://docs.liter-llm.kreuzberg.dev/providers): Full list of 142+ supported providers and model prefixes
+
+## Additional Resources
+
+- [Changelog](https://docs.liter-llm.kreuzberg.dev/CHANGELOG): Release notes and version history
+- [Contributing](https://docs.liter-llm.kreuzberg.dev/contributing): Contribution guidelines and development setup

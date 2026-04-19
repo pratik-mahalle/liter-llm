@@ -40,7 +40,7 @@ nav = [
 ]
 
 [project.theme]
-variant = "classic"
+name = "material"
 custom_dir = "docs/overrides"
 logo = "assets/logo.svg"
 favicon = "assets/favicon.ico"
@@ -112,7 +112,7 @@ toc_depth = 3
 [project.markdown_extensions.pymdownx.emoji]
 emoji_index = "zensical.extensions.emoji.twemoji"
 emoji_generator = "zensical.extensions.emoji.to_svg"
-options.custom_icons = ["docs/overrides/.icons"]
+options = { custom_icons = ["docs/overrides/.icons"] }
 
 [project.markdown_extensions.pymdownx.highlight]
 anchor_linenums = true
@@ -127,7 +127,7 @@ use_pygments = true
 [project.markdown_extensions.pymdownx.smartsymbols]
 
 [project.markdown_extensions.pymdownx.snippets]
-base_path = ["docs", "."]
+base_path = [".", "docs"]
 check_paths = true
 
 [project.markdown_extensions.pymdownx.superfences]
@@ -140,8 +140,7 @@ alternate_style = true
 combine_header_slug = true
 
 [project.markdown_extensions.pymdownx.tabbed.slugify]
-object = "pymdownx.slugs.slugify"
-kwds = { case = "lower" }
+case = "lower"
 
 [project.markdown_extensions.pymdownx.tasklist]
 custom_checkbox = true
