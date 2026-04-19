@@ -207,6 +207,7 @@ output = "e2e"
 # Default call config (used when fixture has no "call" field)
 [e2e.call]
 function = "chat"
+path = "/v1/chat/completions"
 module = "liter_llm"
 result_var = "result"
 async = true
@@ -219,6 +220,7 @@ type = "json_object"
 # Named call configs for each API method
 [e2e.calls.chat]
 function = "chat"
+path = "/v1/chat/completions"
 module = "liter_llm"
 async = true
 [[e2e.calls.chat.args]]
@@ -228,6 +230,7 @@ type = "json_object"
 
 [e2e.calls.chat_stream]
 function = "chat_stream"
+path = "/v1/chat/completions"
 module = "liter_llm"
 async = true
 [[e2e.calls.chat_stream.args]]
@@ -237,6 +240,7 @@ type = "json_object"
 
 [e2e.calls.embed]
 function = "embed"
+path = "/v1/embeddings"
 module = "liter_llm"
 async = true
 [[e2e.calls.embed.args]]
@@ -246,11 +250,13 @@ type = "json_object"
 
 [e2e.calls.list_models]
 function = "list_models"
+path = "/v1/models"
 module = "liter_llm"
 async = true
 
 [e2e.calls.image_generate]
 function = "image_generate"
+path = "/v1/images/generations"
 module = "liter_llm"
 async = true
 [[e2e.calls.image_generate.args]]
@@ -260,6 +266,7 @@ type = "json_object"
 
 [e2e.calls.speech]
 function = "speech"
+path = "/v1/audio/speech"
 module = "liter_llm"
 async = true
 [[e2e.calls.speech.args]]
@@ -269,6 +276,7 @@ type = "json_object"
 
 [e2e.calls.transcribe]
 function = "transcribe"
+path = "/v1/audio/transcriptions"
 module = "liter_llm"
 async = true
 [[e2e.calls.transcribe.args]]
@@ -278,6 +286,7 @@ type = "json_object"
 
 [e2e.calls.moderate]
 function = "moderate"
+path = "/v1/moderations"
 module = "liter_llm"
 async = true
 [[e2e.calls.moderate.args]]
@@ -287,6 +296,7 @@ type = "json_object"
 
 [e2e.calls.rerank]
 function = "rerank"
+path = "/v1/rerank"
 module = "liter_llm"
 async = true
 [[e2e.calls.rerank.args]]
@@ -296,6 +306,7 @@ type = "json_object"
 
 [e2e.calls.search]
 function = "search"
+path = "/v1/search"
 module = "liter_llm"
 async = true
 [[e2e.calls.search.args]]
@@ -305,6 +316,7 @@ type = "json_object"
 
 [e2e.calls.ocr]
 function = "ocr"
+path = "/v1/ocr"
 module = "liter_llm"
 async = true
 [[e2e.calls.ocr.args]]
@@ -314,6 +326,7 @@ type = "json_object"
 
 [e2e.calls.create_file]
 function = "create_file"
+path = "/v1/files"
 module = "liter_llm"
 async = true
 [[e2e.calls.create_file.args]]
@@ -323,6 +336,7 @@ type = "json_object"
 
 [e2e.calls.retrieve_file]
 function = "retrieve_file"
+path = "/v1/files"
 module = "liter_llm"
 async = true
 [[e2e.calls.retrieve_file.args]]
@@ -332,6 +346,7 @@ type = "string"
 
 [e2e.calls.delete_file]
 function = "delete_file"
+path = "/v1/files"
 module = "liter_llm"
 async = true
 [[e2e.calls.delete_file.args]]
@@ -341,11 +356,13 @@ type = "string"
 
 [e2e.calls.list_files]
 function = "list_files"
+path = "/v1/files"
 module = "liter_llm"
 async = true
 
 [e2e.calls.file_content]
 function = "file_content"
+path = "/v1/files"
 module = "liter_llm"
 async = true
 [[e2e.calls.file_content.args]]
@@ -355,6 +372,7 @@ type = "string"
 
 [e2e.calls.create_batch]
 function = "create_batch"
+path = "/v1/batches"
 module = "liter_llm"
 async = true
 [[e2e.calls.create_batch.args]]
@@ -364,6 +382,7 @@ type = "json_object"
 
 [e2e.calls.retrieve_batch]
 function = "retrieve_batch"
+path = "/v1/batches"
 module = "liter_llm"
 async = true
 [[e2e.calls.retrieve_batch.args]]
@@ -373,11 +392,13 @@ type = "string"
 
 [e2e.calls.list_batches]
 function = "list_batches"
+path = "/v1/batches"
 module = "liter_llm"
 async = true
 
 [e2e.calls.cancel_batch]
 function = "cancel_batch"
+path = "/v1/batches"
 module = "liter_llm"
 async = true
 [[e2e.calls.cancel_batch.args]]
@@ -387,6 +408,7 @@ type = "string"
 
 [e2e.calls.create_response]
 function = "create_response"
+path = "/v1/responses"
 module = "liter_llm"
 async = true
 [[e2e.calls.create_response.args]]
@@ -396,6 +418,7 @@ type = "json_object"
 
 [e2e.calls.retrieve_response]
 function = "retrieve_response"
+path = "/v1/responses"
 module = "liter_llm"
 async = true
 [[e2e.calls.retrieve_response.args]]
@@ -405,6 +428,7 @@ type = "string"
 
 [e2e.calls.cancel_response]
 function = "cancel_response"
+path = "/v1/responses"
 module = "liter_llm"
 async = true
 [[e2e.calls.cancel_response.args]]

@@ -1,15 +1,13 @@
 {
-    "require-dev": {
-        "phpunit/phpunit": "^11.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "LiterLlm\\": "../../packages/php/src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "LiterLlmE2E\\": "tests/"
-        }
+  "name": "kreuzberg/e2e-php",
+  "description": "E2e tests for PHP bindings",
+  "type": "project",
+  "require-dev": {
+    "phpunit/phpunit": "^11.0"
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Kreuzberg\\E2e\\": "tests/"
     }
+  }
 }
