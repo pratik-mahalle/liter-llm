@@ -38,9 +38,6 @@ includes:
   _lint_wf:
     taskfile: .task/workflows/lint.yml
     internal: true
-  _e2e_wf:
-    taskfile: .task/workflows/e2e.yml
-    internal: true
   version:
     taskfile: .task/tools/version-sync.yml
   tools:
@@ -230,87 +227,41 @@ tasks:
       - task: wasm:clean
       - task: elixir:clean
 
-  # Codegen (run after schema changes)
-  # TODO: generate:types — requires e2e-generator `types` subcommand (not yet implemented)
-  # TODO: generate:providers — requires e2e-generator `providers` subcommand (not yet implemented)
-  # TODO: generate:check — requires e2e-generator `check` subcommand (not yet implemented)
+  # Alef binding generation
+  alef:extract:
+    desc: Extract API surface from Rust source
+    cmds:
+      - alef extract
+
+  alef:generate:
+    desc: Generate all language bindings
+    cmds:
+      - alef generate
+
+  alef:all:
+    desc: Run full alef pipeline (extract + generate + stubs + scaffold + readme + e2e)
+    cmds:
+      - alef all
+
+  alef:verify:
+    desc: Check bindings are up-to-date (CI)
+    cmds:
+      - alef verify --exit-code
 
   generate:all:
-    desc: Regenerate all code from schemas
+    desc: Regenerate all generated code
     cmds:
-      - task: e2e:generate:all
+      - alef all
 
-  # E2E test generation
-  e2e:generate:all:
-    desc: Generate E2E tests for all languages from fixtures
+  generate:readme:
+    desc: Generate package READMEs
     cmds:
-      - cargo run -p e2e-generator -- generate --lang all
-    env:
-      PROJECT_ROOT: "{{.PROJECT_ROOT}}"
+      - alef readme
 
-  e2e:test:all:
-    desc: Run E2E tests for all languages
+  generate:readme:check:
+    desc: Validate package READMEs are up-to-date (CI)
     cmds:
-      - task: rust:e2e:test
-      - task: go:test
-      - task: java:test
-      - task: csharp:test
-      - task: elixir:test
-
-  e2e:generate:rust:
-    desc: Generate and format Rust E2E tests
-    cmds:
-      - task: e2e:generate:rust
-
-  e2e:generate:python:
-    desc: Generate and lint Python E2E tests
-    cmds:
-      - task: e2e:generate:python
-
-  e2e:generate:typescript:
-    desc: Generate TypeScript E2E tests
-    cmds:
-      - task: e2e:generate:typescript
-
-  e2e:generate:go:
-    desc: Generate and format Go E2E tests
-    cmds:
-      - task: e2e:generate:go
-
-  e2e:generate:java:
-    desc: Generate Java E2E tests
-    cmds:
-      - task: e2e:generate:java
-
-  e2e:generate:elixir:
-    desc: Generate Elixir E2E tests
-    cmds:
-      - task: e2e:generate:elixir
-
-  e2e:generate:ruby:
-    desc: Generate and format Ruby E2E tests
-    cmds:
-      - task: e2e:generate:ruby
-
-  e2e:generate:wasm:
-    desc: Generate WASM E2E tests
-    cmds:
-      - task: e2e:generate:wasm
-
-  e2e:generate:c:
-    desc: Generate C E2E tests
-    cmds:
-      - task: e2e:generate:c
-
-  e2e:generate:php:
-    desc: Generate PHP E2E tests
-    cmds:
-      - task: e2e:generate:php
-
-  e2e:generate:csharp:
-    desc: Generate C# E2E tests
-    cmds:
-      - task: e2e:generate:csharp
+      - alef verify --exit-code
 
   generate:providers-doc:
     desc: Generate providers documentation from schemas/providers.json
@@ -322,20 +273,23 @@ tasks:
     cmds:
       - uv run python scripts/generate_providers_doc.py --validate
 
-  generate:readme:
-    desc: Generate package READMEs from Jinja2 templates
+  e2e:generate:all:
+    desc: Generate E2E tests for all languages from fixtures
     cmds:
-      - uv run python scripts/generate_readme.py {{.CLI_ARGS}}
+      - alef e2e generate
 
-  generate:readme:check:
-    desc: Validate package READMEs match templates (CI)
+  e2e:test:all:
+    desc: Run E2E tests for all languages
     cmds:
-      - uv run python scripts/generate_readme.py --validate
+      - task: rust:e2e:test
+      - task: go:test
+      - task: java:test
+      - task: csharp:test
+      - task: elixir:test
 
   e2e:test:rust:
-    desc: Run Rust E2E tests (generate + format + test)
+    desc: Run Rust E2E tests
     cmds:
-      - task: rust:e2e:generate
       - cargo test --manifest-path e2e/rust/Cargo.toml
     env:
       PROJECT_ROOT: "{{.PROJECT_ROOT}}"

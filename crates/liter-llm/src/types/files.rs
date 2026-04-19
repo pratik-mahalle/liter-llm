@@ -1,15 +1,16 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum FilePurpose {
+    #[default]
     Assistants,
     Batch,
     FineTune,
     Vision,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct CreateFileRequest {
     /// Base64-encoded file data.
@@ -19,7 +20,7 @@ pub struct CreateFileRequest {
     pub filename: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct FileObject {
     pub id: String,
     pub object: String,
@@ -31,7 +32,7 @@ pub struct FileObject {
     pub status: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct FileListResponse {
     pub object: String,
     pub data: Vec<FileObject>,
@@ -50,7 +51,7 @@ pub struct FileListQuery {
     pub after: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct DeleteResponse {
     pub id: String,
     pub object: String,

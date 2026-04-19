@@ -160,7 +160,7 @@ impl ManagedClient {
 
     /// Clone the Tower service and call it with `req`, returning the raw
     /// [`LlmResponse`].
-    fn call_service(&self, req: LlmRequest) -> BoxFuture<'static, LlmResponse> {
+    fn call_service(&self, req: LlmRequest) -> BoxFuture<'static, Result<LlmResponse>> {
         let mut svc = match self.service.as_ref() {
             Some(s) => s.clone_service(),
             None => {
@@ -309,7 +309,7 @@ fn build_service_stack(
 // ---------------------------------------------------------------------------
 
 impl LlmClient for ManagedClient {
-    fn chat(&self, req: ChatCompletionRequest) -> BoxFuture<'_, ChatCompletionResponse> {
+    fn chat(&self, req: ChatCompletionRequest) -> BoxFuture<'_, Result<ChatCompletionResponse>> {
         if self.service.is_none() {
             return self.inner.chat(req);
         }
@@ -324,7 +324,10 @@ impl LlmClient for ManagedClient {
         })
     }
 
-    fn chat_stream(&self, req: ChatCompletionRequest) -> BoxFuture<'_, BoxStream<'_, ChatCompletionChunk>> {
+    fn chat_stream(
+        &self,
+        req: ChatCompletionRequest,
+    ) -> BoxFuture<'_, Result<BoxStream<'static, Result<ChatCompletionChunk>>>> {
         if self.service.is_none() {
             return self.inner.chat_stream(req);
         }
@@ -339,7 +342,7 @@ impl LlmClient for ManagedClient {
         })
     }
 
-    fn embed(&self, req: EmbeddingRequest) -> BoxFuture<'_, EmbeddingResponse> {
+    fn embed(&self, req: EmbeddingRequest) -> BoxFuture<'_, Result<EmbeddingResponse>> {
         if self.service.is_none() {
             return self.inner.embed(req);
         }
@@ -354,7 +357,7 @@ impl LlmClient for ManagedClient {
         })
     }
 
-    fn list_models(&self) -> BoxFuture<'_, ModelsListResponse> {
+    fn list_models(&self) -> BoxFuture<'_, Result<ModelsListResponse>> {
         if self.service.is_none() {
             return self.inner.list_models();
         }
@@ -369,7 +372,7 @@ impl LlmClient for ManagedClient {
         })
     }
 
-    fn image_generate(&self, req: CreateImageRequest) -> BoxFuture<'_, ImagesResponse> {
+    fn image_generate(&self, req: CreateImageRequest) -> BoxFuture<'_, Result<ImagesResponse>> {
         if self.service.is_none() {
             return self.inner.image_generate(req);
         }
@@ -384,7 +387,7 @@ impl LlmClient for ManagedClient {
         })
     }
 
-    fn speech(&self, req: CreateSpeechRequest) -> BoxFuture<'_, bytes::Bytes> {
+    fn speech(&self, req: CreateSpeechRequest) -> BoxFuture<'_, Result<bytes::Bytes>> {
         if self.service.is_none() {
             return self.inner.speech(req);
         }
@@ -399,7 +402,7 @@ impl LlmClient for ManagedClient {
         })
     }
 
-    fn transcribe(&self, req: CreateTranscriptionRequest) -> BoxFuture<'_, TranscriptionResponse> {
+    fn transcribe(&self, req: CreateTranscriptionRequest) -> BoxFuture<'_, Result<TranscriptionResponse>> {
         if self.service.is_none() {
             return self.inner.transcribe(req);
         }
@@ -414,7 +417,7 @@ impl LlmClient for ManagedClient {
         })
     }
 
-    fn moderate(&self, req: ModerationRequest) -> BoxFuture<'_, ModerationResponse> {
+    fn moderate(&self, req: ModerationRequest) -> BoxFuture<'_, Result<ModerationResponse>> {
         if self.service.is_none() {
             return self.inner.moderate(req);
         }
@@ -429,7 +432,7 @@ impl LlmClient for ManagedClient {
         })
     }
 
-    fn rerank(&self, req: RerankRequest) -> BoxFuture<'_, RerankResponse> {
+    fn rerank(&self, req: RerankRequest) -> BoxFuture<'_, Result<RerankResponse>> {
         if self.service.is_none() {
             return self.inner.rerank(req);
         }
@@ -444,7 +447,7 @@ impl LlmClient for ManagedClient {
         })
     }
 
-    fn search(&self, req: SearchRequest) -> BoxFuture<'_, SearchResponse> {
+    fn search(&self, req: SearchRequest) -> BoxFuture<'_, Result<SearchResponse>> {
         if self.service.is_none() {
             return self.inner.search(req);
         }
@@ -459,7 +462,7 @@ impl LlmClient for ManagedClient {
         })
     }
 
-    fn ocr(&self, req: OcrRequest) -> BoxFuture<'_, OcrResponse> {
+    fn ocr(&self, req: OcrRequest) -> BoxFuture<'_, Result<OcrResponse>> {
         if self.service.is_none() {
             return self.inner.ocr(req);
         }
@@ -482,23 +485,23 @@ impl LlmClient for ManagedClient {
 // ---------------------------------------------------------------------------
 
 impl FileClient for ManagedClient {
-    fn create_file(&self, req: CreateFileRequest) -> BoxFuture<'_, FileObject> {
+    fn create_file(&self, req: CreateFileRequest) -> BoxFuture<'_, Result<FileObject>> {
         self.inner.create_file(req)
     }
 
-    fn retrieve_file(&self, file_id: &str) -> BoxFuture<'_, FileObject> {
+    fn retrieve_file(&self, file_id: &str) -> BoxFuture<'_, Result<FileObject>> {
         self.inner.retrieve_file(file_id)
     }
 
-    fn delete_file(&self, file_id: &str) -> BoxFuture<'_, DeleteResponse> {
+    fn delete_file(&self, file_id: &str) -> BoxFuture<'_, Result<DeleteResponse>> {
         self.inner.delete_file(file_id)
     }
 
-    fn list_files(&self, query: Option<FileListQuery>) -> BoxFuture<'_, FileListResponse> {
+    fn list_files(&self, query: Option<FileListQuery>) -> BoxFuture<'_, Result<FileListResponse>> {
         self.inner.list_files(query)
     }
 
-    fn file_content(&self, file_id: &str) -> BoxFuture<'_, bytes::Bytes> {
+    fn file_content(&self, file_id: &str) -> BoxFuture<'_, Result<bytes::Bytes>> {
         self.inner.file_content(file_id)
     }
 }
@@ -508,19 +511,19 @@ impl FileClient for ManagedClient {
 // ---------------------------------------------------------------------------
 
 impl BatchClient for ManagedClient {
-    fn create_batch(&self, req: CreateBatchRequest) -> BoxFuture<'_, BatchObject> {
+    fn create_batch(&self, req: CreateBatchRequest) -> BoxFuture<'_, Result<BatchObject>> {
         self.inner.create_batch(req)
     }
 
-    fn retrieve_batch(&self, batch_id: &str) -> BoxFuture<'_, BatchObject> {
+    fn retrieve_batch(&self, batch_id: &str) -> BoxFuture<'_, Result<BatchObject>> {
         self.inner.retrieve_batch(batch_id)
     }
 
-    fn list_batches(&self, query: Option<BatchListQuery>) -> BoxFuture<'_, BatchListResponse> {
+    fn list_batches(&self, query: Option<BatchListQuery>) -> BoxFuture<'_, Result<BatchListResponse>> {
         self.inner.list_batches(query)
     }
 
-    fn cancel_batch(&self, batch_id: &str) -> BoxFuture<'_, BatchObject> {
+    fn cancel_batch(&self, batch_id: &str) -> BoxFuture<'_, Result<BatchObject>> {
         self.inner.cancel_batch(batch_id)
     }
 }
@@ -530,15 +533,15 @@ impl BatchClient for ManagedClient {
 // ---------------------------------------------------------------------------
 
 impl ResponseClient for ManagedClient {
-    fn create_response(&self, req: CreateResponseRequest) -> BoxFuture<'_, ResponseObject> {
+    fn create_response(&self, req: CreateResponseRequest) -> BoxFuture<'_, Result<ResponseObject>> {
         self.inner.create_response(req)
     }
 
-    fn retrieve_response(&self, id: &str) -> BoxFuture<'_, ResponseObject> {
+    fn retrieve_response(&self, id: &str) -> BoxFuture<'_, Result<ResponseObject>> {
         self.inner.retrieve_response(id)
     }
 
-    fn cancel_response(&self, id: &str) -> BoxFuture<'_, ResponseObject> {
+    fn cancel_response(&self, id: &str) -> BoxFuture<'_, Result<ResponseObject>> {
         self.inner.cancel_response(id)
     }
 }

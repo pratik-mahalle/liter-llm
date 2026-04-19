@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct CreateResponseRequest {
     pub model: String,
@@ -17,7 +17,7 @@ pub struct CreateResponseRequest {
     pub metadata: Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct ResponseTool {
     #[serde(rename = "type")]
     pub tool_type: String,
@@ -25,7 +25,7 @@ pub struct ResponseTool {
     pub config: serde_json::Value,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct ResponseObject {
     pub id: String,
     pub object: String,
@@ -39,7 +39,7 @@ pub struct ResponseObject {
     pub error: Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct ResponseOutputItem {
     #[serde(rename = "type")]
     pub item_type: String,
@@ -47,7 +47,7 @@ pub struct ResponseOutputItem {
     pub content: serde_json::Value,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ResponseUsage {
     pub input_tokens: u64,
     pub output_tokens: u64,

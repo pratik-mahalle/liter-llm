@@ -72,7 +72,7 @@ where
 {
     type Response = LlmResponse;
     type Error = LiterLlmError;
-    type Future = BoxFuture<'static, LlmResponse>;
+    type Future = BoxFuture<'static, Result<LlmResponse>>;
 
     fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<()>> {
         Poll::Ready(Ok(()))
@@ -95,7 +95,7 @@ where
                     // express borrowed lifetimes across the Service boundary.
                     let stream = client.chat_stream(r).await?;
                     let chunks = collect_stream(stream).await?;
-                    let static_stream: crate::client::BoxStream<'static, ChatCompletionChunk> =
+                    let static_stream: crate::client::BoxStream<'static, Result<ChatCompletionChunk>> =
                         Box::pin(OwnedChunksStream { chunks });
                     Ok(LlmResponse::ChatStream(static_stream))
                 }
@@ -142,7 +142,7 @@ where
 
 /// Collect all items from a stream into a `VecDeque`, stopping on the first error.
 async fn collect_stream<'a>(
-    mut stream: crate::client::BoxStream<'a, ChatCompletionChunk>,
+    mut stream: crate::client::BoxStream<'a, Result<ChatCompletionChunk>>,
 ) -> Result<VecDeque<ChatCompletionChunk>> {
     let mut chunks = VecDeque::new();
     loop {

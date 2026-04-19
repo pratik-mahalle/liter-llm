@@ -17,6 +17,12 @@ pub enum ModerationInput {
     Multiple(Vec<String>),
 }
 
+impl Default for ModerationInput {
+    fn default() -> Self {
+        Self::Single(String::new())
+    }
+}
+
 /// Response from the moderation endpoint.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ModerationResponse {

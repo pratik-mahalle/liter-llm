@@ -35,9 +35,10 @@ pub struct CustomProviderConfig {
 }
 
 /// How the API key is sent in the HTTP request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub enum AuthHeaderFormat {
     /// Bearer token: `Authorization: Bearer <key>`
+    #[default]
     Bearer,
     /// Custom header: e.g., `X-Api-Key: <key>`
     ApiKey(String),

@@ -1,7 +1,6 @@
 [workspace]
 members = [
     "crates/liter-llm",
-    "crates/liter-llm-bindings-core",
     "crates/liter-llm-cli",
     "crates/liter-llm-ffi",
     "crates/liter-llm-node",
@@ -10,7 +9,6 @@ members = [
     "crates/liter-llm-py",
     "crates/liter-llm-wasm",
     "packages/elixir/native/liter_llm_rustler",
-    "tools/e2e-generator",
     "tools/snippet-runner",
 ]
 exclude = ["packages/ruby/ext/liter_llm_rb/native"]

@@ -10,9 +10,10 @@ use crate::cost;
 // ─── Finish Reason ────────────────────────────────────────────────────────────
 
 /// Why a choice stopped generating tokens.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum FinishReason {
+    #[default]
     Stop,
     Length,
     ToolCalls,
@@ -34,10 +35,11 @@ pub enum FinishReason {
 // ─── Reasoning Effort ────────────────────────────────────────────────────────
 
 /// Controls how much reasoning effort the model should use.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ReasoningEffort {
     Low,
+    #[default]
     Medium,
     High,
 }
@@ -57,13 +59,9 @@ pub struct ChatCompletionRequest {
     pub n: Option<u32>,
     /// Whether to stream the response.
     ///
-    /// This field is managed by the client layer (`prepare_request`) and should
-    /// not be set directly by callers — use `chat` for non-streaming and
-    /// `chat_stream` for streaming.  Making it `pub(crate)` prevents callers
-    /// from setting it explicitly, which would conflict with the client's own
-    /// stream flag injection.
+    /// Managed by the client layer — do not set directly.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub(crate) stream: Option<bool>,
+    pub stream: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stop: Option<StopSequence>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -98,7 +96,7 @@ pub struct ChatCompletionRequest {
     pub extra_body: Option<serde_json::Value>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct StreamOptions {
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -107,7 +105,7 @@ pub struct StreamOptions {
 
 // ─── Response ────────────────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct ChatCompletionResponse {
     pub id: String,
     /// Always `"chat.completion"` from OpenAI-compatible APIs.  Stored as a
@@ -146,7 +144,7 @@ impl ChatCompletionResponse {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct Choice {
     pub index: u32,
     pub message: AssistantMessage,
@@ -155,7 +153,7 @@ pub struct Choice {
 
 // ─── Stream Chunk ────────────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct ChatCompletionChunk {
     pub id: String,
     /// Always `"chat.completion.chunk"` from OpenAI-compatible APIs.  Stored
@@ -172,14 +170,14 @@ pub struct ChatCompletionChunk {
     pub service_tier: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct StreamChoice {
     pub index: u32,
     pub delta: StreamDelta,
     pub finish_reason: Option<FinishReason>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct StreamDelta {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub role: Option<String>,
@@ -194,7 +192,7 @@ pub struct StreamDelta {
     pub refusal: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct StreamToolCall {
     pub index: u32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -205,7 +203,7 @@ pub struct StreamToolCall {
     pub function: Option<StreamFunctionCall>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct StreamFunctionCall {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,

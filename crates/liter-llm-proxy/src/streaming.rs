@@ -4,6 +4,7 @@ use std::time::Duration;
 use axum::response::sse::{Event, KeepAlive, Sse};
 use axum::response::{IntoResponse, Response};
 use futures_util::stream::StreamExt;
+use liter_llm::Result as LlmResult;
 use liter_llm::client::BoxStream;
 use liter_llm::types::ChatCompletionChunk;
 
@@ -12,9 +13,9 @@ use liter_llm::types::ChatCompletionChunk;
 /// Each chunk is serialized to JSON and sent as an SSE `data:` event.
 /// After the stream completes, a final `data: [DONE]` event is sent
 /// (matching OpenAI's convention).
-pub fn sse_response(stream: BoxStream<'static, ChatCompletionChunk>) -> Response {
+pub fn sse_response(stream: BoxStream<'static, LlmResult<ChatCompletionChunk>>) -> Response {
     let sse_stream = stream
-        .map(|result| -> Result<Event, Infallible> {
+        .map(|result| -> std::result::Result<Event, Infallible> {
             match result {
                 Ok(chunk) => {
                     let json = serde_json::to_string(&chunk).unwrap_or_else(|e| format!(r#"{{"error":"{}"}}"#, e));
@@ -43,6 +44,8 @@ mod tests {
     use http_body_util::BodyExt;
     use liter_llm::error::LiterLlmError;
     use liter_llm::types::chat::{StreamChoice, StreamDelta};
+
+    type LlmResult<T> = std::result::Result<T, LiterLlmError>;
 
     /// Build a minimal `ChatCompletionChunk` for testing.
     fn make_chunk(id: &str, content: &str) -> ChatCompletionChunk {
@@ -93,12 +96,12 @@ mod tests {
 
     #[tokio::test]
     async fn sse_response_emits_chunks_and_done_sentinel() {
-        let chunks: Vec<Result<ChatCompletionChunk, LiterLlmError>> = vec![
+        let chunks: Vec<LlmResult<ChatCompletionChunk>> = vec![
             Ok(make_chunk("c1", "Hello")),
             Ok(make_chunk("c2", " world")),
             Ok(make_chunk("c3", "!")),
         ];
-        let mock_stream: BoxStream<'static, ChatCompletionChunk> = Box::pin(stream::iter(chunks));
+        let mock_stream: BoxStream<'static, LlmResult<ChatCompletionChunk>> = Box::pin(stream::iter(chunks));
 
         let response = sse_response(mock_stream);
 
@@ -124,13 +127,13 @@ mod tests {
 
     #[tokio::test]
     async fn sse_response_handles_error_chunks() {
-        let chunks: Vec<Result<ChatCompletionChunk, LiterLlmError>> = vec![
+        let chunks: Vec<LlmResult<ChatCompletionChunk>> = vec![
             Ok(make_chunk("c1", "partial")),
             Err(LiterLlmError::Streaming {
                 message: "connection reset".into(),
             }),
         ];
-        let mock_stream: BoxStream<'static, ChatCompletionChunk> = Box::pin(stream::iter(chunks));
+        let mock_stream: BoxStream<'static, LlmResult<ChatCompletionChunk>> = Box::pin(stream::iter(chunks));
 
         let response = sse_response(mock_stream);
         let body = body_string(response).await;

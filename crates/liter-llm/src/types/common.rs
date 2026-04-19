@@ -21,14 +21,20 @@ pub enum Message {
     Function(FunctionMessage),
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+impl Default for Message {
+    fn default() -> Self {
+        Self::Assistant(AssistantMessage::default())
+    }
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct SystemMessage {
     pub content: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct UserMessage {
     pub content: UserContent,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -40,6 +46,12 @@ pub struct UserMessage {
 pub enum UserContent {
     Text(String),
     Parts(Vec<ContentPart>),
+}
+
+impl Default for UserContent {
+    fn default() -> Self {
+        Self::Text(String::new())
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -55,7 +67,13 @@ pub enum ContentPart {
     InputAudio { input_audio: AudioContent },
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+impl Default for ContentPart {
+    fn default() -> Self {
+        Self::Text { text: String::new() }
+    }
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ImageUrl {
     pub url: String,
@@ -71,7 +89,7 @@ pub enum ImageDetail {
     Auto,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct DocumentContent {
     /// Base64-encoded document data or URL.
@@ -80,7 +98,7 @@ pub struct DocumentContent {
     pub media_type: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AudioContent {
     /// Base64-encoded audio data.
@@ -89,7 +107,7 @@ pub struct AudioContent {
     pub format: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct AssistantMessage {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub content: Option<String>,
@@ -104,7 +122,7 @@ pub struct AssistantMessage {
     pub function_call: Option<FunctionCall>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct ToolMessage {
     pub content: String,
     pub tool_call_id: String,
@@ -112,7 +130,7 @@ pub struct ToolMessage {
     pub name: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct DeveloperMessage {
     pub content: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -120,7 +138,7 @@ pub struct DeveloperMessage {
 }
 
 /// Deprecated legacy function-role message body.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct FunctionMessage {
     pub content: String,
     pub name: String,
@@ -181,31 +199,39 @@ pub enum ToolChoice {
     Specific(SpecificToolChoice),
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+impl Default for ToolChoice {
+    fn default() -> Self {
+        Self::Mode(ToolChoiceMode::default())
+    }
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ToolChoiceMode {
+    #[default]
     Auto,
     Required,
     None,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct SpecificToolChoice {
     #[serde(rename = "type")]
     pub choice_type: ToolType,
     pub function: SpecificFunction,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct SpecificFunction {
     pub name: String,
 }
 
 // ─── Response Format ─────────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum ResponseFormat {
+    #[default]
     #[serde(rename = "text")]
     Text,
     #[serde(rename = "json_object")]
@@ -214,7 +240,7 @@ pub enum ResponseFormat {
     JsonSchema { json_schema: JsonSchemaFormat },
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct JsonSchemaFormat {
     pub name: String,
@@ -247,4 +273,10 @@ pub struct Usage {
 pub enum StopSequence {
     Single(String),
     Multiple(Vec<String>),
+}
+
+impl Default for StopSequence {
+    fn default() -> Self {
+        Self::Single(String::new())
+    }
 }

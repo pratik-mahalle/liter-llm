@@ -1055,12 +1055,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "diff"
-version = "0.1.13"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56254986775e3233ffa9c4d7d3faaf6d36a2c09d30b20687e9f88bc8bafc16c8"
-
-[[package]]
 name = "digest"
 version = "0.10.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1139,19 +1133,6 @@ name = "dyn-clone"
 version = "1.0.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d0881ea181b1df73ff77ffaaf9c7544ecc11e82fba9b5f27b262a3c73a332555"
-
-[[package]]
-name = "e2e-generator"
-version = "1.2.2"
-dependencies = [
- "anyhow",
- "camino",
- "clap",
- "itertools",
- "serde",
- "serde_json",
- "walkdir",
-]
 
 [[package]]
 name = "either"
@@ -2256,17 +2237,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "liter-llm-bindings-core"
-version = "1.2.2"
-dependencies = [
- "liter-llm",
- "pretty_assertions",
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
 name = "liter-llm-cli"
 version = "1.2.2"
 dependencies = [
@@ -2283,13 +2253,8 @@ dependencies = [
 name = "liter-llm-ffi"
 version = "1.2.2"
 dependencies = [
- "base64 0.22.1",
- "bytes",
  "cbindgen",
- "futures-core",
  "liter-llm",
- "liter-llm-bindings-core",
- "serde",
  "serde_json",
  "tokio",
 ]
@@ -2298,9 +2263,7 @@ dependencies = [
 name = "liter-llm-node"
 version = "1.2.2"
 dependencies = [
- "futures-core",
  "liter-llm",
- "liter-llm-bindings-core",
  "napi",
  "napi-build",
  "napi-derive",
@@ -2313,10 +2276,10 @@ name = "liter-llm-php"
 version = "1.2.2"
 dependencies = [
  "ext-php-rs",
- "futures-core",
  "liter-llm",
- "liter-llm-bindings-core",
+ "serde",
  "serde_json",
+ "tokio",
 ]
 
 [[package]]
@@ -2350,7 +2313,7 @@ dependencies = [
 name = "liter-llm-py"
 version = "1.2.2"
 dependencies = [
- "futures-core",
+ "futures",
  "liter-llm",
  "pyo3",
  "pyo3-async-runtimes",
@@ -2363,25 +2326,17 @@ dependencies = [
 name = "liter-llm-wasm"
 version = "1.2.2"
 dependencies = [
- "js-sys",
  "liter-llm",
- "liter-llm-bindings-core",
- "serde",
  "serde-wasm-bindgen",
- "serde_json",
  "wasm-bindgen",
- "wasm-bindgen-futures",
  "wasm-bindgen-test",
- "web-sys",
 ]
 
 [[package]]
 name = "liter_llm_rustler"
 version = "1.2.2"
 dependencies = [
- "futures-core",
  "liter-llm",
- "liter-llm-bindings-core",
  "rustler",
  "serde",
  "serde_json",
@@ -3000,16 +2955,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "85eae3c4ed2f50dcfe72643da4befc30deadb458a9b590d720cde2f2b1e97da9"
 dependencies = [
  "zerocopy",
-]
-
-[[package]]
-name = "pretty_assertions"
-version = "1.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3ae130e2f271fbc2ac3a40fb1d07180839cdbbe443c7a27e1e3c13c5cac0116d"
-dependencies = [
- "diff",
- "yansi",
 ]
 
 [[package]]
@@ -5561,12 +5506,6 @@ name = "writeable"
 version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ffae5123b2d3fc086436f8834ae3ab053a283cfac8fe0a0b8eaae044768a4c4"
-
-[[package]]
-name = "yansi"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cfe53a6657fd280eaa890a3bc59152892ffa3e30101319d168b781ed6529b049"
 
 [[package]]
 name = "yoke"

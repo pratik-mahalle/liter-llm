@@ -433,7 +433,7 @@ impl GithubCopilotCredentialProvider {
 }
 
 impl CredentialProvider for GithubCopilotCredentialProvider {
-    fn resolve(&self) -> BoxFuture<'_, Credential> {
+    fn resolve(&self) -> BoxFuture<'_, crate::error::Result<Credential>> {
         Box::pin(async move {
             // Fast path: read lock to check in-memory cache.
             {

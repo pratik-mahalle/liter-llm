@@ -12,6 +12,7 @@ use std::sync::Arc;
 use secrecy::SecretString;
 
 use crate::client::BoxFuture;
+use crate::error::Result;
 
 /// Dynamic credential provider for providers that use token-based auth
 /// (Azure AD, Vertex OAuth2) or refreshable credentials (AWS STS).
@@ -24,14 +25,14 @@ pub trait CredentialProvider: Send + Sync {
     ///
     /// Implementations should cache credentials and only refresh when
     /// expired or about to expire.
-    fn resolve(&self) -> BoxFuture<'_, Credential>;
+    fn resolve(&self) -> BoxFuture<'_, Result<Credential>>;
 }
 
 /// Blanket implementation so `Arc<dyn CredentialProvider>` is itself a
 /// `CredentialProvider`, making it convenient to share providers across
 /// clients.
 impl CredentialProvider for Arc<dyn CredentialProvider> {
-    fn resolve(&self) -> BoxFuture<'_, Credential> {
+    fn resolve(&self) -> BoxFuture<'_, Result<Credential>> {
         (**self).resolve()
     }
 }
@@ -63,7 +64,7 @@ impl StaticTokenProvider {
 }
 
 impl CredentialProvider for StaticTokenProvider {
-    fn resolve(&self) -> BoxFuture<'_, Credential> {
+    fn resolve(&self) -> BoxFuture<'_, Result<Credential>> {
         let token = self.token.clone();
         Box::pin(async move { Ok(Credential::BearerToken(token)) })
     }

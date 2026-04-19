@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Request to create images from a text prompt.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct CreateImageRequest {
     pub prompt: String,
@@ -22,14 +22,14 @@ pub struct CreateImageRequest {
 }
 
 /// Response containing generated images.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct ImagesResponse {
     pub created: u64,
     pub data: Vec<Image>,
 }
 
 /// A single generated image, returned as either a URL or base64 data.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct Image {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,

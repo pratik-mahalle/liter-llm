@@ -41,11 +41,11 @@ use secrecy::ExposeSecret;
 pub use config::{ClientConfig, ClientConfigBuilder};
 pub use config_file::FileConfig;
 
-/// A boxed future returning `Result<T>`.
-pub type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = Result<T>> + Send + 'a>>;
+/// A boxed future returning `T`.
+pub type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
 
-/// A boxed stream of `Result<T>`.
-pub type BoxStream<'a, T> = Pin<Box<dyn Stream<Item = Result<T>> + Send + 'a>>;
+/// A boxed stream of `T`.
+pub type BoxStream<'a, T> = Pin<Box<dyn Stream<Item = T> + Send + 'a>>;
 
 /// Result of [`DefaultClient::prepare_request`].
 ///
@@ -80,37 +80,40 @@ fn str_pair(pair: &(String, String)) -> (&str, &str) {
 /// Core LLM client trait.
 pub trait LlmClient: Send + Sync {
     /// Send a chat completion request.
-    fn chat(&self, req: ChatCompletionRequest) -> BoxFuture<'_, ChatCompletionResponse>;
+    fn chat(&self, req: ChatCompletionRequest) -> BoxFuture<'_, Result<ChatCompletionResponse>>;
 
     /// Send a streaming chat completion request.
-    fn chat_stream(&self, req: ChatCompletionRequest) -> BoxFuture<'_, BoxStream<'_, ChatCompletionChunk>>;
+    fn chat_stream(
+        &self,
+        req: ChatCompletionRequest,
+    ) -> BoxFuture<'_, Result<BoxStream<'static, Result<ChatCompletionChunk>>>>;
 
     /// Send an embedding request.
-    fn embed(&self, req: EmbeddingRequest) -> BoxFuture<'_, EmbeddingResponse>;
+    fn embed(&self, req: EmbeddingRequest) -> BoxFuture<'_, Result<EmbeddingResponse>>;
 
     /// List available models.
-    fn list_models(&self) -> BoxFuture<'_, ModelsListResponse>;
+    fn list_models(&self) -> BoxFuture<'_, Result<ModelsListResponse>>;
 
     /// Generate an image.
-    fn image_generate(&self, req: CreateImageRequest) -> BoxFuture<'_, ImagesResponse>;
+    fn image_generate(&self, req: CreateImageRequest) -> BoxFuture<'_, Result<ImagesResponse>>;
 
     /// Generate speech audio from text.
-    fn speech(&self, req: CreateSpeechRequest) -> BoxFuture<'_, bytes::Bytes>;
+    fn speech(&self, req: CreateSpeechRequest) -> BoxFuture<'_, Result<bytes::Bytes>>;
 
     /// Transcribe audio to text.
-    fn transcribe(&self, req: CreateTranscriptionRequest) -> BoxFuture<'_, TranscriptionResponse>;
+    fn transcribe(&self, req: CreateTranscriptionRequest) -> BoxFuture<'_, Result<TranscriptionResponse>>;
 
     /// Check content against moderation policies.
-    fn moderate(&self, req: ModerationRequest) -> BoxFuture<'_, ModerationResponse>;
+    fn moderate(&self, req: ModerationRequest) -> BoxFuture<'_, Result<ModerationResponse>>;
 
     /// Rerank documents by relevance to a query.
-    fn rerank(&self, req: RerankRequest) -> BoxFuture<'_, RerankResponse>;
+    fn rerank(&self, req: RerankRequest) -> BoxFuture<'_, Result<RerankResponse>>;
 
     /// Perform a web/document search.
-    fn search(&self, req: SearchRequest) -> BoxFuture<'_, SearchResponse>;
+    fn search(&self, req: SearchRequest) -> BoxFuture<'_, Result<SearchResponse>>;
 
     /// Extract text from a document via OCR.
-    fn ocr(&self, req: OcrRequest) -> BoxFuture<'_, OcrResponse>;
+    fn ocr(&self, req: OcrRequest) -> BoxFuture<'_, Result<OcrResponse>>;
 }
 
 /// Extension of [`LlmClient`] that returns raw request/response data
@@ -127,7 +130,7 @@ pub trait LlmClientRaw: LlmClient {
     /// The `raw_request` field contains the final JSON body sent to the
     /// provider; `raw_response` contains the provider JSON before
     /// normalization.
-    fn chat_raw(&self, req: ChatCompletionRequest) -> BoxFuture<'_, RawExchange<ChatCompletionResponse>>;
+    fn chat_raw(&self, req: ChatCompletionRequest) -> BoxFuture<'_, Result<RawExchange<ChatCompletionResponse>>>;
 
     /// Send a streaming chat completion request and return the raw exchange.
     ///
@@ -136,73 +139,76 @@ pub trait LlmClientRaw: LlmClient {
     fn chat_stream_raw(
         &self,
         req: ChatCompletionRequest,
-    ) -> BoxFuture<'_, RawStreamExchange<BoxStream<'_, ChatCompletionChunk>>>;
+    ) -> BoxFuture<'_, Result<RawStreamExchange<BoxStream<'static, Result<ChatCompletionChunk>>>>>;
 
     /// Send an embedding request and return the raw exchange.
-    fn embed_raw(&self, req: EmbeddingRequest) -> BoxFuture<'_, RawExchange<EmbeddingResponse>>;
+    fn embed_raw(&self, req: EmbeddingRequest) -> BoxFuture<'_, Result<RawExchange<EmbeddingResponse>>>;
 
     /// Generate an image and return the raw exchange.
-    fn image_generate_raw(&self, req: CreateImageRequest) -> BoxFuture<'_, RawExchange<ImagesResponse>>;
+    fn image_generate_raw(&self, req: CreateImageRequest) -> BoxFuture<'_, Result<RawExchange<ImagesResponse>>>;
 
     /// Transcribe audio to text and return the raw exchange.
-    fn transcribe_raw(&self, req: CreateTranscriptionRequest) -> BoxFuture<'_, RawExchange<TranscriptionResponse>>;
+    fn transcribe_raw(
+        &self,
+        req: CreateTranscriptionRequest,
+    ) -> BoxFuture<'_, Result<RawExchange<TranscriptionResponse>>>;
 
     /// Check content against moderation policies and return the raw exchange.
-    fn moderate_raw(&self, req: ModerationRequest) -> BoxFuture<'_, RawExchange<ModerationResponse>>;
+    fn moderate_raw(&self, req: ModerationRequest) -> BoxFuture<'_, Result<RawExchange<ModerationResponse>>>;
 
     /// Rerank documents by relevance to a query and return the raw exchange.
-    fn rerank_raw(&self, req: RerankRequest) -> BoxFuture<'_, RawExchange<RerankResponse>>;
+    fn rerank_raw(&self, req: RerankRequest) -> BoxFuture<'_, Result<RawExchange<RerankResponse>>>;
 
     /// Perform a web/document search and return the raw exchange.
-    fn search_raw(&self, req: SearchRequest) -> BoxFuture<'_, RawExchange<SearchResponse>>;
+    fn search_raw(&self, req: SearchRequest) -> BoxFuture<'_, Result<RawExchange<SearchResponse>>>;
 
     /// Extract text from a document via OCR and return the raw exchange.
-    fn ocr_raw(&self, req: OcrRequest) -> BoxFuture<'_, RawExchange<OcrResponse>>;
+    fn ocr_raw(&self, req: OcrRequest) -> BoxFuture<'_, Result<RawExchange<OcrResponse>>>;
 }
 
 /// File management operations (upload, list, retrieve, delete).
 pub trait FileClient: Send + Sync {
     /// Upload a file.
-    fn create_file(&self, req: CreateFileRequest) -> BoxFuture<'_, FileObject>;
+    fn create_file(&self, req: CreateFileRequest) -> BoxFuture<'_, Result<FileObject>>;
 
     /// Retrieve metadata for a file.
-    fn retrieve_file(&self, file_id: &str) -> BoxFuture<'_, FileObject>;
+    fn retrieve_file(&self, file_id: &str) -> BoxFuture<'_, Result<FileObject>>;
 
     /// Delete a file.
-    fn delete_file(&self, file_id: &str) -> BoxFuture<'_, DeleteResponse>;
+    fn delete_file(&self, file_id: &str) -> BoxFuture<'_, Result<DeleteResponse>>;
 
     /// List files, optionally filtered by query parameters.
-    fn list_files(&self, query: Option<FileListQuery>) -> BoxFuture<'_, FileListResponse>;
+    fn list_files(&self, query: Option<FileListQuery>) -> BoxFuture<'_, Result<FileListResponse>>;
 
     /// Retrieve the raw content of a file.
-    fn file_content(&self, file_id: &str) -> BoxFuture<'_, bytes::Bytes>;
+    fn file_content(&self, file_id: &str) -> BoxFuture<'_, Result<bytes::Bytes>>;
 }
 
 /// Batch processing operations (create, list, retrieve, cancel).
 pub trait BatchClient: Send + Sync {
     /// Create a new batch job.
-    fn create_batch(&self, req: CreateBatchRequest) -> BoxFuture<'_, BatchObject>;
+    fn create_batch(&self, req: CreateBatchRequest) -> BoxFuture<'_, Result<BatchObject>>;
 
     /// Retrieve a batch by ID.
-    fn retrieve_batch(&self, batch_id: &str) -> BoxFuture<'_, BatchObject>;
+    fn retrieve_batch(&self, batch_id: &str) -> BoxFuture<'_, Result<BatchObject>>;
 
     /// List batches, optionally filtered by query parameters.
-    fn list_batches(&self, query: Option<BatchListQuery>) -> BoxFuture<'_, BatchListResponse>;
+    fn list_batches(&self, query: Option<BatchListQuery>) -> BoxFuture<'_, Result<BatchListResponse>>;
 
     /// Cancel an in-progress batch.
-    fn cancel_batch(&self, batch_id: &str) -> BoxFuture<'_, BatchObject>;
+    fn cancel_batch(&self, batch_id: &str) -> BoxFuture<'_, Result<BatchObject>>;
 }
 
 /// Responses API operations (create, retrieve, cancel).
 pub trait ResponseClient: Send + Sync {
     /// Create a new response.
-    fn create_response(&self, req: CreateResponseRequest) -> BoxFuture<'_, ResponseObject>;
+    fn create_response(&self, req: CreateResponseRequest) -> BoxFuture<'_, Result<ResponseObject>>;
 
     /// Retrieve a response by ID.
-    fn retrieve_response(&self, id: &str) -> BoxFuture<'_, ResponseObject>;
+    fn retrieve_response(&self, id: &str) -> BoxFuture<'_, Result<ResponseObject>>;
 
     /// Cancel an in-progress response.
-    fn cancel_response(&self, id: &str) -> BoxFuture<'_, ResponseObject>;
+    fn cancel_response(&self, id: &str) -> BoxFuture<'_, Result<ResponseObject>>;
 }
 
 /// Default client implementation backed by `reqwest`.
@@ -219,6 +225,7 @@ pub trait ResponseClient: Send + Sync {
 /// The provider is stored behind an [`Arc`] so it can be shared cheaply into
 /// async closures and streaming tasks that must be `'static`.
 #[cfg(feature = "native-http")]
+#[derive(Clone)]
 pub struct DefaultClient {
     config: ClientConfig,
     http: reqwest::Client,
@@ -481,7 +488,7 @@ fn build_provider(config: &ClientConfig, model_hint: Option<&str>) -> Arc<dyn Pr
 
 #[cfg(feature = "native-http")]
 impl LlmClient for DefaultClient {
-    fn chat(&self, req: ChatCompletionRequest) -> BoxFuture<'_, ChatCompletionResponse> {
+    fn chat(&self, req: ChatCompletionRequest) -> BoxFuture<'_, Result<ChatCompletionResponse>> {
         Box::pin(async move {
             // Pass stream=false so providers can inspect the flag in transform_request.
             let prepared = self.prepare_request(&req, |p| p.chat_completions_path(), &req.model, Some(false))?;
@@ -513,7 +520,10 @@ impl LlmClient for DefaultClient {
         })
     }
 
-    fn chat_stream(&self, req: ChatCompletionRequest) -> BoxFuture<'_, BoxStream<'_, ChatCompletionChunk>> {
+    fn chat_stream(
+        &self,
+        req: ChatCompletionRequest,
+    ) -> BoxFuture<'_, Result<BoxStream<'static, Result<ChatCompletionChunk>>>> {
         Box::pin(async move {
             // Use prepare_request for validation, model-prefix stripping, and
             // transform_request — then override the URL via build_stream_url.
@@ -571,7 +581,7 @@ impl LlmClient for DefaultClient {
         })
     }
 
-    fn embed(&self, req: EmbeddingRequest) -> BoxFuture<'_, EmbeddingResponse> {
+    fn embed(&self, req: EmbeddingRequest) -> BoxFuture<'_, Result<EmbeddingResponse>> {
         Box::pin(async move {
             // Embeddings have no stream flag; pass None so it is not inserted.
             let prepared = self.prepare_request(&req, |p| p.embeddings_path(), &req.model, None)?;
@@ -603,7 +613,7 @@ impl LlmClient for DefaultClient {
         })
     }
 
-    fn list_models(&self) -> BoxFuture<'_, ModelsListResponse> {
+    fn list_models(&self) -> BoxFuture<'_, Result<ModelsListResponse>> {
         Box::pin(async move {
             // list_models has no model string — use the construction-time provider.
             let url = self.provider.build_url(self.provider.models_path(), "");
@@ -618,7 +628,7 @@ impl LlmClient for DefaultClient {
         })
     }
 
-    fn image_generate(&self, req: CreateImageRequest) -> BoxFuture<'_, ImagesResponse> {
+    fn image_generate(&self, req: CreateImageRequest) -> BoxFuture<'_, Result<ImagesResponse>> {
         Box::pin(async move {
             let model = req.model.as_deref().unwrap_or_default();
             let prepared = self.prepare_request(&req, |p| p.image_generations_path(), model, None)?;
@@ -650,7 +660,7 @@ impl LlmClient for DefaultClient {
         })
     }
 
-    fn speech(&self, req: CreateSpeechRequest) -> BoxFuture<'_, bytes::Bytes> {
+    fn speech(&self, req: CreateSpeechRequest) -> BoxFuture<'_, Result<bytes::Bytes>> {
         Box::pin(async move {
             let prepared = self.prepare_request(&req, |p| p.audio_speech_path(), &req.model, None)?;
 
@@ -679,7 +689,7 @@ impl LlmClient for DefaultClient {
         })
     }
 
-    fn transcribe(&self, req: CreateTranscriptionRequest) -> BoxFuture<'_, TranscriptionResponse> {
+    fn transcribe(&self, req: CreateTranscriptionRequest) -> BoxFuture<'_, Result<TranscriptionResponse>> {
         Box::pin(async move {
             let prepared = self.prepare_request(&req, |p| p.audio_transcriptions_path(), &req.model, None)?;
 
@@ -710,7 +720,7 @@ impl LlmClient for DefaultClient {
         })
     }
 
-    fn moderate(&self, req: ModerationRequest) -> BoxFuture<'_, ModerationResponse> {
+    fn moderate(&self, req: ModerationRequest) -> BoxFuture<'_, Result<ModerationResponse>> {
         Box::pin(async move {
             let model = req.model.as_deref().unwrap_or_default();
             let prepared = self.prepare_request(&req, |p| p.moderations_path(), model, None)?;
@@ -742,7 +752,7 @@ impl LlmClient for DefaultClient {
         })
     }
 
-    fn rerank(&self, req: RerankRequest) -> BoxFuture<'_, RerankResponse> {
+    fn rerank(&self, req: RerankRequest) -> BoxFuture<'_, Result<RerankResponse>> {
         Box::pin(async move {
             let prepared = self.prepare_request(&req, |p| p.rerank_path(), &req.model, None)?;
 
@@ -773,7 +783,7 @@ impl LlmClient for DefaultClient {
         })
     }
 
-    fn search(&self, req: SearchRequest) -> BoxFuture<'_, SearchResponse> {
+    fn search(&self, req: SearchRequest) -> BoxFuture<'_, Result<SearchResponse>> {
         Box::pin(async move {
             let prepared = self.prepare_request(&req, |p| p.search_path(), &req.model, None)?;
 
@@ -804,7 +814,7 @@ impl LlmClient for DefaultClient {
         })
     }
 
-    fn ocr(&self, req: OcrRequest) -> BoxFuture<'_, OcrResponse> {
+    fn ocr(&self, req: OcrRequest) -> BoxFuture<'_, Result<OcrResponse>> {
         Box::pin(async move {
             let prepared = self.prepare_request(&req, |p| p.ocr_path(), &req.model, None)?;
 
@@ -838,7 +848,7 @@ impl LlmClient for DefaultClient {
 
 #[cfg(feature = "native-http")]
 impl LlmClientRaw for DefaultClient {
-    fn chat_raw(&self, req: ChatCompletionRequest) -> BoxFuture<'_, RawExchange<ChatCompletionResponse>> {
+    fn chat_raw(&self, req: ChatCompletionRequest) -> BoxFuture<'_, Result<RawExchange<ChatCompletionResponse>>> {
         Box::pin(async move {
             let prepared = self.prepare_request(&req, |p| p.chat_completions_path(), &req.model, Some(false))?;
             let raw_request = prepared.body_json.clone();
@@ -881,7 +891,7 @@ impl LlmClientRaw for DefaultClient {
     fn chat_stream_raw(
         &self,
         req: ChatCompletionRequest,
-    ) -> BoxFuture<'_, RawStreamExchange<BoxStream<'_, ChatCompletionChunk>>> {
+    ) -> BoxFuture<'_, Result<RawStreamExchange<BoxStream<'static, Result<ChatCompletionChunk>>>>> {
         Box::pin(async move {
             let prepared = self.prepare_request(&req, |p| p.chat_completions_path(), &req.model, Some(true))?;
             let raw_request = prepared.body_json.clone();
@@ -937,7 +947,7 @@ impl LlmClientRaw for DefaultClient {
         })
     }
 
-    fn embed_raw(&self, req: EmbeddingRequest) -> BoxFuture<'_, RawExchange<EmbeddingResponse>> {
+    fn embed_raw(&self, req: EmbeddingRequest) -> BoxFuture<'_, Result<RawExchange<EmbeddingResponse>>> {
         Box::pin(async move {
             let prepared = self.prepare_request(&req, |p| p.embeddings_path(), &req.model, None)?;
             let raw_request = prepared.body_json.clone();
@@ -977,7 +987,7 @@ impl LlmClientRaw for DefaultClient {
         })
     }
 
-    fn image_generate_raw(&self, req: CreateImageRequest) -> BoxFuture<'_, RawExchange<ImagesResponse>> {
+    fn image_generate_raw(&self, req: CreateImageRequest) -> BoxFuture<'_, Result<RawExchange<ImagesResponse>>> {
         Box::pin(async move {
             let model = req.model.as_deref().unwrap_or_default();
             let prepared = self.prepare_request(&req, |p| p.image_generations_path(), model, None)?;
@@ -1018,7 +1028,10 @@ impl LlmClientRaw for DefaultClient {
         })
     }
 
-    fn transcribe_raw(&self, req: CreateTranscriptionRequest) -> BoxFuture<'_, RawExchange<TranscriptionResponse>> {
+    fn transcribe_raw(
+        &self,
+        req: CreateTranscriptionRequest,
+    ) -> BoxFuture<'_, Result<RawExchange<TranscriptionResponse>>> {
         Box::pin(async move {
             let prepared = self.prepare_request(&req, |p| p.audio_transcriptions_path(), &req.model, None)?;
             let raw_request = prepared.body_json.clone();
@@ -1058,7 +1071,7 @@ impl LlmClientRaw for DefaultClient {
         })
     }
 
-    fn moderate_raw(&self, req: ModerationRequest) -> BoxFuture<'_, RawExchange<ModerationResponse>> {
+    fn moderate_raw(&self, req: ModerationRequest) -> BoxFuture<'_, Result<RawExchange<ModerationResponse>>> {
         Box::pin(async move {
             let model = req.model.as_deref().unwrap_or_default();
             let prepared = self.prepare_request(&req, |p| p.moderations_path(), model, None)?;
@@ -1099,7 +1112,7 @@ impl LlmClientRaw for DefaultClient {
         })
     }
 
-    fn rerank_raw(&self, req: RerankRequest) -> BoxFuture<'_, RawExchange<RerankResponse>> {
+    fn rerank_raw(&self, req: RerankRequest) -> BoxFuture<'_, Result<RawExchange<RerankResponse>>> {
         Box::pin(async move {
             let prepared = self.prepare_request(&req, |p| p.rerank_path(), &req.model, None)?;
             let raw_request = prepared.body_json.clone();
@@ -1139,7 +1152,7 @@ impl LlmClientRaw for DefaultClient {
         })
     }
 
-    fn search_raw(&self, req: SearchRequest) -> BoxFuture<'_, RawExchange<SearchResponse>> {
+    fn search_raw(&self, req: SearchRequest) -> BoxFuture<'_, Result<RawExchange<SearchResponse>>> {
         Box::pin(async move {
             let prepared = self.prepare_request(&req, |p| p.search_path(), &req.model, None)?;
             let raw_request = prepared.body_json.clone();
@@ -1179,7 +1192,7 @@ impl LlmClientRaw for DefaultClient {
         })
     }
 
-    fn ocr_raw(&self, req: OcrRequest) -> BoxFuture<'_, RawExchange<OcrResponse>> {
+    fn ocr_raw(&self, req: OcrRequest) -> BoxFuture<'_, Result<RawExchange<OcrResponse>>> {
         Box::pin(async move {
             let prepared = self.prepare_request(&req, |p| p.ocr_path(), &req.model, None)?;
             let raw_request = prepared.body_json.clone();
@@ -1222,7 +1235,7 @@ impl LlmClientRaw for DefaultClient {
 
 #[cfg(feature = "native-http")]
 impl FileClient for DefaultClient {
-    fn create_file(&self, req: CreateFileRequest) -> BoxFuture<'_, FileObject> {
+    fn create_file(&self, req: CreateFileRequest) -> BoxFuture<'_, Result<FileObject>> {
         Box::pin(async move {
             let url = self.provider.build_url(self.provider.files_path(), "");
             let auth_header = self.resolve_auth_header().await?;
@@ -1253,7 +1266,7 @@ impl FileClient for DefaultClient {
         })
     }
 
-    fn retrieve_file(&self, file_id: &str) -> BoxFuture<'_, FileObject> {
+    fn retrieve_file(&self, file_id: &str) -> BoxFuture<'_, Result<FileObject>> {
         let file_id = file_id.to_owned();
         Box::pin(async move {
             let url = format!(
@@ -1271,7 +1284,7 @@ impl FileClient for DefaultClient {
         })
     }
 
-    fn delete_file(&self, file_id: &str) -> BoxFuture<'_, DeleteResponse> {
+    fn delete_file(&self, file_id: &str) -> BoxFuture<'_, Result<DeleteResponse>> {
         let file_id = file_id.to_owned();
         Box::pin(async move {
             let url = format!(
@@ -1289,7 +1302,7 @@ impl FileClient for DefaultClient {
         })
     }
 
-    fn list_files(&self, query: Option<FileListQuery>) -> BoxFuture<'_, FileListResponse> {
+    fn list_files(&self, query: Option<FileListQuery>) -> BoxFuture<'_, Result<FileListResponse>> {
         Box::pin(async move {
             let base_url = self.provider.build_url(self.provider.files_path(), "");
             let url = if let Some(ref q) = query {
@@ -1321,7 +1334,7 @@ impl FileClient for DefaultClient {
         })
     }
 
-    fn file_content(&self, file_id: &str) -> BoxFuture<'_, bytes::Bytes> {
+    fn file_content(&self, file_id: &str) -> BoxFuture<'_, Result<bytes::Bytes>> {
         let file_id = file_id.to_owned();
         Box::pin(async move {
             let url = format!(
@@ -1341,7 +1354,7 @@ impl FileClient for DefaultClient {
 
 #[cfg(feature = "native-http")]
 impl BatchClient for DefaultClient {
-    fn create_batch(&self, req: CreateBatchRequest) -> BoxFuture<'_, BatchObject> {
+    fn create_batch(&self, req: CreateBatchRequest) -> BoxFuture<'_, Result<BatchObject>> {
         Box::pin(async move {
             let url = self.provider.build_url(self.provider.batches_path(), "");
             let body_bytes = bytes::Bytes::from(serde_json::to_vec(&req)?);
@@ -1358,7 +1371,7 @@ impl BatchClient for DefaultClient {
         })
     }
 
-    fn retrieve_batch(&self, batch_id: &str) -> BoxFuture<'_, BatchObject> {
+    fn retrieve_batch(&self, batch_id: &str) -> BoxFuture<'_, Result<BatchObject>> {
         let batch_id = batch_id.to_owned();
         Box::pin(async move {
             let url = format!(
@@ -1376,7 +1389,7 @@ impl BatchClient for DefaultClient {
         })
     }
 
-    fn list_batches(&self, query: Option<BatchListQuery>) -> BoxFuture<'_, BatchListResponse> {
+    fn list_batches(&self, query: Option<BatchListQuery>) -> BoxFuture<'_, Result<BatchListResponse>> {
         Box::pin(async move {
             let base_url = self.provider.build_url(self.provider.batches_path(), "");
             let url = if let Some(ref q) = query {
@@ -1405,7 +1418,7 @@ impl BatchClient for DefaultClient {
         })
     }
 
-    fn cancel_batch(&self, batch_id: &str) -> BoxFuture<'_, BatchObject> {
+    fn cancel_batch(&self, batch_id: &str) -> BoxFuture<'_, Result<BatchObject>> {
         let batch_id = batch_id.to_owned();
         Box::pin(async move {
             let url = format!(
@@ -1429,7 +1442,7 @@ impl BatchClient for DefaultClient {
 
 #[cfg(feature = "native-http")]
 impl ResponseClient for DefaultClient {
-    fn create_response(&self, req: CreateResponseRequest) -> BoxFuture<'_, ResponseObject> {
+    fn create_response(&self, req: CreateResponseRequest) -> BoxFuture<'_, Result<ResponseObject>> {
         Box::pin(async move {
             let url = self.provider.build_url(self.provider.responses_path(), "");
             let body_bytes = bytes::Bytes::from(serde_json::to_vec(&req)?);
@@ -1446,7 +1459,7 @@ impl ResponseClient for DefaultClient {
         })
     }
 
-    fn retrieve_response(&self, id: &str) -> BoxFuture<'_, ResponseObject> {
+    fn retrieve_response(&self, id: &str) -> BoxFuture<'_, Result<ResponseObject>> {
         let id = id.to_owned();
         Box::pin(async move {
             let url = format!("{}/{}", self.provider.build_url(self.provider.responses_path(), ""), id);
@@ -1460,7 +1473,7 @@ impl ResponseClient for DefaultClient {
         })
     }
 
-    fn cancel_response(&self, id: &str) -> BoxFuture<'_, ResponseObject> {
+    fn cancel_response(&self, id: &str) -> BoxFuture<'_, Result<ResponseObject>> {
         let id = id.to_owned();
         Box::pin(async move {
             let url = format!(

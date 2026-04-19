@@ -37,6 +37,12 @@ pub enum EmbeddingInput {
     Multiple(Vec<String>),
 }
 
+impl Default for EmbeddingInput {
+    fn default() -> Self {
+        Self::Single(String::new())
+    }
+}
+
 // ─── Response ─────────────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

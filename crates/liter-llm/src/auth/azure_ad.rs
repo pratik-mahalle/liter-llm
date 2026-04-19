@@ -159,7 +159,7 @@ impl AzureAdCredentialProvider {
 }
 
 impl CredentialProvider for AzureAdCredentialProvider {
-    fn resolve(&self) -> BoxFuture<'_, Credential> {
+    fn resolve(&self) -> BoxFuture<'_, crate::error::Result<Credential>> {
         Box::pin(async move {
             // Fast path: read lock to check cache.
             {

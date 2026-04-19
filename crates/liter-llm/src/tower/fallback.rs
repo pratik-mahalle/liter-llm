@@ -71,7 +71,7 @@ where
 {
     type Response = LlmResponse;
     type Error = LiterLlmError;
-    type Future = BoxFuture<'static, LlmResponse>;
+    type Future = BoxFuture<'static, Result<LlmResponse>>;
 
     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<()>> {
         // Tower contract: poll_ready should prepare exactly one service for a

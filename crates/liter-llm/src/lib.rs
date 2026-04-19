@@ -4,11 +4,13 @@
 #![cfg_attr(not(feature = "native-http"), allow(dead_code, unused_imports))]
 
 pub mod auth;
+#[cfg(feature = "native-http")]
+pub mod bindings;
 pub mod client;
 pub mod cost;
 pub mod error;
 pub(crate) mod http;
-pub(crate) mod provider;
+pub mod provider;
 #[cfg(test)]
 mod tests;
 #[cfg(feature = "tokenizer")]

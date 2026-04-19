@@ -28,7 +28,7 @@ impl liter_llm::client::LlmClient for ConcurrencyMockClient {
     fn chat(
         &self,
         req: liter_llm::types::ChatCompletionRequest,
-    ) -> liter_llm::client::BoxFuture<'_, liter_llm::types::ChatCompletionResponse> {
+    ) -> liter_llm::client::BoxFuture<'_, liter_llm::error::Result<liter_llm::types::ChatCompletionResponse>> {
         let resp = liter_llm::types::ChatCompletionResponse {
             id: "conc-test".into(),
             object: "chat.completion".into(),
@@ -59,10 +59,17 @@ impl liter_llm::client::LlmClient for ConcurrencyMockClient {
     fn chat_stream(
         &self,
         _req: liter_llm::types::ChatCompletionRequest,
-    ) -> liter_llm::client::BoxFuture<'_, liter_llm::client::BoxStream<'_, liter_llm::types::ChatCompletionChunk>> {
+    ) -> liter_llm::client::BoxFuture<
+        '_,
+        liter_llm::error::Result<
+            liter_llm::client::BoxStream<'static, liter_llm::error::Result<liter_llm::types::ChatCompletionChunk>>,
+        >,
+    > {
         Box::pin(async move {
-            let stream: liter_llm::client::BoxStream<'_, liter_llm::types::ChatCompletionChunk> =
-                Box::pin(futures_util::stream::empty());
+            let stream: liter_llm::client::BoxStream<
+                'static,
+                liter_llm::error::Result<liter_llm::types::ChatCompletionChunk>,
+            > = Box::pin(futures_util::stream::empty());
             Ok(stream)
         })
     }
@@ -70,7 +77,7 @@ impl liter_llm::client::LlmClient for ConcurrencyMockClient {
     fn embed(
         &self,
         req: liter_llm::types::EmbeddingRequest,
-    ) -> liter_llm::client::BoxFuture<'_, liter_llm::types::EmbeddingResponse> {
+    ) -> liter_llm::client::BoxFuture<'_, liter_llm::error::Result<liter_llm::types::EmbeddingResponse>> {
         let resp = liter_llm::types::EmbeddingResponse {
             object: "list".into(),
             data: vec![],
@@ -84,7 +91,9 @@ impl liter_llm::client::LlmClient for ConcurrencyMockClient {
         Box::pin(async move { Ok(resp) })
     }
 
-    fn list_models(&self) -> liter_llm::client::BoxFuture<'_, liter_llm::types::ModelsListResponse> {
+    fn list_models(
+        &self,
+    ) -> liter_llm::client::BoxFuture<'_, liter_llm::error::Result<liter_llm::types::ModelsListResponse>> {
         Box::pin(async move {
             Ok(liter_llm::types::ModelsListResponse {
                 object: "list".into(),
@@ -96,7 +105,7 @@ impl liter_llm::client::LlmClient for ConcurrencyMockClient {
     fn image_generate(
         &self,
         _req: liter_llm::types::image::CreateImageRequest,
-    ) -> liter_llm::client::BoxFuture<'_, liter_llm::types::image::ImagesResponse> {
+    ) -> liter_llm::client::BoxFuture<'_, liter_llm::error::Result<liter_llm::types::image::ImagesResponse>> {
         Box::pin(async move {
             Ok(liter_llm::types::image::ImagesResponse {
                 created: 0,
@@ -108,14 +117,15 @@ impl liter_llm::client::LlmClient for ConcurrencyMockClient {
     fn speech(
         &self,
         _req: liter_llm::types::audio::CreateSpeechRequest,
-    ) -> liter_llm::client::BoxFuture<'_, bytes::Bytes> {
+    ) -> liter_llm::client::BoxFuture<'_, liter_llm::error::Result<bytes::Bytes>> {
         Box::pin(async move { Ok(bytes::Bytes::new()) })
     }
 
     fn transcribe(
         &self,
         _req: liter_llm::types::audio::CreateTranscriptionRequest,
-    ) -> liter_llm::client::BoxFuture<'_, liter_llm::types::audio::TranscriptionResponse> {
+    ) -> liter_llm::client::BoxFuture<'_, liter_llm::error::Result<liter_llm::types::audio::TranscriptionResponse>>
+    {
         Box::pin(async move {
             Ok(liter_llm::types::audio::TranscriptionResponse {
                 text: String::new(),
@@ -129,7 +139,8 @@ impl liter_llm::client::LlmClient for ConcurrencyMockClient {
     fn moderate(
         &self,
         _req: liter_llm::types::moderation::ModerationRequest,
-    ) -> liter_llm::client::BoxFuture<'_, liter_llm::types::moderation::ModerationResponse> {
+    ) -> liter_llm::client::BoxFuture<'_, liter_llm::error::Result<liter_llm::types::moderation::ModerationResponse>>
+    {
         Box::pin(async move {
             Ok(liter_llm::types::moderation::ModerationResponse {
                 id: String::new(),
@@ -142,7 +153,7 @@ impl liter_llm::client::LlmClient for ConcurrencyMockClient {
     fn rerank(
         &self,
         _req: liter_llm::types::rerank::RerankRequest,
-    ) -> liter_llm::client::BoxFuture<'_, liter_llm::types::rerank::RerankResponse> {
+    ) -> liter_llm::client::BoxFuture<'_, liter_llm::error::Result<liter_llm::types::rerank::RerankResponse>> {
         Box::pin(async move {
             Ok(liter_llm::types::rerank::RerankResponse {
                 id: None,
@@ -155,7 +166,7 @@ impl liter_llm::client::LlmClient for ConcurrencyMockClient {
     fn search(
         &self,
         _req: liter_llm::types::search::SearchRequest,
-    ) -> liter_llm::client::BoxFuture<'_, liter_llm::types::search::SearchResponse> {
+    ) -> liter_llm::client::BoxFuture<'_, liter_llm::error::Result<liter_llm::types::search::SearchResponse>> {
         Box::pin(async {
             Err(liter_llm::error::LiterLlmError::EndpointNotSupported {
                 endpoint: "search".into(),
@@ -167,7 +178,7 @@ impl liter_llm::client::LlmClient for ConcurrencyMockClient {
     fn ocr(
         &self,
         _req: liter_llm::types::ocr::OcrRequest,
-    ) -> liter_llm::client::BoxFuture<'_, liter_llm::types::ocr::OcrResponse> {
+    ) -> liter_llm::client::BoxFuture<'_, liter_llm::error::Result<liter_llm::types::ocr::OcrResponse>> {
         Box::pin(async {
             Err(liter_llm::error::LiterLlmError::EndpointNotSupported {
                 endpoint: "ocr".into(),

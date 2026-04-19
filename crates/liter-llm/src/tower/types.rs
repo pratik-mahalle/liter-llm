@@ -1,6 +1,7 @@
 use serde::Serialize;
 
 use crate::client::BoxStream;
+use crate::error::Result;
 use crate::types::audio::{CreateSpeechRequest, CreateTranscriptionRequest, TranscriptionResponse};
 use crate::types::image::{CreateImageRequest, ImagesResponse};
 use crate::types::moderation::{ModerationRequest, ModerationResponse};
@@ -104,7 +105,7 @@ pub enum LlmResponse {
     /// Non-streaming chat completion.
     Chat(ChatCompletionResponse),
     /// Streaming chat completion.
-    ChatStream(BoxStream<'static, ChatCompletionChunk>),
+    ChatStream(BoxStream<'static, Result<ChatCompletionChunk>>),
     /// Text embedding.
     Embed(EmbeddingResponse),
     /// Model list.

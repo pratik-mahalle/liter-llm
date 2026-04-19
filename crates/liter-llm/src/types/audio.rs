@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Request to generate speech audio from text.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct CreateSpeechRequest {
     pub model: String,
@@ -14,7 +14,7 @@ pub struct CreateSpeechRequest {
 }
 
 /// Request to transcribe audio into text.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct CreateTranscriptionRequest {
     pub model: String,
@@ -31,7 +31,7 @@ pub struct CreateTranscriptionRequest {
 }
 
 /// Response from a transcription request.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct TranscriptionResponse {
     pub text: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -43,7 +43,7 @@ pub struct TranscriptionResponse {
 }
 
 /// A segment of transcribed audio with timing information.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct TranscriptionSegment {
     pub id: u32,
     pub start: f64,

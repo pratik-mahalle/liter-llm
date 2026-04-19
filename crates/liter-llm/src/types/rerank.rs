@@ -21,6 +21,12 @@ pub enum RerankDocument {
     Object { text: String },
 }
 
+impl Default for RerankDocument {
+    fn default() -> Self {
+        Self::Text(String::new())
+    }
+}
+
 /// Response from the rerank endpoint.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RerankResponse {

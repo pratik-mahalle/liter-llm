@@ -132,7 +132,7 @@ impl MockClient {
 }
 
 impl LlmClient for MockClient {
-    fn chat(&self, req: ChatCompletionRequest) -> BoxFuture<'_, ChatCompletionResponse> {
+    fn chat(&self, req: ChatCompletionRequest) -> BoxFuture<'_, Result<ChatCompletionResponse>> {
         self.call_count.fetch_add(1, Ordering::SeqCst);
         let result = match &self.chat_error {
             Some(kind) => Err(kind.to_error()),
@@ -141,15 +141,18 @@ impl LlmClient for MockClient {
         Box::pin(async move { result })
     }
 
-    fn chat_stream(&self, _req: ChatCompletionRequest) -> BoxFuture<'_, BoxStream<'_, ChatCompletionChunk>> {
+    fn chat_stream(
+        &self,
+        _req: ChatCompletionRequest,
+    ) -> BoxFuture<'_, Result<BoxStream<'static, Result<ChatCompletionChunk>>>> {
         self.call_count.fetch_add(1, Ordering::SeqCst);
         Box::pin(async move {
-            let stream: BoxStream<'_, ChatCompletionChunk> = Box::pin(EmptyStream);
+            let stream: BoxStream<'static, Result<ChatCompletionChunk>> = Box::pin(EmptyStream);
             Ok(stream)
         })
     }
 
-    fn embed(&self, req: EmbeddingRequest) -> BoxFuture<'_, EmbeddingResponse> {
+    fn embed(&self, req: EmbeddingRequest) -> BoxFuture<'_, Result<EmbeddingResponse>> {
         let resp = EmbeddingResponse {
             object: "list".into(),
             data: vec![EmbeddingObject {
@@ -167,7 +170,7 @@ impl LlmClient for MockClient {
         Box::pin(async move { Ok(resp) })
     }
 
-    fn list_models(&self) -> BoxFuture<'_, ModelsListResponse> {
+    fn list_models(&self) -> BoxFuture<'_, Result<ModelsListResponse>> {
         Box::pin(async move {
             Ok(ModelsListResponse {
                 object: "list".into(),
@@ -176,7 +179,7 @@ impl LlmClient for MockClient {
         })
     }
 
-    fn image_generate(&self, _req: CreateImageRequest) -> BoxFuture<'_, ImagesResponse> {
+    fn image_generate(&self, _req: CreateImageRequest) -> BoxFuture<'_, Result<ImagesResponse>> {
         Box::pin(async move {
             Ok(ImagesResponse {
                 created: 0,
@@ -185,11 +188,11 @@ impl LlmClient for MockClient {
         })
     }
 
-    fn speech(&self, _req: CreateSpeechRequest) -> BoxFuture<'_, bytes::Bytes> {
+    fn speech(&self, _req: CreateSpeechRequest) -> BoxFuture<'_, Result<bytes::Bytes>> {
         Box::pin(async move { Ok(bytes::Bytes::new()) })
     }
 
-    fn transcribe(&self, _req: CreateTranscriptionRequest) -> BoxFuture<'_, TranscriptionResponse> {
+    fn transcribe(&self, _req: CreateTranscriptionRequest) -> BoxFuture<'_, Result<TranscriptionResponse>> {
         Box::pin(async move {
             Ok(TranscriptionResponse {
                 text: String::new(),
@@ -200,7 +203,7 @@ impl LlmClient for MockClient {
         })
     }
 
-    fn moderate(&self, _req: ModerationRequest) -> BoxFuture<'_, ModerationResponse> {
+    fn moderate(&self, _req: ModerationRequest) -> BoxFuture<'_, Result<ModerationResponse>> {
         Box::pin(async move {
             Ok(ModerationResponse {
                 id: String::new(),
@@ -210,7 +213,7 @@ impl LlmClient for MockClient {
         })
     }
 
-    fn rerank(&self, _req: RerankRequest) -> BoxFuture<'_, RerankResponse> {
+    fn rerank(&self, _req: RerankRequest) -> BoxFuture<'_, Result<RerankResponse>> {
         Box::pin(async move {
             Ok(RerankResponse {
                 id: None,
@@ -220,7 +223,7 @@ impl LlmClient for MockClient {
         })
     }
 
-    fn search(&self, _req: SearchRequest) -> BoxFuture<'_, SearchResponse> {
+    fn search(&self, _req: SearchRequest) -> BoxFuture<'_, Result<SearchResponse>> {
         Box::pin(async {
             Err(LiterLlmError::EndpointNotSupported {
                 endpoint: "search".into(),
@@ -229,7 +232,7 @@ impl LlmClient for MockClient {
         })
     }
 
-    fn ocr(&self, _req: OcrRequest) -> BoxFuture<'_, OcrResponse> {
+    fn ocr(&self, _req: OcrRequest) -> BoxFuture<'_, Result<OcrResponse>> {
         Box::pin(async {
             Err(LiterLlmError::EndpointNotSupported {
                 endpoint: "ocr".into(),

@@ -9,4 +9,4 @@ tasks:
   generate-readme:
     desc: Generate README from templates
     cmds:
-      - cargo run -p e2e-generator -- readme
+      - alef readme

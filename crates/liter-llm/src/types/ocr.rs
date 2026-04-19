@@ -40,6 +40,12 @@ pub enum OcrDocument {
     },
 }
 
+impl Default for OcrDocument {
+    fn default() -> Self {
+        Self::Url { url: String::new() }
+    }
+}
+
 /// An OCR response.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OcrResponse {

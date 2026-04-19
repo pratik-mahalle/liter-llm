@@ -73,7 +73,7 @@ where
 {
     type Response = LlmResponse;
     type Error = LiterLlmError;
-    type Future = BoxFuture<'static, LlmResponse>;
+    type Future = BoxFuture<'static, Result<LlmResponse>>;
 
     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<()>> {
         self.inner.poll_ready(cx)
@@ -156,7 +156,7 @@ mod tests {
     }
 
     impl LlmClient for PricedMockClient {
-        fn chat(&self, req: ChatCompletionRequest) -> BoxFuture<'_, ChatCompletionResponse> {
+        fn chat(&self, req: ChatCompletionRequest) -> BoxFuture<'_, Result<ChatCompletionResponse>> {
             let model = req.model.clone();
             let resp = ChatCompletionResponse {
                 id: "test".into(),
@@ -185,14 +185,17 @@ mod tests {
             Box::pin(async move { Ok(resp) })
         }
 
-        fn chat_stream(&self, _req: ChatCompletionRequest) -> BoxFuture<'_, BoxStream<'_, ChatCompletionChunk>> {
+        fn chat_stream(
+            &self,
+            _req: ChatCompletionRequest,
+        ) -> BoxFuture<'_, Result<BoxStream<'static, Result<ChatCompletionChunk>>>> {
             Box::pin(async move {
-                let stream: BoxStream<'_, ChatCompletionChunk> = Box::pin(EmptyStream);
+                let stream: BoxStream<'static, Result<ChatCompletionChunk>> = Box::pin(EmptyStream);
                 Ok(stream)
             })
         }
 
-        fn embed(&self, req: EmbeddingRequest) -> BoxFuture<'_, EmbeddingResponse> {
+        fn embed(&self, req: EmbeddingRequest) -> BoxFuture<'_, Result<EmbeddingResponse>> {
             let model = req.model.clone();
             let resp = EmbeddingResponse {
                 object: "list".into(),
@@ -211,7 +214,7 @@ mod tests {
             Box::pin(async move { Ok(resp) })
         }
 
-        fn list_models(&self) -> BoxFuture<'_, ModelsListResponse> {
+        fn list_models(&self) -> BoxFuture<'_, Result<ModelsListResponse>> {
             Box::pin(async move {
                 Ok(ModelsListResponse {
                     object: "list".into(),
@@ -220,7 +223,7 @@ mod tests {
             })
         }
 
-        fn image_generate(&self, _req: CreateImageRequest) -> BoxFuture<'_, ImagesResponse> {
+        fn image_generate(&self, _req: CreateImageRequest) -> BoxFuture<'_, Result<ImagesResponse>> {
             Box::pin(async move {
                 Ok(ImagesResponse {
                     created: 0,
@@ -229,11 +232,11 @@ mod tests {
             })
         }
 
-        fn speech(&self, _req: CreateSpeechRequest) -> BoxFuture<'_, bytes::Bytes> {
+        fn speech(&self, _req: CreateSpeechRequest) -> BoxFuture<'_, Result<bytes::Bytes>> {
             Box::pin(async move { Ok(bytes::Bytes::new()) })
         }
 
-        fn transcribe(&self, _req: CreateTranscriptionRequest) -> BoxFuture<'_, TranscriptionResponse> {
+        fn transcribe(&self, _req: CreateTranscriptionRequest) -> BoxFuture<'_, Result<TranscriptionResponse>> {
             Box::pin(async move {
                 Ok(TranscriptionResponse {
                     text: String::new(),
@@ -244,7 +247,7 @@ mod tests {
             })
         }
 
-        fn moderate(&self, _req: ModerationRequest) -> BoxFuture<'_, ModerationResponse> {
+        fn moderate(&self, _req: ModerationRequest) -> BoxFuture<'_, Result<ModerationResponse>> {
             Box::pin(async move {
                 Ok(ModerationResponse {
                     id: String::new(),
@@ -254,7 +257,7 @@ mod tests {
             })
         }
 
-        fn rerank(&self, _req: RerankRequest) -> BoxFuture<'_, RerankResponse> {
+        fn rerank(&self, _req: RerankRequest) -> BoxFuture<'_, Result<RerankResponse>> {
             Box::pin(async move {
                 Ok(RerankResponse {
                     id: None,
@@ -264,7 +267,7 @@ mod tests {
             })
         }
 
-        fn search(&self, _req: SearchRequest) -> BoxFuture<'_, SearchResponse> {
+        fn search(&self, _req: SearchRequest) -> BoxFuture<'_, Result<SearchResponse>> {
             Box::pin(async {
                 Err(LiterLlmError::EndpointNotSupported {
                     endpoint: "search".into(),
@@ -273,7 +276,7 @@ mod tests {
             })
         }
 
-        fn ocr(&self, _req: OcrRequest) -> BoxFuture<'_, OcrResponse> {
+        fn ocr(&self, _req: OcrRequest) -> BoxFuture<'_, Result<OcrResponse>> {
             Box::pin(async {
                 Err(LiterLlmError::EndpointNotSupported {
                     endpoint: "ocr".into(),
@@ -343,38 +346,41 @@ mod tests {
         struct AlwaysErrorClient;
 
         impl LlmClient for AlwaysErrorClient {
-            fn chat(&self, _req: ChatCompletionRequest) -> BoxFuture<'_, ChatCompletionResponse> {
+            fn chat(&self, _req: ChatCompletionRequest) -> BoxFuture<'_, Result<ChatCompletionResponse>> {
                 Box::pin(async { Err(LiterLlmError::Timeout) })
             }
-            fn chat_stream(&self, _req: ChatCompletionRequest) -> BoxFuture<'_, BoxStream<'_, ChatCompletionChunk>> {
+            fn chat_stream(
+                &self,
+                _req: ChatCompletionRequest,
+            ) -> BoxFuture<'_, Result<BoxStream<'static, Result<ChatCompletionChunk>>>> {
                 Box::pin(async move {
-                    let stream: BoxStream<'_, ChatCompletionChunk> = Box::pin(EmptyStream);
+                    let stream: BoxStream<'static, Result<ChatCompletionChunk>> = Box::pin(EmptyStream);
                     Ok(stream)
                 })
             }
-            fn embed(&self, _req: EmbeddingRequest) -> BoxFuture<'_, EmbeddingResponse> {
+            fn embed(&self, _req: EmbeddingRequest) -> BoxFuture<'_, Result<EmbeddingResponse>> {
                 Box::pin(async { Err(LiterLlmError::Timeout) })
             }
-            fn list_models(&self) -> BoxFuture<'_, ModelsListResponse> {
+            fn list_models(&self) -> BoxFuture<'_, Result<ModelsListResponse>> {
                 Box::pin(async { Err(LiterLlmError::Timeout) })
             }
-            fn image_generate(&self, _req: CreateImageRequest) -> BoxFuture<'_, ImagesResponse> {
+            fn image_generate(&self, _req: CreateImageRequest) -> BoxFuture<'_, Result<ImagesResponse>> {
                 Box::pin(async { Err(LiterLlmError::Timeout) })
             }
-            fn speech(&self, _req: CreateSpeechRequest) -> BoxFuture<'_, bytes::Bytes> {
+            fn speech(&self, _req: CreateSpeechRequest) -> BoxFuture<'_, Result<bytes::Bytes>> {
                 Box::pin(async { Err(LiterLlmError::Timeout) })
             }
-            fn transcribe(&self, _req: CreateTranscriptionRequest) -> BoxFuture<'_, TranscriptionResponse> {
+            fn transcribe(&self, _req: CreateTranscriptionRequest) -> BoxFuture<'_, Result<TranscriptionResponse>> {
                 Box::pin(async { Err(LiterLlmError::Timeout) })
             }
-            fn moderate(&self, _req: ModerationRequest) -> BoxFuture<'_, ModerationResponse> {
+            fn moderate(&self, _req: ModerationRequest) -> BoxFuture<'_, Result<ModerationResponse>> {
                 Box::pin(async { Err(LiterLlmError::Timeout) })
             }
-            fn rerank(&self, _req: RerankRequest) -> BoxFuture<'_, RerankResponse> {
+            fn rerank(&self, _req: RerankRequest) -> BoxFuture<'_, Result<RerankResponse>> {
                 Box::pin(async { Err(LiterLlmError::Timeout) })
             }
 
-            fn search(&self, _req: SearchRequest) -> BoxFuture<'_, SearchResponse> {
+            fn search(&self, _req: SearchRequest) -> BoxFuture<'_, Result<SearchResponse>> {
                 Box::pin(async {
                     Err(LiterLlmError::EndpointNotSupported {
                         endpoint: "search".into(),
@@ -383,7 +389,7 @@ mod tests {
                 })
             }
 
-            fn ocr(&self, _req: OcrRequest) -> BoxFuture<'_, OcrResponse> {
+            fn ocr(&self, _req: OcrRequest) -> BoxFuture<'_, Result<OcrResponse>> {
                 Box::pin(async {
                     Err(LiterLlmError::EndpointNotSupported {
                         endpoint: "ocr".into(),
