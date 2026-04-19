@@ -44,7 +44,7 @@ liter-llm = { version = "...", features = ["full"] }
 
 Some flags imply others:
 
-```
+```text
 tower   → tracing
 otel    → tracing
 bedrock → native-http

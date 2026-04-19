@@ -52,7 +52,7 @@ pub struct ModelPricing {
 
 When an exact model name is not found, the registry strips from the last `-` or `.` separator and retries. This means versioned model names like `gpt-4-0613` resolve to the `gpt-4` entry automatically.
 
-```
+```text
 gpt-4-0613  →  try "gpt-4-0613"  →  try "gpt-4"  →  found
 claude-3-opus-20240229  →  try exact  →  try "claude-3-opus"  →  found
 ```

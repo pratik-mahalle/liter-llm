@@ -26,7 +26,7 @@ Native-extension bindings (Python, Node.js, WebAssembly, Ruby, Elixir) use Rust 
 
 ## Core library structure
 
-```
+```text
 crates/liter-llm/src/
   client.rs          # LlmClient trait + DefaultClient
   error.rs           # LiterLlmError enum (17 variants)
@@ -116,7 +116,7 @@ The WASM binding is the only one that does not use `format_error()`. It calls th
 
 ## Proxy structure
 
-```
+```text
 crates/liter-llm-proxy/src/
   config/            # TOML config structs + env-var interpolation
   routes/            # Axum route handlers (23 unique routes)
