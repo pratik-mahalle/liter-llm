@@ -561,16 +561,16 @@ module LiterLlm
     # The provider is stored behind an [`Arc`] so it can be shared cheaply into
     # async closures and streaming tasks that must be `'static`.
 
-    def chat(req: ChatCompletionRequest) -> ChatCompletionResponse
-    def chat_stream(req: ChatCompletionRequest) -> String
-    def embed(req: EmbeddingRequest) -> EmbeddingResponse
-    def list_models() -> ModelsListResponse
-    def image_generate(req: CreateImageRequest) -> ImagesResponse
-    def transcribe(req: CreateTranscriptionRequest) -> TranscriptionResponse
-    def moderate(req: ModerationRequest) -> ModerationResponse
-    def rerank(req: RerankRequest) -> RerankResponse
-    def search(req: SearchRequest) -> SearchResponse
-    def ocr(req: OcrRequest) -> OcrResponse
+    def chat: (ChatCompletionRequest req) -> ChatCompletionResponse
+    def chat_stream: (ChatCompletionRequest req) -> String
+    def embed: (EmbeddingRequest req) -> EmbeddingResponse
+    def list_models: () -> ModelsListResponse
+    def image_generate: (CreateImageRequest req) -> ImagesResponse
+    def transcribe: (CreateTranscriptionRequest req) -> TranscriptionResponse
+    def moderate: (ModerationRequest req) -> ModerationResponse
+    def rerank: (RerankRequest req) -> RerankResponse
+    def search: (SearchRequest req) -> SearchResponse
+    def ocr: (OcrRequest req) -> OcrResponse
   end
 
   class CustomProviderConfig
@@ -703,12 +703,12 @@ module LiterLlm
     None: Integer
   end
 
-  def self.create_client(api_key: String, ?base_url: String, ?timeout_secs: Integer, ?max_retries: Integer, ?model_hint: String) -> DefaultClient
+  def self.create_client: (String api_key, ?String base_url, ?Integer timeout_secs, ?Integer max_retries, ?String model_hint) -> DefaultClient
 
-  def self.create_client_from_json(json: String) -> DefaultClient
+  def self.create_client_from_json: (String json) -> DefaultClient
 
-  def self.register_custom_provider(config: CustomProviderConfig) -> void
+  def self.register_custom_provider: (CustomProviderConfig config) -> void
 
-  def self.unregister_custom_provider(name: String) -> bool
+  def self.unregister_custom_provider: (String name) -> bool
 
 end

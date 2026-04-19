@@ -191,19 +191,6 @@ type OcrDocument struct {
 type AuthHeaderFormat struct {
 }
 
-// LiterLlmError is an opaque handle type.
-type LiterLlmError struct {
-	ptr unsafe.Pointer
-}
-
-// Free releases the resources held by this handle.
-func (h *LiterLlmError) Free() {
-	if h.ptr != nil {
-		C.literllm_liter_llm_error_free((*C.LITERLLMLiterLlmError)(h.ptr))
-		h.ptr = nil
-	}
-}
-
 // SystemMessage is a type.
 type SystemMessage struct {
 	Content string  `json:"content"`
@@ -237,7 +224,7 @@ func NewSystemMessage(opts ...SystemMessageOption) *SystemMessage {
 
 // UserMessage is a type.
 type UserMessage struct {
-	Content UserContent `json:"content,omitempty"`
+	Content UserContent `json:"content"`
 	Name    *string     `json:"name,omitempty"`
 }
 
@@ -257,7 +244,7 @@ func WithUserMessageName(v string) UserMessageOption {
 // NewUserMessage creates a UserMessage with optional parameters.
 func NewUserMessage(opts ...UserMessageOption) *UserMessage {
 	c := &UserMessage{
-		Content: "",
+		Content: UserContent{},
 		Name:    nil,
 	}
 	for _, opt := range opts {
@@ -634,7 +621,7 @@ func NewJsonSchemaFormat(opts ...JsonSchemaFormatOption) *JsonSchemaFormat {
 	c := &JsonSchemaFormat{
 		Name:        "",
 		Description: nil,
-		Schema:      "",
+		Schema:      map[string]interface{}{},
 		Strict:      nil,
 	}
 	for _, opt := range opts {
@@ -1931,21 +1918,33 @@ type CustomProviderConfig struct {
 //
 // Returns [`LiterLlmError`] if the underlying HTTP client cannot be
 // constructed, or if the resolved provider configuration is invalid.
-func CreateClient(api_key string, base_url ...*string) (*DefaultClient, error) {
-	var base_urlVal *string
-	if len(base_url) > 0 {
-		base_urlVal = base_url[0]
-	}
+func CreateClient(api_key string, base_url *string, timeout_secs *uint64, max_retries *uint32, model_hint *string) (*DefaultClient, error) {
 	cApiKey := C.CString(api_key)
 	defer C.free(unsafe.Pointer(cApiKey))
 
-	cBaseUrlVal := C.CString(base_urlVal)
-	defer C.free(unsafe.Pointer(cBaseUrlVal))
+	var cBaseUrl *C.char
+	if base_url != nil {
+		cBaseUrl = C.CString(*base_url)
+		defer C.free(unsafe.Pointer(cBaseUrl))
+	}
 
-	cModelHintVal := C.CString(model_hintVal)
-	defer C.free(unsafe.Pointer(cModelHintVal))
+	var cTimeoutSecs uint64 = ^uint64(0)
+	if timeout_secs != nil {
+		cTimeoutSecs = uint64(*timeout_secs)
+	}
 
-	ptr := C.literllm_create_client(cApiKey, cBaseUrlVal, cTimeoutSecsVal, cMaxRetriesVal, cModelHintVal)
+	var cMaxRetries uint32 = ^uint32(0)
+	if max_retries != nil {
+		cMaxRetries = uint32(*max_retries)
+	}
+
+	var cModelHint *C.char
+	if model_hint != nil {
+		cModelHint = C.CString(*model_hint)
+		defer C.free(unsafe.Pointer(cModelHint))
+	}
+
+	ptr := C.literllm_create_client(cApiKey, cBaseUrl, cTimeoutSecs, cMaxRetries, cModelHint)
 	if err := lastError(); err != nil {
 		if ptr != nil {
 			C.literllm_default_client_free(ptr)

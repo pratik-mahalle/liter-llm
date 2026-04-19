@@ -51,7 +51,7 @@ class SystemMessage:
 
 @dataclass
 class UserMessage:
-    content: dict | None = None
+    content: dict[str, Any] | None = None
     name: str | None = None
 
 
@@ -144,14 +144,14 @@ class Usage:
 @dataclass
 class ChatCompletionRequest:
     model: str = ""
-    messages: list[dict] = field(default_factory=list)
+    messages: list[dict[str, Any]] = field(default_factory=list)
     temperature: float | None = None
     top_p: float | None = None
     n: int | None = None
     stream: bool | None = None
     """Whether to stream the response."""
 
-    stop: dict | None = None
+    stop: dict[str, Any] | None = None
     max_tokens: int | None = None
     presence_penalty: float | None = None
     frequency_penalty: float | None = None
@@ -160,9 +160,9 @@ class ChatCompletionRequest:
 
     user: str | None = None
     tools: list[Any] | None = None
-    tool_choice: dict | None = None
+    tool_choice: dict[str, Any] | None = None
     parallel_tool_calls: bool | None = None
-    response_format: dict | None = None
+    response_format: dict[str, Any] | None = None
     stream_options: Any | None = None
     seed: int | None = None
     reasoning_effort: str | None = None
