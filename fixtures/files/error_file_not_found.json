@@ -1,29 +1,35 @@
 {
 	"id": "error_file_not_found",
-	"category": "files",
 	"description": "404 Not Found when retrieving a nonexistent file",
-	"api": {
-		"method": "retrieve_file",
-		"request": {
-			"file_id": "file-nonexistent"
-		},
-		"mock_response": {
-			"status": 404,
-			"body": {
-				"error": {
-					"message": "No such File object: file-nonexistent",
-					"type": "invalid_request_error",
-					"param": null,
-					"code": null
-				}
+	"category": "files",
+	"tags": [
+		"error-handling",
+		"files"
+	],
+	"call": "retrieve_file",
+	"input": {
+		"file_id": "file-nonexistent"
+	},
+	"mock_response": {
+		"status": 404,
+		"body": {
+			"error": {
+				"message": "No such File object: file-nonexistent",
+				"type": "invalid_request_error",
+				"param": null,
+				"code": null
 			}
 		}
 	},
-	"assertions": {
-		"expect_success": false,
-		"error_type": "NotFound",
-		"error_status_code": 404
-	},
-	"tags": ["error-handling", "files"],
-	"skip": {}
+	"assertions": [
+		{
+			"type": "error",
+			"value": "NotFound"
+		},
+		{
+			"type": "equals",
+			"field": "error.status_code",
+			"value": 404
+		}
+	]
 }

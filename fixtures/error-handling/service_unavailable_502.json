@@ -1,33 +1,38 @@
 {
 	"id": "service_unavailable_502",
-	"category": "error-handling",
 	"description": "502 Bad Gateway error when the upstream service is unavailable",
-	"api": {
-		"method": "chat",
-		"request": {
-			"model": "gpt-4",
-			"messages": [
-				{
-					"role": "user",
-					"content": "Hello"
-				}
-			]
-		},
-		"mock_response": {
-			"status": 502,
-			"body": {
-				"error": {
-					"message": "Bad gateway",
-					"type": "server_error"
-				}
+	"category": "error-handling",
+	"tags": [
+		"error-handling"
+	],
+	"call": "chat",
+	"input": {
+		"model": "gpt-4",
+		"messages": [
+			{
+				"role": "user",
+				"content": "Hello"
+			}
+		]
+	},
+	"mock_response": {
+		"status": 502,
+		"body": {
+			"error": {
+				"message": "Bad gateway",
+				"type": "server_error"
 			}
 		}
 	},
-	"assertions": {
-		"expect_success": false,
-		"error_type": "ServiceUnavailable",
-		"error_status_code": 502
-	},
-	"tags": ["error-handling"],
-	"skip": {}
+	"assertions": [
+		{
+			"type": "error",
+			"value": "ServiceUnavailable"
+		},
+		{
+			"type": "equals",
+			"field": "error.status_code",
+			"value": 502
+		}
+	]
 }

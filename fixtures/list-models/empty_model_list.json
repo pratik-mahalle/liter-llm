@@ -1,23 +1,32 @@
 {
 	"id": "empty_model_list",
-	"category": "list-models",
 	"description": "List models response returns an empty data array when no models are available",
-	"api": {
-		"method": "list_models",
-		"request": {},
-		"mock_response": {
-			"status": 200,
-			"body": {
-				"object": "list",
-				"data": []
-			}
+	"category": "list-models",
+	"tags": [
+		"list-models"
+	],
+	"call": "list_models",
+	"input": {},
+	"mock_response": {
+		"status": 200,
+		"body": {
+			"object": "list",
+			"data": []
 		}
 	},
-	"assertions": {
-		"response_not_null": true,
-		"models_count_min": 0,
-		"models_count_exact": 0
-	},
-	"tags": ["list-models"],
-	"skip": {}
+	"assertions": [
+		{
+			"type": "not_error"
+		},
+		{
+			"type": "count_min",
+			"field": "data",
+			"value": 0
+		},
+		{
+			"type": "count_equals",
+			"field": "data",
+			"value": 0
+		}
+	]
 }

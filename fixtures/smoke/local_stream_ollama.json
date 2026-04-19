@@ -1,19 +1,35 @@
 {
 	"id": "local_stream_ollama",
-	"category": "smoke",
 	"description": "Streaming chat completion against local Ollama with qwen2:0.5b",
-	"api": {
-		"method": "chat_stream",
-		"request": {
-			"model": "ollama/qwen2:0.5b",
-			"messages": [{ "role": "user", "content": "Count from 1 to 3." }],
-			"max_tokens": 30
+	"category": "smoke",
+	"tags": [
+		"smoke",
+		"local",
+		"ollama",
+		"streaming"
+	],
+	"call": "chat_stream",
+	"input": {
+		"model": "ollama/qwen2:0.5b",
+		"messages": [
+			{
+				"role": "user",
+				"content": "Count from 1 to 3."
+			}
+		],
+		"max_tokens": 30
+	},
+	"assertions": [
+		{
+			"type": "not_error"
+		},
+		{
+			"type": "not_error"
+		},
+		{
+			"type": "count_min",
+			"field": "chunks",
+			"value": 1
 		}
-	},
-	"assertions": {
-		"status": "success",
-		"response_not_null": true,
-		"chunks_received_min": 1
-	},
-	"tags": ["smoke", "local", "ollama", "streaming"]
+	]
 }

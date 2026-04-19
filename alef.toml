@@ -204,6 +204,7 @@ keywords = ["llm", "api-client", "openai", "anthropic"]
 fixtures = "fixtures"
 output = "e2e"
 
+# Default call config (used when fixture has no "call" field)
 [e2e.call]
 function = "chat"
 module = "liter_llm"
@@ -212,9 +213,207 @@ async = true
 
 [[e2e.call.args]]
 name = "request"
-field = "request"
+field = "input"
 type = "json_object"
-optional = false
+
+# Named call configs for each API method
+[e2e.calls.chat]
+function = "chat"
+module = "liter_llm"
+async = true
+[[e2e.calls.chat.args]]
+name = "request"
+field = "input"
+type = "json_object"
+
+[e2e.calls.chat_stream]
+function = "chat_stream"
+module = "liter_llm"
+async = true
+[[e2e.calls.chat_stream.args]]
+name = "request"
+field = "input"
+type = "json_object"
+
+[e2e.calls.embed]
+function = "embed"
+module = "liter_llm"
+async = true
+[[e2e.calls.embed.args]]
+name = "request"
+field = "input"
+type = "json_object"
+
+[e2e.calls.list_models]
+function = "list_models"
+module = "liter_llm"
+async = true
+
+[e2e.calls.image_generate]
+function = "image_generate"
+module = "liter_llm"
+async = true
+[[e2e.calls.image_generate.args]]
+name = "request"
+field = "input"
+type = "json_object"
+
+[e2e.calls.speech]
+function = "speech"
+module = "liter_llm"
+async = true
+[[e2e.calls.speech.args]]
+name = "request"
+field = "input"
+type = "json_object"
+
+[e2e.calls.transcribe]
+function = "transcribe"
+module = "liter_llm"
+async = true
+[[e2e.calls.transcribe.args]]
+name = "request"
+field = "input"
+type = "json_object"
+
+[e2e.calls.moderate]
+function = "moderate"
+module = "liter_llm"
+async = true
+[[e2e.calls.moderate.args]]
+name = "request"
+field = "input"
+type = "json_object"
+
+[e2e.calls.rerank]
+function = "rerank"
+module = "liter_llm"
+async = true
+[[e2e.calls.rerank.args]]
+name = "request"
+field = "input"
+type = "json_object"
+
+[e2e.calls.search]
+function = "search"
+module = "liter_llm"
+async = true
+[[e2e.calls.search.args]]
+name = "request"
+field = "input"
+type = "json_object"
+
+[e2e.calls.ocr]
+function = "ocr"
+module = "liter_llm"
+async = true
+[[e2e.calls.ocr.args]]
+name = "request"
+field = "input"
+type = "json_object"
+
+[e2e.calls.create_file]
+function = "create_file"
+module = "liter_llm"
+async = true
+[[e2e.calls.create_file.args]]
+name = "request"
+field = "input"
+type = "json_object"
+
+[e2e.calls.retrieve_file]
+function = "retrieve_file"
+module = "liter_llm"
+async = true
+[[e2e.calls.retrieve_file.args]]
+name = "file_id"
+field = "input.file_id"
+type = "string"
+
+[e2e.calls.delete_file]
+function = "delete_file"
+module = "liter_llm"
+async = true
+[[e2e.calls.delete_file.args]]
+name = "file_id"
+field = "input.file_id"
+type = "string"
+
+[e2e.calls.list_files]
+function = "list_files"
+module = "liter_llm"
+async = true
+
+[e2e.calls.file_content]
+function = "file_content"
+module = "liter_llm"
+async = true
+[[e2e.calls.file_content.args]]
+name = "file_id"
+field = "input.file_id"
+type = "string"
+
+[e2e.calls.create_batch]
+function = "create_batch"
+module = "liter_llm"
+async = true
+[[e2e.calls.create_batch.args]]
+name = "request"
+field = "input"
+type = "json_object"
+
+[e2e.calls.retrieve_batch]
+function = "retrieve_batch"
+module = "liter_llm"
+async = true
+[[e2e.calls.retrieve_batch.args]]
+name = "batch_id"
+field = "input.batch_id"
+type = "string"
+
+[e2e.calls.list_batches]
+function = "list_batches"
+module = "liter_llm"
+async = true
+
+[e2e.calls.cancel_batch]
+function = "cancel_batch"
+module = "liter_llm"
+async = true
+[[e2e.calls.cancel_batch.args]]
+name = "batch_id"
+field = "input.batch_id"
+type = "string"
+
+[e2e.calls.create_response]
+function = "create_response"
+module = "liter_llm"
+async = true
+[[e2e.calls.create_response.args]]
+name = "request"
+field = "input"
+type = "json_object"
+
+[e2e.calls.retrieve_response]
+function = "retrieve_response"
+module = "liter_llm"
+async = true
+[[e2e.calls.retrieve_response.args]]
+name = "id"
+field = "input.id"
+type = "string"
+
+[e2e.calls.cancel_response]
+function = "cancel_response"
+module = "liter_llm"
+async = true
+[[e2e.calls.cancel_response.args]]
+name = "id"
+field = "input.id"
+type = "string"
+
+[e2e.registry]
+output = "test_apps"
 
 [sync]
 extra_paths = ["pyproject.toml"]

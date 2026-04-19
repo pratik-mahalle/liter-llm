@@ -1,55 +1,51 @@
 {
 	"id": "budget_enforced",
-	"category": "budget",
 	"description": "Tests that a request is rejected when budget is exceeded",
-	"client_config": {
-		"budget": {
-			"global_limit": 0.0,
-			"enforcement": "hard"
-		}
+	"category": "budget",
+	"tags": [
+		"budget"
+	],
+	"skip": {
+		"languages": []
 	},
-	"api": {
-		"method": "chat",
-		"request": {
+	"call": "chat",
+	"input": {
+		"model": "gpt-4",
+		"messages": [
+			{
+				"role": "user",
+				"content": "Hello"
+			}
+		]
+	},
+	"mock_response": {
+		"status": 200,
+		"body": {
+			"id": "chatcmpl-budget-enforced-001",
+			"object": "chat.completion",
+			"created": 1711000000,
 			"model": "gpt-4",
-			"messages": [
+			"choices": [
 				{
-					"role": "user",
-					"content": "Hello"
+					"index": 0,
+					"message": {
+						"role": "assistant",
+						"content": "This should not be reached"
+					},
+					"finish_reason": "stop"
 				}
-			]
-		},
-		"mock_response": {
-			"status": 200,
-			"body": {
-				"id": "chatcmpl-budget-enforced-001",
-				"object": "chat.completion",
-				"created": 1711000000,
-				"model": "gpt-4",
-				"choices": [
-					{
-						"index": 0,
-						"message": {
-							"role": "assistant",
-							"content": "This should not be reached"
-						},
-						"finish_reason": "stop"
-					}
-				],
-				"usage": {
-					"prompt_tokens": 8,
-					"completion_tokens": 6,
-					"total_tokens": 14
-				}
+			],
+			"usage": {
+				"prompt_tokens": 8,
+				"completion_tokens": 6,
+				"total_tokens": 14
 			}
 		}
 	},
-	"assertions": {
-		"expect_success": false,
-		"error_type": "BudgetExceeded"
-	},
-	"tags": ["budget"],
-	"skip": {
-		"languages": []
-	}
+	"assertions": [
+		{
+			"type": "error",
+			"value": "BudgetExceeded"
+		}
+	]
 }

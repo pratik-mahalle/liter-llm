@@ -1,25 +1,31 @@
 {
 	"id": "smoke_transcribe_with_language",
-	"category": "transcribe",
 	"description": "Audio transcription with explicit language hint",
-	"api": {
-		"method": "transcribe",
-		"request": {
-			"model": "whisper-1",
-			"file": "audio_de.mp3",
-			"language": "de"
-		},
-		"mock_response": {
-			"status": 200,
-			"body": {
-				"text": "Hallo, dies ist ein Testtranskription."
-			}
+	"category": "transcribe",
+	"tags": [
+		"smoke",
+		"transcribe"
+	],
+	"call": "transcribe",
+	"input": {
+		"model": "whisper-1",
+		"file": "audio_de.mp3",
+		"language": "de"
+	},
+	"mock_response": {
+		"status": 200,
+		"body": {
+			"text": "Hallo, dies ist ein Testtranskription."
 		}
 	},
-	"assertions": {
-		"response_not_null": true,
-		"transcription_text": "Hallo, dies ist ein Testtranskription."
-	},
-	"tags": ["smoke", "transcribe"],
-	"skip": {}
+	"assertions": [
+		{
+			"type": "not_error"
+		},
+		{
+			"type": "contains",
+			"field": "text",
+			"value": "Hallo, dies ist ein Testtranskription."
+		}
+	]
 }

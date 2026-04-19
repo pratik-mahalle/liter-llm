@@ -1,30 +1,36 @@
 {
 	"id": "error_moderate_auth_401",
-	"category": "moderate",
 	"description": "401 Unauthorized for moderation with invalid API key",
-	"api": {
-		"method": "moderate",
-		"request": {
-			"model": "omni-moderation-latest",
-			"input": "Hello"
-		},
-		"mock_response": {
-			"status": 401,
-			"body": {
-				"error": {
-					"message": "Incorrect API key provided.",
-					"type": "invalid_request_error",
-					"param": null,
-					"code": "invalid_api_key"
-				}
+	"category": "moderate",
+	"tags": [
+		"error-handling",
+		"moderate"
+	],
+	"call": "moderate",
+	"input": {
+		"model": "omni-moderation-latest",
+		"input": "Hello"
+	},
+	"mock_response": {
+		"status": 401,
+		"body": {
+			"error": {
+				"message": "Incorrect API key provided.",
+				"type": "invalid_request_error",
+				"param": null,
+				"code": "invalid_api_key"
 			}
 		}
 	},
-	"assertions": {
-		"expect_success": false,
-		"error_type": "Authentication",
-		"error_status_code": 401
-	},
-	"tags": ["error-handling", "moderate"],
-	"skip": {}
+	"assertions": [
+		{
+			"type": "error",
+			"value": "Authentication"
+		},
+		{
+			"type": "equals",
+			"field": "error.status_code",
+			"value": 401
+		}
+	]
 }
