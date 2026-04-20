@@ -465,6 +465,8 @@ php_client_factory = "createClient"
 
 [e2e.call.overrides.wasm]
 client_factory = "createClient"
+options_type = "WasmChatCompletionRequest"
+bigint_fields = ["maxTokens", "seed", "promptTokens", "completionTokens", "totalTokens", "n"]
 
 # Named call configs for each API method
 [e2e.calls.chat]
