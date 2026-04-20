@@ -5,7 +5,7 @@ pub mod managed;
 
 use std::future::Future;
 use std::pin::Pin;
-#[cfg(feature = "native-http")]
+#[cfg(any(feature = "native-http", feature = "wasm-http"))]
 use std::sync::Arc;
 
 use futures_core::Stream;
@@ -27,25 +27,35 @@ use crate::types::{
 };
 
 // DefaultClient and its LlmClient impl require reqwest + tokio.
-#[cfg(feature = "native-http")]
+#[cfg(any(feature = "native-http", feature = "wasm-http"))]
 use crate::auth::Credential;
-#[cfg(feature = "native-http")]
+#[cfg(any(feature = "native-http", feature = "wasm-http"))]
 use crate::error::LiterLlmError;
-#[cfg(feature = "native-http")]
+#[cfg(any(feature = "native-http", feature = "wasm-http"))]
 use crate::http;
-#[cfg(feature = "native-http")]
+#[cfg(any(feature = "native-http", feature = "wasm-http"))]
 use crate::provider::{self, OpenAiCompatibleProvider, OpenAiProvider, Provider};
-#[cfg(feature = "native-http")]
+#[cfg(any(feature = "native-http", feature = "wasm-http"))]
 use secrecy::ExposeSecret;
 
 pub use config::{ClientConfig, ClientConfigBuilder};
 pub use config_file::FileConfig;
 
 /// A boxed future returning `T`.
+#[cfg(not(target_arch = "wasm32"))]
 pub type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
 
+/// A boxed future returning `T` (WASM variant — not `Send` because JS is single-threaded).
+#[cfg(target_arch = "wasm32")]
+pub type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + 'a>>;
+
 /// A boxed stream of `T`.
+#[cfg(not(target_arch = "wasm32"))]
 pub type BoxStream<'a, T> = Pin<Box<dyn Stream<Item = T> + Send + 'a>>;
+
+/// A boxed stream of `T` (WASM variant — not `Send` because JS is single-threaded).
+#[cfg(target_arch = "wasm32")]
+pub type BoxStream<'a, T> = Pin<Box<dyn Stream<Item = T> + 'a>>;
 
 /// Result of [`DefaultClient::prepare_request`].
 ///
@@ -60,7 +70,7 @@ pub type BoxStream<'a, T> = Pin<Box<dyn Stream<Item = T> + Send + 'a>>;
 /// The `provider` is the resolved provider for this specific request — it may
 /// differ from `self.provider` when the model prefix identifies a different
 /// provider.
-#[cfg(feature = "native-http")]
+#[cfg(any(feature = "native-http", feature = "wasm-http"))]
 struct PreparedRequest {
     url: String,
     provider: Arc<dyn Provider>,
@@ -72,13 +82,54 @@ struct PreparedRequest {
 ///
 /// Centralises the four identical `map(|(n, v)| (n.as_str(), v.as_str()))` expressions
 /// that appear wherever we hand headers to the HTTP layer.
-#[cfg(feature = "native-http")]
+#[cfg(any(feature = "native-http", feature = "wasm-http"))]
 fn str_pair(pair: &(String, String)) -> (&str, &str) {
     (pair.0.as_str(), pair.1.as_str())
 }
 
 /// Core LLM client trait.
+#[cfg(not(target_arch = "wasm32"))]
 pub trait LlmClient: Send + Sync {
+    /// Send a chat completion request.
+    fn chat(&self, req: ChatCompletionRequest) -> BoxFuture<'_, Result<ChatCompletionResponse>>;
+
+    /// Send a streaming chat completion request.
+    fn chat_stream(
+        &self,
+        req: ChatCompletionRequest,
+    ) -> BoxFuture<'_, Result<BoxStream<'static, Result<ChatCompletionChunk>>>>;
+
+    /// Send an embedding request.
+    fn embed(&self, req: EmbeddingRequest) -> BoxFuture<'_, Result<EmbeddingResponse>>;
+
+    /// List available models.
+    fn list_models(&self) -> BoxFuture<'_, Result<ModelsListResponse>>;
+
+    /// Generate an image.
+    fn image_generate(&self, req: CreateImageRequest) -> BoxFuture<'_, Result<ImagesResponse>>;
+
+    /// Generate speech audio from text.
+    fn speech(&self, req: CreateSpeechRequest) -> BoxFuture<'_, Result<bytes::Bytes>>;
+
+    /// Transcribe audio to text.
+    fn transcribe(&self, req: CreateTranscriptionRequest) -> BoxFuture<'_, Result<TranscriptionResponse>>;
+
+    /// Check content against moderation policies.
+    fn moderate(&self, req: ModerationRequest) -> BoxFuture<'_, Result<ModerationResponse>>;
+
+    /// Rerank documents by relevance to a query.
+    fn rerank(&self, req: RerankRequest) -> BoxFuture<'_, Result<RerankResponse>>;
+
+    /// Perform a web/document search.
+    fn search(&self, req: SearchRequest) -> BoxFuture<'_, Result<SearchResponse>>;
+
+    /// Extract text from a document via OCR.
+    fn ocr(&self, req: OcrRequest) -> BoxFuture<'_, Result<OcrResponse>>;
+}
+
+/// Core LLM client trait (WASM variant — no `Send + Sync` because JS is single-threaded).
+#[cfg(target_arch = "wasm32")]
+pub trait LlmClient {
     /// Send a chat completion request.
     fn chat(&self, req: ChatCompletionRequest) -> BoxFuture<'_, Result<ChatCompletionResponse>>;
 
@@ -167,6 +218,7 @@ pub trait LlmClientRaw: LlmClient {
 }
 
 /// File management operations (upload, list, retrieve, delete).
+#[cfg(not(target_arch = "wasm32"))]
 pub trait FileClient: Send + Sync {
     /// Upload a file.
     fn create_file(&self, req: CreateFileRequest) -> BoxFuture<'_, Result<FileObject>>;
@@ -184,7 +236,27 @@ pub trait FileClient: Send + Sync {
     fn file_content(&self, file_id: &str) -> BoxFuture<'_, Result<bytes::Bytes>>;
 }
 
+/// File management operations (upload, list, retrieve, delete) (WASM variant).
+#[cfg(target_arch = "wasm32")]
+pub trait FileClient {
+    /// Upload a file.
+    fn create_file(&self, req: CreateFileRequest) -> BoxFuture<'_, Result<FileObject>>;
+
+    /// Retrieve metadata for a file.
+    fn retrieve_file(&self, file_id: &str) -> BoxFuture<'_, Result<FileObject>>;
+
+    /// Delete a file.
+    fn delete_file(&self, file_id: &str) -> BoxFuture<'_, Result<DeleteResponse>>;
+
+    /// List files, optionally filtered by query parameters.
+    fn list_files(&self, query: Option<FileListQuery>) -> BoxFuture<'_, Result<FileListResponse>>;
+
+    /// Retrieve the raw content of a file.
+    fn file_content(&self, file_id: &str) -> BoxFuture<'_, Result<bytes::Bytes>>;
+}
+
 /// Batch processing operations (create, list, retrieve, cancel).
+#[cfg(not(target_arch = "wasm32"))]
 pub trait BatchClient: Send + Sync {
     /// Create a new batch job.
     fn create_batch(&self, req: CreateBatchRequest) -> BoxFuture<'_, Result<BatchObject>>;
@@ -199,8 +271,38 @@ pub trait BatchClient: Send + Sync {
     fn cancel_batch(&self, batch_id: &str) -> BoxFuture<'_, Result<BatchObject>>;
 }
 
+/// Batch processing operations (create, list, retrieve, cancel) (WASM variant).
+#[cfg(target_arch = "wasm32")]
+pub trait BatchClient {
+    /// Create a new batch job.
+    fn create_batch(&self, req: CreateBatchRequest) -> BoxFuture<'_, Result<BatchObject>>;
+
+    /// Retrieve a batch by ID.
+    fn retrieve_batch(&self, batch_id: &str) -> BoxFuture<'_, Result<BatchObject>>;
+
+    /// List batches, optionally filtered by query parameters.
+    fn list_batches(&self, query: Option<BatchListQuery>) -> BoxFuture<'_, Result<BatchListResponse>>;
+
+    /// Cancel an in-progress batch.
+    fn cancel_batch(&self, batch_id: &str) -> BoxFuture<'_, Result<BatchObject>>;
+}
+
 /// Responses API operations (create, retrieve, cancel).
+#[cfg(not(target_arch = "wasm32"))]
 pub trait ResponseClient: Send + Sync {
+    /// Create a new response.
+    fn create_response(&self, req: CreateResponseRequest) -> BoxFuture<'_, Result<ResponseObject>>;
+
+    /// Retrieve a response by ID.
+    fn retrieve_response(&self, id: &str) -> BoxFuture<'_, Result<ResponseObject>>;
+
+    /// Cancel an in-progress response.
+    fn cancel_response(&self, id: &str) -> BoxFuture<'_, Result<ResponseObject>>;
+}
+
+/// Responses API operations (create, retrieve, cancel) (WASM variant).
+#[cfg(target_arch = "wasm32")]
+pub trait ResponseClient {
     /// Create a new response.
     fn create_response(&self, req: CreateResponseRequest) -> BoxFuture<'_, Result<ResponseObject>>;
 
@@ -224,7 +326,7 @@ pub trait ResponseClient: Send + Sync {
 ///
 /// The provider is stored behind an [`Arc`] so it can be shared cheaply into
 /// async closures and streaming tasks that must be `'static`.
-#[cfg(feature = "native-http")]
+#[cfg(any(feature = "native-http", feature = "wasm-http"))]
 #[derive(Clone)]
 pub struct DefaultClient {
     config: ClientConfig,
@@ -240,7 +342,7 @@ pub struct DefaultClient {
     cached_extra_headers: Vec<(String, String)>,
 }
 
-#[cfg(feature = "native-http")]
+#[cfg(any(feature = "native-http", feature = "wasm-http"))]
 impl DefaultClient {
     /// Build a client.
     ///
@@ -278,11 +380,14 @@ impl DefaultClient {
             header_map.insert(name, val);
         }
 
-        let http = reqwest::Client::builder()
-            .timeout(config.timeout)
-            .default_headers(header_map)
-            .build()
-            .map_err(LiterLlmError::from)?;
+        let http = {
+            let builder = reqwest::Client::builder().default_headers(header_map);
+            // reqwest's WASM backend uses the browser fetch API and does not
+            // support per-client timeout configuration.
+            #[cfg(not(target_arch = "wasm32"))]
+            let builder = builder.timeout(config.timeout);
+            builder.build().map_err(LiterLlmError::from)?
+        };
 
         // Pre-compute the auth header once at construction time to avoid
         // `format!("Bearer {key}")` on every request.
@@ -459,7 +564,7 @@ impl DefaultClient {
     }
 }
 
-#[cfg(feature = "native-http")]
+#[cfg(any(feature = "native-http", feature = "wasm-http"))]
 /// Resolve the provider to use for all requests on this client.
 ///
 /// Priority:
@@ -486,7 +591,7 @@ fn build_provider(config: &ClientConfig, model_hint: Option<&str>) -> Arc<dyn Pr
     Arc::new(OpenAiProvider)
 }
 
-#[cfg(feature = "native-http")]
+#[cfg(any(feature = "native-http", feature = "wasm-http"))]
 impl LlmClient for DefaultClient {
     fn chat(&self, req: ChatCompletionRequest) -> BoxFuture<'_, Result<ChatCompletionResponse>> {
         Box::pin(async move {
@@ -846,7 +951,7 @@ impl LlmClient for DefaultClient {
     }
 }
 
-#[cfg(feature = "native-http")]
+#[cfg(any(feature = "native-http", feature = "wasm-http"))]
 impl LlmClientRaw for DefaultClient {
     fn chat_raw(&self, req: ChatCompletionRequest) -> BoxFuture<'_, Result<RawExchange<ChatCompletionResponse>>> {
         Box::pin(async move {
@@ -1233,7 +1338,7 @@ impl LlmClientRaw for DefaultClient {
     }
 }
 
-#[cfg(feature = "native-http")]
+#[cfg(any(feature = "native-http", feature = "wasm-http"))]
 impl FileClient for DefaultClient {
     fn create_file(&self, req: CreateFileRequest) -> BoxFuture<'_, Result<FileObject>> {
         Box::pin(async move {
@@ -1352,7 +1457,7 @@ impl FileClient for DefaultClient {
     }
 }
 
-#[cfg(feature = "native-http")]
+#[cfg(any(feature = "native-http", feature = "wasm-http"))]
 impl BatchClient for DefaultClient {
     fn create_batch(&self, req: CreateBatchRequest) -> BoxFuture<'_, Result<BatchObject>> {
         Box::pin(async move {
@@ -1440,7 +1545,7 @@ impl BatchClient for DefaultClient {
     }
 }
 
-#[cfg(feature = "native-http")]
+#[cfg(any(feature = "native-http", feature = "wasm-http"))]
 impl ResponseClient for DefaultClient {
     fn create_response(&self, req: CreateResponseRequest) -> BoxFuture<'_, Result<ResponseObject>> {
         Box::pin(async move {

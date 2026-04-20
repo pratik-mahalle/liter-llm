@@ -150,7 +150,7 @@ impl FileConfig {
         // internal config.  We cannot use `builder.header()` in a loop because
         // it consumes `self` and on `Err` the builder is lost.  Since we are
         // in the same crate, we can access `pub(crate)` fields.
-        #[cfg(feature = "native-http")]
+        #[cfg(any(feature = "native-http", feature = "wasm-http"))]
         if let Some(headers) = self.extra_headers {
             for (k, v) in headers {
                 // Validate header name and value before pushing.

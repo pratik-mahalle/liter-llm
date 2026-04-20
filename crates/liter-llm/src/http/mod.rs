@@ -4,9 +4,9 @@ pub(crate) mod retry;
 
 // request and streaming use reqwest + tokio and are only available when the
 // native-http feature is enabled.
-#[cfg(feature = "native-http")]
+#[cfg(any(feature = "native-http", feature = "wasm-http"))]
 pub(crate) mod eventstream;
-#[cfg(feature = "native-http")]
+#[cfg(any(feature = "native-http", feature = "wasm-http"))]
 pub(crate) mod request;
-#[cfg(feature = "native-http")]
+#[cfg(any(feature = "native-http", feature = "wasm-http"))]
 pub(crate) mod streaming;

@@ -1,10 +1,13 @@
 // Provider, HTTP, and retry infrastructure are only active with native-http.
 // Suppress dead_code lints on the wasm / no-native-http target so that the
 // type-only surface compiles cleanly.
-#![cfg_attr(not(feature = "native-http"), allow(dead_code, unused_imports))]
+#![cfg_attr(
+    not(any(feature = "native-http", feature = "wasm-http")),
+    allow(dead_code, unused_imports)
+)]
 
 pub mod auth;
-#[cfg(feature = "native-http")]
+#[cfg(any(feature = "native-http", feature = "wasm-http"))]
 pub mod bindings;
 pub mod client;
 pub mod cost;
@@ -24,8 +27,8 @@ pub use client::{
     BatchClient, BoxFuture, BoxStream, ClientConfig, ClientConfigBuilder, FileClient, FileConfig, LlmClient,
     LlmClientRaw, ResponseClient,
 };
-// DefaultClient requires the native HTTP stack (reqwest + tokio).
-#[cfg(feature = "native-http")]
+// DefaultClient requires the native HTTP stack (reqwest on native or WASM fetch API).
+#[cfg(any(feature = "native-http", feature = "wasm-http"))]
 pub use client::DefaultClient;
 // ManagedClient requires both the native HTTP stack and Tower middleware.
 #[cfg(all(feature = "native-http", feature = "tower"))]

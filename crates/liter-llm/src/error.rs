@@ -54,7 +54,7 @@ pub enum LiterLlmError {
     #[error("request timeout")]
     Timeout,
 
-    #[cfg(feature = "native-http")]
+    #[cfg(any(feature = "native-http", feature = "wasm-http"))]
     #[error(transparent)]
     Network(#[from] reqwest::Error),
 
@@ -103,7 +103,7 @@ impl LiterLlmError {
             Self::RateLimited { .. } | Self::ServiceUnavailable { .. } | Self::Timeout | Self::ServerError { .. } => {
                 true
             }
-            #[cfg(feature = "native-http")]
+            #[cfg(any(feature = "native-http", feature = "wasm-http"))]
             Self::Network(_) => true,
             _ => false,
         }
@@ -125,7 +125,7 @@ impl LiterLlmError {
             Self::ServerError { .. } => "ServerError",
             Self::ServiceUnavailable { .. } => "ServiceUnavailable",
             Self::Timeout => "Timeout",
-            #[cfg(feature = "native-http")]
+            #[cfg(any(feature = "native-http", feature = "wasm-http"))]
             Self::Network(_) => "Network",
             Self::Streaming { .. } => "Streaming",
             Self::EndpointNotSupported { .. } => "EndpointNotSupported",

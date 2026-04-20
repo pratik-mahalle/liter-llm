@@ -54,7 +54,7 @@ pub async fn post_stream<P>(
     body: Bytes,
     max_retries: u32,
     parse_event: P,
-) -> Result<Pin<Box<dyn Stream<Item = Result<ChatCompletionChunk>> + Send>>>
+) -> Result<crate::client::BoxStream<'static, Result<ChatCompletionChunk>>>
 where
     P: Fn(&str) -> Result<Option<ChatCompletionChunk>> + Send + 'static,
 {
@@ -135,7 +135,7 @@ where
 
 impl<S, P> Stream for SseParser<S, P>
 where
-    S: Stream<Item = std::result::Result<Bytes, reqwest::Error>> + Send,
+    S: Stream<Item = std::result::Result<Bytes, reqwest::Error>>,
     P: Fn(&str) -> Result<Option<ChatCompletionChunk>>,
 {
     type Item = Result<ChatCompletionChunk>;

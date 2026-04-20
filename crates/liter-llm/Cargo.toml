@@ -19,6 +19,7 @@ ignored = ["dashmap", "tower-http"]
 # compiling for WebAssembly, where the browser / Node.js fetch API is used
 # instead and the tokio multi-thread runtime is unavailable.
 native-http = ["dep:reqwest", "dep:tokio", "dep:memchr", "dep:base64"]
+wasm-http = ["dep:reqwest", "dep:memchr", "dep:base64", "dep:gloo-timers"]
 # Structured tracing via the `tracing` crate.  Adds `#[instrument]` spans on
 # HTTP functions and SSE parser warnings.  Can be enabled independently of the
 # Tower middleware integration.
@@ -66,6 +67,7 @@ default = ["native-http"]
 
 [dependencies]
 aws-credential-types = { version = "1", optional = true }
+gloo-timers = { version = "0.3", features = ["futures"], optional = true }
 aws-sigv4 = { version = "1", features = ["sign-http", "http1"], optional = true }
 base64 = { workspace = true, optional = true }
 bytes = { workspace = true }
