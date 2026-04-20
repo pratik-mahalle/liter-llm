@@ -132,7 +132,7 @@ functions = ["str_pair", "build_provider"]
 [output]
 python = "crates/liter-llm-py/src/"
 node = "crates/liter-llm-node/src/"
-ruby = "packages/ruby/ext/liter_llm_rb/src/"
+ruby = "packages/ruby/ext/liter_llm_rb/native/src/"
 php = "crates/liter-llm-php/src/"
 ffi = "crates/liter-llm-ffi/src/"
 go = "packages/go/"
