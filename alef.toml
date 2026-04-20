@@ -465,6 +465,7 @@ client_factory = "createClient"
 
 [e2e.call.overrides.php]
 php_client_factory = "createClient"
+options_via = "json"
 
 [e2e.call.overrides.wasm]
 client_factory = "createClient"
@@ -473,6 +474,7 @@ bigint_fields = ["maxTokens", "seed", "promptTokens", "completionTokens", "total
 
 [e2e.call.overrides.c]
 result_type = "ChatCompletionResponse"
+client_factory = "create_client"
 
 # Named call configs for each API method
 [e2e.calls.chat]

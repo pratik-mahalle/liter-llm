@@ -10,19 +10,35 @@
 
 void test_proxy_auth_invalid(void) {
     /* 401 Unauthorized when an invalid API key is provided through the proxy */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"openai/gpt-4o\"}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }
 
 void test_proxy_auth_missing(void) {
     /* 401 Unauthorized when no API key is provided through the proxy */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"openai/gpt-4o\"}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }
 
 void test_proxy_chat_basic(void) {
     /* Basic chat completion request routed through the proxy */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"messages\":[{\"content\":\"Say hello\",\"role\":\"user\"}],\"model\":\"openai/gpt-4o\"}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* choices_json = literllm_chat_completion_response_choices(result);
@@ -42,15 +58,21 @@ void test_proxy_chat_basic(void) {
     free(choices_0_finish_reason);
     literllm_free_string(choices_json);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_proxy_chat_streaming(void) {
     /* Streaming chat completion routed through the proxy */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionChunkRequest* chat_completion_chunk_request_handle = literllm_chat_completion_chunk_request_from_json("{\"messages\":[{\"content\":\"Count to 3\",\"role\":\"user\"}],\"model\":\"openai/gpt-4o\",\"stream\":true}");
+    assert(chat_completion_chunk_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionChunk* result = literllm_default_client_chat_stream(client, chat_completion_chunk_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* chunks = literllm_chat_completion_response_chunks(result);
-    char* stream_content = literllm_chat_completion_response_stream_content(result);
-    char* stream_complete = literllm_chat_completion_response_stream_complete(result);
+    char* chunks = literllm_chat_completion_chunk_chunks(result);
+    char* stream_content = literllm_chat_completion_chunk_stream_content(result);
+    char* stream_complete = literllm_chat_completion_chunk_stream_complete(result);
     {
         /* count_min: count top-level JSON array elements */
         assert(chunks != NULL && "expected non-null collection JSON");
@@ -62,15 +84,20 @@ void test_proxy_chat_streaming(void) {
     literllm_free_string(chunks);
     literllm_free_string(stream_content);
     literllm_free_string(stream_complete);
-    literllm_chat_completion_response_free(result);
+    literllm_chat_completion_chunk_free(result);
+    literllm_chat_completion_chunk_request_free(chat_completion_chunk_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_proxy_embeddings(void) {
     /* Embedding request routed through the proxy */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("\"Hello world\"");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
+    LITERLLMEmbeddingRequest* embedding_request_handle = literllm_embedding_request_from_json("{\"input\":\"Hello world\",\"model\":\"openai/text-embedding-3-small\"}");
+    assert(embedding_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMEmbeddingResponse* result = literllm_default_client_embed(client, embedding_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* data = literllm_chat_completion_response_data(result);
+    char* data = literllm_embedding_response_data(result);
     {
         /* count_equals: count elements in array */
         assert(data != NULL && "expected non-null collection JSON");
@@ -78,15 +105,18 @@ void test_proxy_embeddings(void) {
         assert(elem_count == 1 && "expected 1 elements");
     }
     literllm_free_string(data);
-    literllm_conversion_options_free(options_handle);
-    literllm_chat_completion_response_free(result);
+    literllm_embedding_response_free(result);
+    literllm_embedding_request_free(embedding_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_proxy_health(void) {
     /* Health check verifying proxy connectivity via list models */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMListModelsResponse* result = literllm_default_client_list_models(client);
     assert(result != NULL && "expected call to succeed");
-    char* data = literllm_chat_completion_response_data(result);
+    char* data = literllm_list_models_response_data(result);
     {
         /* count_min: count top-level JSON array elements */
         assert(data != NULL && "expected non-null collection JSON");
@@ -94,15 +124,20 @@ void test_proxy_health(void) {
         assert(elem_count >= 1 && "expected at least 1 elements");
     }
     literllm_free_string(data);
-    literllm_chat_completion_response_free(result);
+    literllm_list_models_response_free(result);
+    literllm_default_client_free(client);
 }
 
 void test_proxy_image_generate(void) {
     /* Image generation request routed through the proxy */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMImageRequest* image_request_handle = literllm_image_request_from_json("{\"model\":\"dall-e-3\",\"n\":1,\"prompt\":\"A sunset over the ocean\",\"size\":\"1024x1024\"}");
+    assert(image_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMImageResponse* result = literllm_default_client_image_generate(client, image_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* data = literllm_chat_completion_response_data(result);
-    char* data_json = literllm_chat_completion_response_data(result);
+    char* data = literllm_image_response_data(result);
+    char* data_json = literllm_image_response_data(result);
     assert(data_json != NULL);
     char* data_0_url = alef_json_get_string(data_json, "0");
     {
@@ -115,14 +150,18 @@ void test_proxy_image_generate(void) {
     literllm_free_string(data);
     free(data_0_url);
     literllm_free_string(data_json);
-    literllm_chat_completion_response_free(result);
+    literllm_image_response_free(result);
+    literllm_image_request_free(image_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_proxy_models_list(void) {
     /* List models request routed through the proxy */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMListModelsResponse* result = literllm_default_client_list_models(client);
     assert(result != NULL && "expected call to succeed");
-    char* data = literllm_chat_completion_response_data(result);
+    char* data = literllm_list_models_response_data(result);
     {
         /* count_min: count top-level JSON array elements */
         assert(data != NULL && "expected non-null collection JSON");
@@ -130,16 +169,20 @@ void test_proxy_models_list(void) {
         assert(elem_count >= 1 && "expected at least 1 elements");
     }
     literllm_free_string(data);
-    literllm_chat_completion_response_free(result);
+    literllm_list_models_response_free(result);
+    literllm_default_client_free(client);
 }
 
 void test_proxy_moderation(void) {
     /* Content moderation request routed through the proxy */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("\"The weather is nice today.\"");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
+    LITERLLMModerationRequest* moderation_request_handle = literllm_moderation_request_from_json("{\"input\":\"The weather is nice today.\",\"model\":\"omni-moderation-latest\"}");
+    assert(moderation_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMModerationResponse* result = literllm_default_client_moderate(client, moderation_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* results = literllm_chat_completion_response_results(result);
-    char* results_json = literllm_chat_completion_response_results(result);
+    char* results = literllm_moderation_response_results(result);
+    char* results_json = literllm_moderation_response_results(result);
     assert(results_json != NULL);
     char* results_0_flagged = alef_json_get_string(results_json, "0");
     {
@@ -152,16 +195,21 @@ void test_proxy_moderation(void) {
     literllm_free_string(results);
     free(results_0_flagged);
     literllm_free_string(results_json);
-    literllm_conversion_options_free(options_handle);
-    literllm_chat_completion_response_free(result);
+    literllm_moderation_response_free(result);
+    literllm_moderation_request_free(moderation_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_proxy_rerank(void) {
     /* Document reranking request routed through the proxy */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMRerankRequest* rerank_request_handle = literllm_rerank_request_from_json("{\"documents\":[\"Deep learning is a subset of machine learning using neural networks.\",\"The stock market closed higher today.\"],\"model\":\"rerank-v3.5\",\"query\":\"What is deep learning?\"}");
+    assert(rerank_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMRerankResponse* result = literllm_default_client_rerank(client, rerank_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* results = literllm_chat_completion_response_results(result);
-    char* results_json = literllm_chat_completion_response_results(result);
+    char* results = literllm_rerank_response_results(result);
+    char* results_json = literllm_rerank_response_results(result);
     assert(results_json != NULL);
     char* results_0_relevance_score = alef_json_get_string(results_json, "0");
     {
@@ -174,17 +222,31 @@ void test_proxy_rerank(void) {
     literllm_free_string(results);
     free(results_0_relevance_score);
     literllm_free_string(results_json);
-    literllm_chat_completion_response_free(result);
+    literllm_rerank_response_free(result);
+    literllm_rerank_request_free(rerank_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_proxy_upstream_429(void) {
     /* 429 Too Many Requests from upstream provider through the proxy */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"openai/gpt-4o\"}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }
 
 void test_proxy_upstream_500(void) {
     /* 500 Internal Server Error from upstream provider through the proxy */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"openai/gpt-4o\"}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }

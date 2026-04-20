@@ -10,52 +10,72 @@
 
 void test_edge_speech_long_input(void) {
     /* Speech generation with a very long input text */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("\"This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. End of input.\"");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
+    LITERLLMSpeechRequest* speech_request_handle = literllm_speech_request_from_json("{\"input\":\"This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. End of input.\",\"model\":\"tts-1\",\"voice\":\"echo\"}");
+    assert(speech_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMSpeechResponse* result = literllm_default_client_speech(client, speech_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* audio = literllm_chat_completion_response_audio(result);
+    char* audio = literllm_speech_response_audio(result);
     assert(strlen(audio) > 0 && "expected non-empty value");
     literllm_free_string(audio);
-    literllm_conversion_options_free(options_handle);
-    literllm_chat_completion_response_free(result);
+    literllm_speech_response_free(result);
+    literllm_speech_request_free(speech_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_error_speech_auth_401(void) {
     /* 401 Unauthorized for speech generation with invalid API key */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("\"Hello\"");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
-    literllm_conversion_options_free(options_handle);
+    LITERLLMSpeechRequest* speech_request_handle = literllm_speech_request_from_json("{\"input\":\"Hello\",\"model\":\"tts-1\",\"voice\":\"alloy\"}");
+    assert(speech_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMSpeechResponse* result = literllm_default_client_speech(client, speech_request_handle);
+    literllm_speech_request_free(speech_request_handle);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }
 
 void test_error_speech_bad_model(void) {
     /* 400 Bad Request for speech with unsupported model */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("\"Hello\"");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
-    literllm_conversion_options_free(options_handle);
+    LITERLLMSpeechRequest* speech_request_handle = literllm_speech_request_from_json("{\"input\":\"Hello\",\"model\":\"tts-nonexistent\",\"voice\":\"alloy\"}");
+    assert(speech_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMSpeechResponse* result = literllm_default_client_speech(client, speech_request_handle);
+    literllm_speech_request_free(speech_request_handle);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }
 
 void test_smoke_speech_basic(void) {
     /* Basic text-to-speech generation */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("\"Hello, world!\"");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
+    LITERLLMSpeechRequest* speech_request_handle = literllm_speech_request_from_json("{\"input\":\"Hello, world!\",\"model\":\"tts-1\",\"voice\":\"alloy\"}");
+    assert(speech_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMSpeechResponse* result = literllm_default_client_speech(client, speech_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* audio = literllm_chat_completion_response_audio(result);
+    char* audio = literllm_speech_response_audio(result);
     assert(strlen(audio) > 0 && "expected non-empty value");
     literllm_free_string(audio);
-    literllm_conversion_options_free(options_handle);
-    literllm_chat_completion_response_free(result);
+    literllm_speech_response_free(result);
+    literllm_speech_request_free(speech_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_smoke_speech_mp3_format(void) {
     /* Text-to-speech with explicit MP3 response format */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("\"The quick brown fox jumps over the lazy dog.\"");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
+    LITERLLMSpeechRequest* speech_request_handle = literllm_speech_request_from_json("{\"input\":\"The quick brown fox jumps over the lazy dog.\",\"model\":\"tts-1-hd\",\"response_format\":\"mp3\",\"speed\":1.0,\"voice\":\"nova\"}");
+    assert(speech_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMSpeechResponse* result = literllm_default_client_speech(client, speech_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* audio = literllm_chat_completion_response_audio(result);
+    char* audio = literllm_speech_response_audio(result);
     assert(strlen(audio) > 0 && "expected non-empty value");
     literllm_free_string(audio);
-    literllm_conversion_options_free(options_handle);
-    literllm_chat_completion_response_free(result);
+    literllm_speech_response_free(result);
+    literllm_speech_request_free(speech_request_handle);
+    literllm_default_client_free(client);
 }

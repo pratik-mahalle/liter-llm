@@ -5,33 +5,33 @@ import { createClient } from '@kreuzberg/liter-llm';
 describe('speech', () => {
   it('edge_speech_long_input: Speech generation with a very long input text', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/edge_speech_long_input`);
-    const result = await client.chat("This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. End of input.");
+    const result = await client.chat({ input: "This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. End of input.", model: "tts-1", voice: "echo" });
     expect(result.audio.length).toBeGreaterThan(0);
   });
 
   it('error_speech_auth_401: 401 Unauthorized for speech generation with invalid API key', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/error_speech_auth_401`);
     await expect(async () => {
-      await client.chat("Hello");
+      await client.chat({ input: "Hello", model: "tts-1", voice: "alloy" });
     }).rejects.toThrow();
   });
 
   it('error_speech_bad_model: 400 Bad Request for speech with unsupported model', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/error_speech_bad_model`);
     await expect(async () => {
-      await client.chat("Hello");
+      await client.chat({ input: "Hello", model: "tts-nonexistent", voice: "alloy" });
     }).rejects.toThrow();
   });
 
   it('smoke_speech_basic: Basic text-to-speech generation', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/smoke_speech_basic`);
-    const result = await client.chat("Hello, world!");
+    const result = await client.chat({ input: "Hello, world!", model: "tts-1", voice: "alloy" });
     expect(result.audio.length).toBeGreaterThan(0);
   });
 
   it('smoke_speech_mp3_format: Text-to-speech with explicit MP3 response format', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/smoke_speech_mp3_format`);
-    const result = await client.chat("The quick brown fox jumps over the lazy dog.");
+    const result = await client.chat({ input: "The quick brown fox jumps over the lazy dog.", model: "tts-1-hd", response_format: "mp3", speed: 1.0, voice: "nova" });
     expect(result.audio.length).toBeGreaterThan(0);
   });
 });

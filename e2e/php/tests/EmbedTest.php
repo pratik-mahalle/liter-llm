@@ -15,7 +15,7 @@ final class EmbedTest extends TestCase
     public function test_batch_embed(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(["Hello", "World"]);
+        $result = $client->embed_async(json_encode(["Hello", "World"]));
         $this->assertCount(2, $result->data);
         $this->assertCount(5, $result->data["0"]->embedding);
     }
@@ -24,7 +24,7 @@ final class EmbedTest extends TestCase
     public function test_embed_encoding_format(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async("Test input");
+        $result = $client->embed_async(json_encode("Test input"));
         $this->assertCount(1, $result->data);
         $this->assertCount(5, $result->data["0"]->embedding);
     }
@@ -34,14 +34,14 @@ final class EmbedTest extends TestCase
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        $client->chat_async("Hello world");
+        $client->embed_async(json_encode("Hello world"));
     }
 
     /** Embedding request with explicit dimensions parameter returns embeddings of the requested size */
     public function test_embed_with_dimensions(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async("Hello world");
+        $result = $client->embed_async(json_encode("Hello world"));
         $this->assertCount(1, $result->data);
         $this->assertCount(8, $result->data["0"]->embedding);
     }
@@ -50,7 +50,7 @@ final class EmbedTest extends TestCase
     public function test_local_embed_ollama(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async("The quick brown fox jumps over the lazy dog");
+        $result = $client->embed_async(json_encode("The quick brown fox jumps over the lazy dog"));
         $this->assertCount(1, $result->data);
         $this->assertCount(32, $result->data["0"]->embedding);
     }

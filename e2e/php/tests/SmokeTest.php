@@ -39,7 +39,7 @@ final class SmokeTest extends TestCase
     public function test_azure_embed(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async("Hello world");
+        $result = $client->embed_async(json_encode("Hello world"));
         $this->assertCount(1, $result->data);
         $this->assertCount(1536, $result->data["0"]->embedding);
     }
@@ -60,7 +60,7 @@ final class SmokeTest extends TestCase
     public function test_basic_embed(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async("Hello world");
+        $result = $client->embed_async(json_encode("Hello world"));
         $this->assertCount(1, $result->data);
         $this->assertCount(5, $result->data["0"]->embedding);
     }
@@ -69,7 +69,7 @@ final class SmokeTest extends TestCase
     public function test_basic_list_models(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->list_models_async();
         $this->assertGreaterThanOrEqual(1, count($result->data));
     }
 
@@ -109,7 +109,7 @@ final class SmokeTest extends TestCase
     public function test_local_list_models_ollama(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->list_models_async(["model" => "ollama/any"]);
         $this->assertGreaterThanOrEqual(1, count($result->data));
     }
 
@@ -152,7 +152,7 @@ final class SmokeTest extends TestCase
     public function test_smoke_embed_openai(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(["Hello world"]);
+        $result = $client->embed_async(json_encode(["Hello world"]));
         $this->assertNotEmpty($result->data);
     }
 
@@ -160,7 +160,7 @@ final class SmokeTest extends TestCase
     public function test_smoke_list_models_openai(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->list_models_async(["model" => "openai/gpt-4o-mini"]);
         $this->assertGreaterThanOrEqual(1, count($result->data));
     }
 
@@ -176,7 +176,7 @@ final class SmokeTest extends TestCase
     public function test_smoke_streaming_openai(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->chat_stream_async(null);
         $this->assertGreaterThanOrEqual(1, count($result->chunks));
     }
 
@@ -196,7 +196,7 @@ final class SmokeTest extends TestCase
     public function test_vertex_embed(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async("Hello");
+        $result = $client->embed_async(json_encode("Hello"));
         $this->assertCount(1, $result->data);
         $this->assertCount(160, $result->data["0"]->embedding);
     }

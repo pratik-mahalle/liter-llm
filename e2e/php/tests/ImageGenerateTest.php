@@ -15,7 +15,7 @@ final class ImageGenerateTest extends TestCase
     public function test_edge_image_b64_response(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->image_generate_async(null);
         $this->assertCount(1, $result->data);
         $this->assertNotEmpty($result->data["0"]->b64_json);
     }
@@ -25,7 +25,7 @@ final class ImageGenerateTest extends TestCase
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        $client->chat_async(null);
+        $client->image_generate_async(null);
     }
 
     /** 401 Unauthorized when generating images with invalid API key */
@@ -33,7 +33,7 @@ final class ImageGenerateTest extends TestCase
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        $client->chat_async(null);
+        $client->image_generate_async(null);
     }
 
     /** 400 Bad Request when image generation parameters are invalid */
@@ -41,7 +41,7 @@ final class ImageGenerateTest extends TestCase
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        $client->chat_async(null);
+        $client->image_generate_async(null);
     }
 
     /** 429 Rate limit exceeded for image generation */
@@ -49,14 +49,14 @@ final class ImageGenerateTest extends TestCase
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        $client->chat_async(null);
+        $client->image_generate_async(null);
     }
 
     /** Basic image generation with a text prompt */
     public function test_smoke_image_basic(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->image_generate_async(null);
         $this->assertCount(1, $result->data);
         $this->assertNotEmpty($result->data["0"]->url);
     }
@@ -65,7 +65,7 @@ final class ImageGenerateTest extends TestCase
     public function test_smoke_image_multiple(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->image_generate_async(null);
         $this->assertCount(3, $result->data);
         $this->assertNotEmpty($result->data["0"]->url);
     }
@@ -74,7 +74,7 @@ final class ImageGenerateTest extends TestCase
     public function test_smoke_image_with_size(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->image_generate_async(null);
         $this->assertCount(1, $result->data);
         $this->assertNotEmpty($result->data["0"]->url);
     }

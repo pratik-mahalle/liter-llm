@@ -10,7 +10,13 @@
 
 void test_ocr_url_document(void) {
     /* OCR request with a document URL input */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMOcrRequest* ocr_request_handle = literllm_ocr_request_from_json("{\"document\":{\"type\":\"document_url\",\"url\":\"https://example.com/doc.pdf\"},\"model\":\"mistral/mistral-ocr-latest\"}");
+    assert(ocr_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMOcrResponse* result = literllm_default_client_ocr(client, ocr_request_handle);
     assert(result != NULL && "expected call to succeed");
-    literllm_chat_completion_response_free(result);
+    literllm_ocr_response_free(result);
+    literllm_ocr_request_free(ocr_request_handle);
+    literllm_default_client_free(client);
 }

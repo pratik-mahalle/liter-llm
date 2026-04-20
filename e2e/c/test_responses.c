@@ -10,12 +10,15 @@
 
 void test_edge_response_empty_output(void) {
     /* Response completes with empty output items */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("\"\"");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
+    LITERLLMResponseRequest* response_request_handle = literllm_response_request_from_json("{\"input\":\"\",\"model\":\"gpt-4o\"}");
+    assert(response_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMResponseResponse* result = literllm_default_client_create_response(client, response_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* id = literllm_chat_completion_response_id(result);
-    char* status = literllm_chat_completion_response_status(result);
-    char* output = literllm_chat_completion_response_output(result);
+    char* id = literllm_response_response_id(result);
+    char* status = literllm_response_response_status(result);
+    char* output = literllm_response_response_output(result);
     assert(strlen(id) > 0 && "expected non-empty value");
     assert(str_trim_eq(status, "completed") == 0 && "equals assertion failed");
     {
@@ -27,18 +30,22 @@ void test_edge_response_empty_output(void) {
     literllm_free_string(id);
     literllm_free_string(status);
     literllm_free_string(output);
-    literllm_conversion_options_free(options_handle);
-    literllm_chat_completion_response_free(result);
+    literllm_response_response_free(result);
+    literllm_response_request_free(response_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_edge_response_large_input(void) {
     /* Response created with a very large input text */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("\"Summarize the following long text: Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. \"");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
+    LITERLLMResponseRequest* response_request_handle = literllm_response_request_from_json("{\"input\":\"Summarize the following long text: Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. \",\"model\":\"gpt-4o\"}");
+    assert(response_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMResponseResponse* result = literllm_default_client_create_response(client, response_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* id = literllm_chat_completion_response_id(result);
-    char* status = literllm_chat_completion_response_status(result);
-    char* output = literllm_chat_completion_response_output(result);
+    char* id = literllm_response_response_id(result);
+    char* status = literllm_response_response_status(result);
+    char* output = literllm_response_response_output(result);
     assert(strlen(id) > 0 && "expected non-empty value");
     assert(str_trim_eq(status, "completed") == 0 && "equals assertion failed");
     {
@@ -50,39 +57,53 @@ void test_edge_response_large_input(void) {
     literllm_free_string(id);
     literllm_free_string(status);
     literllm_free_string(output);
-    literllm_conversion_options_free(options_handle);
-    literllm_chat_completion_response_free(result);
+    literllm_response_response_free(result);
+    literllm_response_request_free(response_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_error_response_auth_401(void) {
     /* 401 Unauthorized when creating a response with invalid API key */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("\"Hello\"");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
-    literllm_conversion_options_free(options_handle);
+    LITERLLMResponseRequest* response_request_handle = literllm_response_request_from_json("{\"input\":\"Hello\",\"model\":\"gpt-4o\"}");
+    assert(response_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMResponseResponse* result = literllm_default_client_create_response(client, response_request_handle);
+    literllm_response_request_free(response_request_handle);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }
 
 void test_error_response_bad_request(void) {
     /* 400 Bad Request when creating response with invalid model */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("\"Hello\"");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
-    literllm_conversion_options_free(options_handle);
+    LITERLLMResponseRequest* response_request_handle = literllm_response_request_from_json("{\"input\":\"Hello\",\"model\":\"nonexistent-model\"}");
+    assert(response_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMResponseResponse* result = literllm_default_client_create_response(client, response_request_handle);
+    literllm_response_request_free(response_request_handle);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }
 
 void test_error_response_not_found(void) {
     /* 404 Not Found when retrieving a nonexistent response */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMResponseResponse* result = literllm_default_client_retrieve_response(client);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }
 
 void test_smoke_cancel_response(void) {
     /* Cancel an in-progress response */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMResponseResponse* result = literllm_default_client_cancel_response(client);
     assert(result != NULL && "expected call to succeed");
-    char* id = literllm_chat_completion_response_id(result);
-    char* status = literllm_chat_completion_response_status(result);
-    char* output = literllm_chat_completion_response_output(result);
+    char* id = literllm_response_response_id(result);
+    char* status = literllm_response_response_status(result);
+    char* output = literllm_response_response_output(result);
     assert(strlen(id) > 0 && "expected non-empty value");
     assert(str_trim_eq(status, "cancelled") == 0 && "equals assertion failed");
     {
@@ -94,17 +115,21 @@ void test_smoke_cancel_response(void) {
     literllm_free_string(id);
     literllm_free_string(status);
     literllm_free_string(output);
-    literllm_chat_completion_response_free(result);
+    literllm_response_response_free(result);
+    literllm_default_client_free(client);
 }
 
 void test_smoke_create_response(void) {
     /* Create a basic response using the Responses API */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("\"Explain quantum computing in one sentence.\"");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
+    LITERLLMResponseRequest* response_request_handle = literllm_response_request_from_json("{\"input\":\"Explain quantum computing in one sentence.\",\"model\":\"gpt-4o\"}");
+    assert(response_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMResponseResponse* result = literllm_default_client_create_response(client, response_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* id = literllm_chat_completion_response_id(result);
-    char* status = literllm_chat_completion_response_status(result);
-    char* output = literllm_chat_completion_response_output(result);
+    char* id = literllm_response_response_id(result);
+    char* status = literllm_response_response_status(result);
+    char* output = literllm_response_response_output(result);
     assert(strlen(id) > 0 && "expected non-empty value");
     assert(str_trim_eq(status, "completed") == 0 && "equals assertion failed");
     {
@@ -116,19 +141,23 @@ void test_smoke_create_response(void) {
     literllm_free_string(id);
     literllm_free_string(status);
     literllm_free_string(output);
-    literllm_conversion_options_free(options_handle);
-    literllm_chat_completion_response_free(result);
+    literllm_response_response_free(result);
+    literllm_response_request_free(response_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_smoke_response_with_tools(void) {
     /* Response that includes tool call output items */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("\"What is the weather in San Francisco?\"");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
+    LITERLLMResponseRequest* response_request_handle = literllm_response_request_from_json("{\"input\":\"What is the weather in San Francisco?\",\"model\":\"gpt-4o\",\"tools\":[{\"description\":\"Get current weather for a location\",\"name\":\"get_weather\",\"parameters\":{\"properties\":{\"location\":{\"type\":\"string\"}},\"required\":[\"location\"],\"type\":\"object\"},\"type\":\"function\"}]}");
+    assert(response_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMResponseResponse* result = literllm_default_client_create_response(client, response_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* id = literllm_chat_completion_response_id(result);
-    char* status = literllm_chat_completion_response_status(result);
-    char* output = literllm_chat_completion_response_output(result);
-    char* choices_json = literllm_chat_completion_response_choices(result);
+    char* id = literllm_response_response_id(result);
+    char* status = literllm_response_response_status(result);
+    char* output = literllm_response_response_output(result);
+    char* choices_json = literllm_response_response_choices(result);
     assert(choices_json != NULL);
     char* choices_0_message_tool_calls = alef_json_get_string(choices_json, "0");
     assert(strlen(id) > 0 && "expected non-empty value");
@@ -145,19 +174,23 @@ void test_smoke_response_with_tools(void) {
     literllm_free_string(output);
     free(choices_0_message_tool_calls);
     literllm_free_string(choices_json);
-    literllm_conversion_options_free(options_handle);
-    literllm_chat_completion_response_free(result);
+    literllm_response_response_free(result);
+    literllm_response_request_free(response_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_smoke_retrieve_response(void) {
     /* Retrieve a previously created response */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMResponseResponse* result = literllm_default_client_retrieve_response(client);
     assert(result != NULL && "expected call to succeed");
-    char* id = literllm_chat_completion_response_id(result);
-    char* status = literllm_chat_completion_response_status(result);
+    char* id = literllm_response_response_id(result);
+    char* status = literllm_response_response_status(result);
     assert(strlen(id) > 0 && "expected non-empty value");
     assert(str_trim_eq(status, "completed") == 0 && "equals assertion failed");
     literllm_free_string(id);
     literllm_free_string(status);
-    literllm_chat_completion_response_free(result);
+    literllm_response_response_free(result);
+    literllm_default_client_free(client);
 }

@@ -15,7 +15,7 @@ final class StreamingTest extends TestCase
     public function test_anthropic_stream(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->chat_stream_async(null);
         $this->assertGreaterThanOrEqual(3, count($result->chunks));
         $this->assertEquals("One Two Three", $result->stream_content);
         $this->assertTrue($result->stream_complete);
@@ -25,7 +25,7 @@ final class StreamingTest extends TestCase
     public function test_azure_stream(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->chat_stream_async(null);
         $this->assertGreaterThanOrEqual(3, count($result->chunks));
         $this->assertEquals("1 2 3", $result->stream_content);
         $this->assertTrue($result->stream_complete);
@@ -35,7 +35,7 @@ final class StreamingTest extends TestCase
     public function test_basic_stream(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->chat_stream_async(null);
         $this->assertGreaterThanOrEqual(3, count($result->chunks));
         $this->assertEquals("1 2 3", $result->stream_content);
     }
@@ -44,7 +44,7 @@ final class StreamingTest extends TestCase
     public function test_bedrock_stream(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->chat_stream_async(null);
         $this->assertGreaterThanOrEqual(2, count($result->chunks));
         $this->assertEquals("One Two Three", $result->stream_content);
         $this->assertTrue($result->stream_complete);
@@ -54,7 +54,7 @@ final class StreamingTest extends TestCase
     public function test_empty_stream(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->chat_stream_async(null);
         $this->assertGreaterThanOrEqual(0, count($result->chunks));
         $this->assertEquals("", $result->stream_content);
     }
@@ -63,7 +63,7 @@ final class StreamingTest extends TestCase
     public function test_local_stream_ollama(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->chat_stream_async(null);
         $this->assertGreaterThanOrEqual(3, count($result->chunks));
         $this->assertEquals("1 2 3", $result->stream_content);
         $this->assertTrue($result->stream_complete);
@@ -73,7 +73,7 @@ final class StreamingTest extends TestCase
     public function test_stream_done_signal(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->chat_stream_async(null);
         $this->assertTrue($result->stream_complete);
         $this->assertEquals("Done", $result->stream_content);
         $this->assertTrue($result->no_chunks_after_done);
@@ -84,14 +84,14 @@ final class StreamingTest extends TestCase
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        $client->chat_async(null);
+        $client->chat_stream_async(null);
     }
 
     /** Streaming chat completion where the assistant responds with a tool call across multiple chunks */
     public function test_stream_with_tool_calls(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->chat_stream_async(null);
         $this->assertGreaterThanOrEqual(4, count($result->chunks));
         $this->assertEquals("tool_calls", $result->finish_reason);
         $this->assertNotEmpty($result->tool_calls);
@@ -102,7 +102,7 @@ final class StreamingTest extends TestCase
     public function test_stream_with_usage(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->chat_stream_async(null);
         $this->assertGreaterThanOrEqual(3, count($result->chunks));
         $this->assertEquals("Hi there!", $result->stream_content);
         $this->assertEquals(18, $result->usage->total_tokens);
@@ -112,7 +112,7 @@ final class StreamingTest extends TestCase
     public function test_vertex_stream(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->chat_stream_async(null);
         $this->assertGreaterThanOrEqual(2, count($result->chunks));
         $this->assertEquals("One Two Three", $result->stream_content);
         $this->assertTrue($result->stream_complete);

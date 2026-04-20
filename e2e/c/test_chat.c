@@ -10,7 +10,11 @@
 
 void test_developer_message(void) {
     /* Chat request that includes a developer role message alongside user messages */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"messages\":[{\"content\":\"You are a coding assistant. Always respond with concise code examples.\",\"role\":\"developer\"},{\"content\":\"How do I reverse a string in Python?\",\"role\":\"user\"}],\"model\":\"gpt-4\"}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* choices_json = literllm_chat_completion_response_choices(result);
@@ -30,11 +34,17 @@ void test_developer_message(void) {
     free(choices_0_finish_reason);
     literllm_free_string(choices_json);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_finish_reason_content_filter(void) {
     /* Chat response stopped by content filter with finish_reason of content_filter and null content */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"messages\":[{\"content\":\"Tell me something controversial\",\"role\":\"user\"}],\"model\":\"gpt-4\"}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* choices_json = literllm_chat_completion_response_choices(result);
@@ -53,11 +63,17 @@ void test_finish_reason_content_filter(void) {
     free(choices_0_message_content);
     literllm_free_string(choices_json);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_finish_reason_length(void) {
     /* Chat response truncated due to max_tokens limit with finish_reason of length */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"max_tokens\":5,\"messages\":[{\"content\":\"Tell me a long story\",\"role\":\"user\"}],\"model\":\"gpt-4\"}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* choices_json = literllm_chat_completion_response_choices(result);
@@ -74,11 +90,17 @@ void test_finish_reason_length(void) {
     free(choices_0_finish_reason);
     literllm_free_string(choices_json);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_multi_turn_conversation(void) {
     /* Multi-turn conversation with system, user, assistant, and follow-up user messages */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"messages\":[{\"content\":\"You are a helpful assistant.\",\"role\":\"system\"},{\"content\":\"What is 2 + 2?\",\"role\":\"user\"},{\"content\":\"2 + 2 equals 4.\",\"role\":\"assistant\"},{\"content\":\"And what is 4 + 4?\",\"role\":\"user\"}],\"model\":\"gpt-4\"}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* choices_json = literllm_chat_completion_response_choices(result);
@@ -98,11 +120,17 @@ void test_multi_turn_conversation(void) {
     free(choices_0_finish_reason);
     literllm_free_string(choices_json);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_parallel_tool_calls(void) {
     /* Chat request that results in parallel tool calls in the response */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"messages\":[{\"content\":\"What is the weather in NYC and London?\",\"role\":\"user\"}],\"model\":\"gpt-4\",\"parallel_tool_calls\":true,\"tools\":[{\"function\":{\"description\":\"Get the current weather for a given location\",\"name\":\"get_weather\",\"parameters\":{\"properties\":{\"location\":{\"description\":\"The city name\",\"type\":\"string\"}},\"required\":[\"location\"],\"type\":\"object\"}},\"type\":\"function\"}]}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* choices_json = literllm_chat_completion_response_choices(result);
@@ -128,11 +156,17 @@ void test_parallel_tool_calls(void) {
     free(choices_0_finish_reason);
     literllm_free_string(choices_json);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_response_format_json_object(void) {
     /* Chat request with response_format json_object that returns valid JSON content */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"messages\":[{\"content\":\"Respond with JSON only.\",\"role\":\"system\"},{\"content\":\"Give me a user object with name and age fields.\",\"role\":\"user\"}],\"model\":\"gpt-4\",\"response_format\":{\"type\":\"json_object\"}}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* choices_json = literllm_chat_completion_response_choices(result);
@@ -152,11 +186,17 @@ void test_response_format_json_object(void) {
     free(choices_0_finish_reason);
     literllm_free_string(choices_json);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_response_format_json_schema(void) {
     /* Chat request with response_format json_schema that validates the output structure */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"messages\":[{\"content\":\"What is the temperature in Paris today?\",\"role\":\"user\"}],\"model\":\"gpt-4\",\"response_format\":{\"json_schema\":{\"name\":\"weather\",\"schema\":{\"properties\":{\"temp\":{\"type\":\"number\"}},\"required\":[\"temp\"],\"type\":\"object\"}},\"type\":\"json_schema\"}}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* choices_json = literllm_chat_completion_response_choices(result);
@@ -176,11 +216,17 @@ void test_response_format_json_schema(void) {
     free(choices_0_finish_reason);
     literllm_free_string(choices_json);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_seed_parameter(void) {
     /* Chat request with seed parameter for deterministic output; response includes system_fingerprint */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"messages\":[{\"content\":\"Pick a random number\",\"role\":\"user\"}],\"model\":\"gpt-4\",\"seed\":42}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* choices_json = literllm_chat_completion_response_choices(result);
@@ -200,11 +246,17 @@ void test_seed_parameter(void) {
     literllm_free_string(system_fingerprint);
     literllm_free_string(choices_json);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_stop_sequences(void) {
     /* Chat request with custom stop sequences that terminates generation at a stop token */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"messages\":[{\"content\":\"List items until you see STOP\",\"role\":\"user\"}],\"model\":\"gpt-4\",\"stop\":[\"STOP\",\"END\"]}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* choices_json = literllm_chat_completion_response_choices(result);
@@ -221,11 +273,17 @@ void test_stop_sequences(void) {
     free(choices_0_finish_reason);
     literllm_free_string(choices_json);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_tool_choice_required(void) {
     /* Chat request with tool_choice set to required forces the model to call a tool */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"messages\":[{\"content\":\"What is the weather today?\",\"role\":\"user\"}],\"model\":\"gpt-4\",\"tool_choice\":\"required\",\"tools\":[{\"function\":{\"description\":\"Get the current weather for a given location\",\"name\":\"get_weather\",\"parameters\":{\"properties\":{\"location\":{\"description\":\"The city name\",\"type\":\"string\"}},\"required\":[\"location\"],\"type\":\"object\"}},\"type\":\"function\"}]}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* choices_json = literllm_chat_completion_response_choices(result);
@@ -248,11 +306,17 @@ void test_tool_choice_required(void) {
     free(choices_0_finish_reason);
     literllm_free_string(choices_json);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_tool_choice_specific(void) {
     /* Chat request with tool_choice specifying a particular function to call */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"messages\":[{\"content\":\"What is the weather in Paris?\",\"role\":\"user\"}],\"model\":\"gpt-4\",\"tool_choice\":{\"function\":{\"name\":\"get_weather\"},\"type\":\"function\"},\"tools\":[{\"function\":{\"description\":\"Get the current weather for a given location\",\"name\":\"get_weather\",\"parameters\":{\"properties\":{\"location\":{\"description\":\"The city name\",\"type\":\"string\"}},\"required\":[\"location\"],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"Search the web for information\",\"name\":\"search_web\",\"parameters\":{\"properties\":{\"query\":{\"description\":\"The search query\",\"type\":\"string\"}},\"required\":[\"query\"],\"type\":\"object\"}},\"type\":\"function\"}]}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* choices_json = literllm_chat_completion_response_choices(result);
@@ -275,4 +339,6 @@ void test_tool_choice_specific(void) {
     free(choices_0_finish_reason);
     literllm_free_string(choices_json);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }

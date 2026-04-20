@@ -5,33 +5,33 @@ import { createClient } from '@kreuzberg/liter-llm';
 describe('transcribe', () => {
   it('edge_transcribe_empty_audio: Transcription of a silent or empty audio file returns empty text', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/edge_transcribe_empty_audio`);
-    const result = await client.chat(null);
+    const result = await client.chat({ file: "silence.mp3", model: "whisper-1" });
     expect(result.text).toContain("");
   });
 
   it('error_transcribe_auth_401: 401 Unauthorized for transcription with invalid API key', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/error_transcribe_auth_401`);
     await expect(async () => {
-      await client.chat(null);
+      await client.chat({ file: "audio.mp3", model: "whisper-1" });
     }).rejects.toThrow();
   });
 
   it('error_transcribe_bad_format: 400 Bad Request when audio format is unsupported', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/error_transcribe_bad_format`);
     await expect(async () => {
-      await client.chat(null);
+      await client.chat({ file: "audio.xyz", model: "whisper-1" });
     }).rejects.toThrow();
   });
 
   it('smoke_transcribe_basic: Basic audio transcription', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/smoke_transcribe_basic`);
-    const result = await client.chat(null);
+    const result = await client.chat({ file: "audio.mp3", model: "whisper-1" });
     expect(result.text).toContain("Hello, this is a test transcription.");
   });
 
   it('smoke_transcribe_with_language: Audio transcription with explicit language hint', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/smoke_transcribe_with_language`);
-    const result = await client.chat(null);
+    const result = await client.chat({ file: "audio_de.mp3", language: "de", model: "whisper-1" });
     expect(result.text).toContain("Hallo, dies ist ein Testtranskription.");
   });
 });

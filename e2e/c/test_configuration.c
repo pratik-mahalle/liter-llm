@@ -10,7 +10,11 @@
 
 void test_custom_base_url(void) {
     /* Client configured with a custom base URL routes all requests to that endpoint */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"local-model\"}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* choices_json = literllm_chat_completion_response_choices(result);
@@ -33,11 +37,17 @@ void test_custom_base_url(void) {
     literllm_free_string(model);
     literllm_free_string(choices_json);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_extra_headers(void) {
     /* Client configured with extra custom headers successfully completes a chat request */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"gpt-4\"}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* choices_json = literllm_chat_completion_response_choices(result);
@@ -54,11 +64,17 @@ void test_extra_headers(void) {
     free(choices_0_finish_reason);
     literllm_free_string(choices_json);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_local_provider_llamacpp(void) {
     /* llamacpp local provider routes requests via llamacpp/ model prefix with no auth */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"llamacpp/my-model\"}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* choices_json = literllm_chat_completion_response_choices(result);
@@ -81,11 +97,17 @@ void test_local_provider_llamacpp(void) {
     literllm_free_string(model);
     literllm_free_string(choices_json);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_local_provider_ollama(void) {
     /* Ollama local provider routes requests via ollama/ model prefix with no auth */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"ollama/qwen2:0.5b\"}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* choices_json = literllm_chat_completion_response_choices(result);
@@ -108,11 +130,17 @@ void test_local_provider_ollama(void) {
     literllm_free_string(model);
     literllm_free_string(choices_json);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_local_provider_vllm(void) {
     /* vLLM local provider routes requests via vllm/ model prefix with no auth */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"vllm/meta-llama/Llama-3.2-1B\"}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* choices_json = literllm_chat_completion_response_choices(result);
@@ -135,4 +163,6 @@ void test_local_provider_vllm(void) {
     literllm_free_string(model);
     literllm_free_string(choices_json);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }

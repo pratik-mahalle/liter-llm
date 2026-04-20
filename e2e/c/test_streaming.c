@@ -10,11 +10,15 @@
 
 void test_anthropic_stream(void) {
     /* Streaming chat completion via the Anthropic provider (claude-3-5-sonnet-20241022) yielding multiple SSE chunks */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionChunkRequest* chat_completion_chunk_request_handle = literllm_chat_completion_chunk_request_from_json("{\"max_tokens\":32,\"messages\":[{\"content\":\"Count to three, one word per response.\",\"role\":\"user\"}],\"model\":\"anthropic/claude-3-5-sonnet-20241022\",\"stream\":true}");
+    assert(chat_completion_chunk_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionChunk* result = literllm_default_client_chat_stream(client, chat_completion_chunk_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* chunks = literllm_chat_completion_response_chunks(result);
-    char* stream_content = literllm_chat_completion_response_stream_content(result);
-    char* stream_complete = literllm_chat_completion_response_stream_complete(result);
+    char* chunks = literllm_chat_completion_chunk_chunks(result);
+    char* stream_content = literllm_chat_completion_chunk_stream_content(result);
+    char* stream_complete = literllm_chat_completion_chunk_stream_complete(result);
     {
         /* count_min: count top-level JSON array elements */
         assert(chunks != NULL && "expected non-null collection JSON");
@@ -26,16 +30,22 @@ void test_anthropic_stream(void) {
     literllm_free_string(chunks);
     literllm_free_string(stream_content);
     literllm_free_string(stream_complete);
-    literllm_chat_completion_response_free(result);
+    literllm_chat_completion_chunk_free(result);
+    literllm_chat_completion_chunk_request_free(chat_completion_chunk_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_azure_stream(void) {
     /* Streaming chat completion via Azure OpenAI — verifies the azure/ prefix routes correctly and SSE chunks are delivered in the standard OpenAI chat.completion.chunk shape */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionChunkRequest* chat_completion_chunk_request_handle = literllm_chat_completion_chunk_request_from_json("{\"messages\":[{\"content\":\"Count to 3\",\"role\":\"user\"}],\"model\":\"azure/gpt-4\",\"stream\":true,\"temperature\":0}");
+    assert(chat_completion_chunk_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionChunk* result = literllm_default_client_chat_stream(client, chat_completion_chunk_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* chunks = literllm_chat_completion_response_chunks(result);
-    char* stream_content = literllm_chat_completion_response_stream_content(result);
-    char* stream_complete = literllm_chat_completion_response_stream_complete(result);
+    char* chunks = literllm_chat_completion_chunk_chunks(result);
+    char* stream_content = literllm_chat_completion_chunk_stream_content(result);
+    char* stream_complete = literllm_chat_completion_chunk_stream_complete(result);
     {
         /* count_min: count top-level JSON array elements */
         assert(chunks != NULL && "expected non-null collection JSON");
@@ -47,15 +57,21 @@ void test_azure_stream(void) {
     literllm_free_string(chunks);
     literllm_free_string(stream_content);
     literllm_free_string(stream_complete);
-    literllm_chat_completion_response_free(result);
+    literllm_chat_completion_chunk_free(result);
+    literllm_chat_completion_chunk_request_free(chat_completion_chunk_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_basic_stream(void) {
     /* Streaming chat completion that produces content across multiple SSE chunks */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionChunkRequest* chat_completion_chunk_request_handle = literllm_chat_completion_chunk_request_from_json("{\"messages\":[{\"content\":\"Count to 3\",\"role\":\"user\"}],\"model\":\"gpt-4\",\"stream\":true}");
+    assert(chat_completion_chunk_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionChunk* result = literllm_default_client_chat_stream(client, chat_completion_chunk_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* chunks = literllm_chat_completion_response_chunks(result);
-    char* stream_content = literllm_chat_completion_response_stream_content(result);
+    char* chunks = literllm_chat_completion_chunk_chunks(result);
+    char* stream_content = literllm_chat_completion_chunk_stream_content(result);
     {
         /* count_min: count top-level JSON array elements */
         assert(chunks != NULL && "expected non-null collection JSON");
@@ -65,16 +81,22 @@ void test_basic_stream(void) {
     assert(str_trim_eq(stream_content, "1 2 3") == 0 && "equals assertion failed");
     literllm_free_string(chunks);
     literllm_free_string(stream_content);
-    literllm_chat_completion_response_free(result);
+    literllm_chat_completion_chunk_free(result);
+    literllm_chat_completion_chunk_request_free(chat_completion_chunk_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_bedrock_stream(void) {
     /* Streaming chat completion via the AWS Bedrock provider using the bedrock/ prefix — verifies SSE chunks are yielded and assembled correctly from the Converse streaming API */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionChunkRequest* chat_completion_chunk_request_handle = literllm_chat_completion_chunk_request_from_json("{\"max_tokens\":32,\"messages\":[{\"content\":\"Count to three, one word per response.\",\"role\":\"user\"}],\"model\":\"bedrock/anthropic.claude-3-sonnet-20240229-v1:0\",\"stream\":true}");
+    assert(chat_completion_chunk_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionChunk* result = literllm_default_client_chat_stream(client, chat_completion_chunk_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* chunks = literllm_chat_completion_response_chunks(result);
-    char* stream_content = literllm_chat_completion_response_stream_content(result);
-    char* stream_complete = literllm_chat_completion_response_stream_complete(result);
+    char* chunks = literllm_chat_completion_chunk_chunks(result);
+    char* stream_content = literllm_chat_completion_chunk_stream_content(result);
+    char* stream_complete = literllm_chat_completion_chunk_stream_complete(result);
     {
         /* count_min: count top-level JSON array elements */
         assert(chunks != NULL && "expected non-null collection JSON");
@@ -86,15 +108,21 @@ void test_bedrock_stream(void) {
     literllm_free_string(chunks);
     literllm_free_string(stream_content);
     literllm_free_string(stream_complete);
-    literllm_chat_completion_response_free(result);
+    literllm_chat_completion_chunk_free(result);
+    literllm_chat_completion_chunk_request_free(chat_completion_chunk_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_empty_stream(void) {
     /* Streaming chat completion that produces no content chunks before the DONE signal */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionChunkRequest* chat_completion_chunk_request_handle = literllm_chat_completion_chunk_request_from_json("{\"messages\":[{\"content\":\"Say nothing\",\"role\":\"user\"}],\"model\":\"gpt-4\",\"stream\":true}");
+    assert(chat_completion_chunk_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionChunk* result = literllm_default_client_chat_stream(client, chat_completion_chunk_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* chunks = literllm_chat_completion_response_chunks(result);
-    char* stream_content = literllm_chat_completion_response_stream_content(result);
+    char* chunks = literllm_chat_completion_chunk_chunks(result);
+    char* stream_content = literllm_chat_completion_chunk_stream_content(result);
     {
         /* count_min: count top-level JSON array elements */
         assert(chunks != NULL && "expected non-null collection JSON");
@@ -104,16 +132,22 @@ void test_empty_stream(void) {
     assert(str_trim_eq(stream_content, "") == 0 && "equals assertion failed");
     literllm_free_string(chunks);
     literllm_free_string(stream_content);
-    literllm_chat_completion_response_free(result);
+    literllm_chat_completion_chunk_free(result);
+    literllm_chat_completion_chunk_request_free(chat_completion_chunk_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_local_stream_ollama(void) {
     /* Streaming chat completion via Ollama local provider with SSE chunks */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionChunkRequest* chat_completion_chunk_request_handle = literllm_chat_completion_chunk_request_from_json("{\"messages\":[{\"content\":\"Count to 3\",\"role\":\"user\"}],\"model\":\"ollama/qwen2:0.5b\",\"stream\":true}");
+    assert(chat_completion_chunk_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionChunk* result = literllm_default_client_chat_stream(client, chat_completion_chunk_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* chunks = literllm_chat_completion_response_chunks(result);
-    char* stream_content = literllm_chat_completion_response_stream_content(result);
-    char* stream_complete = literllm_chat_completion_response_stream_complete(result);
+    char* chunks = literllm_chat_completion_chunk_chunks(result);
+    char* stream_content = literllm_chat_completion_chunk_stream_content(result);
+    char* stream_complete = literllm_chat_completion_chunk_stream_complete(result);
     {
         /* count_min: count top-level JSON array elements */
         assert(chunks != NULL && "expected non-null collection JSON");
@@ -125,39 +159,57 @@ void test_local_stream_ollama(void) {
     literllm_free_string(chunks);
     literllm_free_string(stream_content);
     literllm_free_string(stream_complete);
-    literllm_chat_completion_response_free(result);
+    literllm_chat_completion_chunk_free(result);
+    literllm_chat_completion_chunk_request_free(chat_completion_chunk_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_stream_done_signal(void) {
     /* Verify that the [DONE] sentinel signal properly terminates the stream */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionChunkRequest* chat_completion_chunk_request_handle = literllm_chat_completion_chunk_request_from_json("{\"messages\":[{\"content\":\"Say done\",\"role\":\"user\"}],\"model\":\"gpt-4\",\"stream\":true}");
+    assert(chat_completion_chunk_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionChunk* result = literllm_default_client_chat_stream(client, chat_completion_chunk_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* stream_complete = literllm_chat_completion_response_stream_complete(result);
-    char* stream_content = literllm_chat_completion_response_stream_content(result);
-    char* no_chunks_after_done = literllm_chat_completion_response_no_chunks_after_done(result);
+    char* stream_complete = literllm_chat_completion_chunk_stream_complete(result);
+    char* stream_content = literllm_chat_completion_chunk_stream_content(result);
+    char* no_chunks_after_done = literllm_chat_completion_chunk_no_chunks_after_done(result);
     assert(stream_complete);
     assert(str_trim_eq(stream_content, "Done") == 0 && "equals assertion failed");
     assert(no_chunks_after_done);
     literllm_free_string(stream_complete);
     literllm_free_string(stream_content);
     literllm_free_string(no_chunks_after_done);
-    literllm_chat_completion_response_free(result);
+    literllm_chat_completion_chunk_free(result);
+    literllm_chat_completion_chunk_request_free(chat_completion_chunk_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_stream_error_401(void) {
     /* 401 Unauthorized error on stream initiation before any chunks are received */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionChunkRequest* chat_completion_chunk_request_handle = literllm_chat_completion_chunk_request_from_json("{\"messages\":[{\"content\":\"Hello\",\"role\":\"user\"}],\"model\":\"gpt-4\",\"stream\":true}");
+    assert(chat_completion_chunk_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionChunk* result = literllm_default_client_chat_stream(client, chat_completion_chunk_request_handle);
+    literllm_chat_completion_chunk_request_free(chat_completion_chunk_request_handle);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }
 
 void test_stream_with_tool_calls(void) {
     /* Streaming chat completion where the assistant responds with a tool call across multiple chunks */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionChunkRequest* chat_completion_chunk_request_handle = literllm_chat_completion_chunk_request_from_json("{\"messages\":[{\"content\":\"What is the weather in NYC?\",\"role\":\"user\"}],\"model\":\"gpt-4\",\"stream\":true,\"tools\":[{\"function\":{\"description\":\"Get the current weather for a given location\",\"name\":\"get_weather\",\"parameters\":{\"properties\":{\"location\":{\"description\":\"The city and state, e.g. New York, NY\",\"type\":\"string\"}},\"required\":[\"location\"],\"type\":\"object\"}},\"type\":\"function\"}]}");
+    assert(chat_completion_chunk_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionChunk* result = literllm_default_client_chat_stream(client, chat_completion_chunk_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* chunks = literllm_chat_completion_response_chunks(result);
-    char* finish_reason = literllm_chat_completion_response_finish_reason(result);
-    char* tool_calls = literllm_chat_completion_response_tool_calls(result);
-    char* tool_calls_json = literllm_chat_completion_response_tool_calls(result);
+    char* chunks = literllm_chat_completion_chunk_chunks(result);
+    char* finish_reason = literllm_chat_completion_chunk_finish_reason(result);
+    char* tool_calls = literllm_chat_completion_chunk_tool_calls(result);
+    char* tool_calls_json = literllm_chat_completion_chunk_tool_calls(result);
     assert(tool_calls_json != NULL);
     char* tool_calls_0_function_name = alef_json_get_string(tool_calls_json, "0");
     {
@@ -174,16 +226,22 @@ void test_stream_with_tool_calls(void) {
     literllm_free_string(tool_calls);
     free(tool_calls_0_function_name);
     literllm_free_string(tool_calls_json);
-    literllm_chat_completion_response_free(result);
+    literllm_chat_completion_chunk_free(result);
+    literllm_chat_completion_chunk_request_free(chat_completion_chunk_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_stream_with_usage(void) {
     /* Streaming chat completion that includes a usage summary in the final chunk */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionChunkRequest* chat_completion_chunk_request_handle = literllm_chat_completion_chunk_request_from_json("{\"messages\":[{\"content\":\"Say hi\",\"role\":\"user\"}],\"model\":\"gpt-4\",\"stream\":true,\"stream_options\":{\"include_usage\":true}}");
+    assert(chat_completion_chunk_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionChunk* result = literllm_default_client_chat_stream(client, chat_completion_chunk_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* chunks = literllm_chat_completion_response_chunks(result);
-    char* stream_content = literllm_chat_completion_response_stream_content(result);
-    LITERLLMUsage* usage_handle = literllm_chat_completion_response_usage(result);
+    char* chunks = literllm_chat_completion_chunk_chunks(result);
+    char* stream_content = literllm_chat_completion_chunk_stream_content(result);
+    LITERLLMUsage* usage_handle = literllm_chat_completion_chunk_usage(result);
     assert(usage_handle != NULL);
     char* usage_total_tokens = literllm_usage_total_tokens(usage_handle);
     {
@@ -198,16 +256,22 @@ void test_stream_with_usage(void) {
     literllm_free_string(stream_content);
     literllm_free_string(usage_total_tokens);
     literllm_usage_free(usage_handle);
-    literllm_chat_completion_response_free(result);
+    literllm_chat_completion_chunk_free(result);
+    literllm_chat_completion_chunk_request_free(chat_completion_chunk_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_vertex_stream(void) {
     /* Streaming chat completion via the Google Vertex AI provider using the vertex_ai/ prefix — verifies SSE chunks from the Gemini streaming endpoint are yielded and assembled correctly */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionChunkRequest* chat_completion_chunk_request_handle = literllm_chat_completion_chunk_request_from_json("{\"max_tokens\":32,\"messages\":[{\"content\":\"Count to three, one word per response.\",\"role\":\"user\"}],\"model\":\"vertex_ai/gemini-2.0-flash\",\"stream\":true}");
+    assert(chat_completion_chunk_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionChunk* result = literllm_default_client_chat_stream(client, chat_completion_chunk_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* chunks = literllm_chat_completion_response_chunks(result);
-    char* stream_content = literllm_chat_completion_response_stream_content(result);
-    char* stream_complete = literllm_chat_completion_response_stream_complete(result);
+    char* chunks = literllm_chat_completion_chunk_chunks(result);
+    char* stream_content = literllm_chat_completion_chunk_stream_content(result);
+    char* stream_complete = literllm_chat_completion_chunk_stream_complete(result);
     {
         /* count_min: count top-level JSON array elements */
         assert(chunks != NULL && "expected non-null collection JSON");
@@ -219,5 +283,7 @@ void test_vertex_stream(void) {
     literllm_free_string(chunks);
     literllm_free_string(stream_content);
     literllm_free_string(stream_complete);
-    literllm_chat_completion_response_free(result);
+    literllm_chat_completion_chunk_free(result);
+    literllm_chat_completion_chunk_request_free(chat_completion_chunk_request_handle);
+    literllm_default_client_free(client);
 }

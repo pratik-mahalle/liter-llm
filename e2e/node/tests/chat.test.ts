@@ -5,7 +5,7 @@ import { createClient } from '@kreuzberg/liter-llm';
 describe('chat', () => {
   it('developer_message: Chat request that includes a developer role message alongside user messages', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/developer_message`);
-    const result = await client.chat(null);
+    const result = await client.chat({ messages: [{ content: "You are a coding assistant. Always respond with concise code examples.", role: "developer" }, { content: "How do I reverse a string in Python?", role: "user" }], model: "gpt-4" });
     expect(result.choices.length).toBe(1);
     expect(result.choices["0"].message.content.trim()).toBe("s[::-1]");
     expect(result.choices["0"].finishReason.trim()).toBe("stop");
@@ -13,21 +13,21 @@ describe('chat', () => {
 
   it('finish_reason_content_filter: Chat response stopped by content filter with finish_reason of content_filter and null content', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/finish_reason_content_filter`);
-    const result = await client.chat(null);
+    const result = await client.chat({ messages: [{ content: "Tell me something controversial", role: "user" }], model: "gpt-4" });
     expect(result.choices.length).toBe(1);
     expect(result.choices["0"].finishReason.trim()).toBe("content_filter");
   });
 
   it('finish_reason_length: Chat response truncated due to max_tokens limit with finish_reason of length', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/finish_reason_length`);
-    const result = await client.chat(null);
+    const result = await client.chat({ max_tokens: 5, messages: [{ content: "Tell me a long story", role: "user" }], model: "gpt-4" });
     expect(result.choices.length).toBe(1);
     expect(result.choices["0"].finishReason.trim()).toBe("length");
   });
 
   it('multi_turn_conversation: Multi-turn conversation with system, user, assistant, and follow-up user messages', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/multi_turn_conversation`);
-    const result = await client.chat(null);
+    const result = await client.chat({ messages: [{ content: "You are a helpful assistant.", role: "system" }, { content: "What is 2 + 2?", role: "user" }, { content: "2 + 2 equals 4.", role: "assistant" }, { content: "And what is 4 + 4?", role: "user" }], model: "gpt-4" });
     expect(result.choices.length).toBe(1);
     expect(result.choices["0"].message.content.trim()).toBe("4 + 4 equals 8.");
     expect(result.choices["0"].finishReason.trim()).toBe("stop");
@@ -35,7 +35,7 @@ describe('chat', () => {
 
   it('parallel_tool_calls: Chat request that results in parallel tool calls in the response', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/parallel_tool_calls`);
-    const result = await client.chat(null);
+    const result = await client.chat({ messages: [{ content: "What is the weather in NYC and London?", role: "user" }], model: "gpt-4", parallel_tool_calls: true, tools: [{ function: { description: "Get the current weather for a given location", name: "get_weather", parameters: { properties: { location: { description: "The city name", type: "string" } }, required: ["location"], type: "object" } }, type: "function" }] });
     expect(result.choices.length).toBe(1);
     expect(result.choices["0"].message.toolCalls.length).toBeGreaterThan(0);
     expect(result.choices["0"].message.toolCalls.length).toBe(2);
@@ -44,7 +44,7 @@ describe('chat', () => {
 
   it('response_format_json_object: Chat request with response_format json_object that returns valid JSON content', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/response_format_json_object`);
-    const result = await client.chat(null);
+    const result = await client.chat({ messages: [{ content: "Respond with JSON only.", role: "system" }, { content: "Give me a user object with name and age fields.", role: "user" }], model: "gpt-4", response_format: { type: "json_object" } });
     expect(result.choices.length).toBe(1);
     expect(result.choices["0"].message.content.length).toBeGreaterThan(0);
     expect(result.choices["0"].finishReason.trim()).toBe("stop");
@@ -52,7 +52,7 @@ describe('chat', () => {
 
   it('response_format_json_schema: Chat request with response_format json_schema that validates the output structure', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/response_format_json_schema`);
-    const result = await client.chat(null);
+    const result = await client.chat({ messages: [{ content: "What is the temperature in Paris today?", role: "user" }], model: "gpt-4", response_format: { json_schema: { name: "weather", schema: { properties: { temp: { type: "number" } }, required: ["temp"], type: "object" } }, type: "json_schema" } });
     expect(result.choices.length).toBe(1);
     expect(result.choices["0"].message.content.length).toBeGreaterThan(0);
     expect(result.choices["0"].finishReason.trim()).toBe("stop");
@@ -60,7 +60,7 @@ describe('chat', () => {
 
   it('seed_parameter: Chat request with seed parameter for deterministic output; response includes system_fingerprint', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/seed_parameter`);
-    const result = await client.chat(null);
+    const result = await client.chat({ messages: [{ content: "Pick a random number", role: "user" }], model: "gpt-4", seed: 42 });
     expect(result.choices.length).toBe(1);
     expect(result.choices["0"].finishReason.trim()).toBe("stop");
     expect(result.systemFingerprint.length).toBeGreaterThan(0);
@@ -68,14 +68,14 @@ describe('chat', () => {
 
   it('stop_sequences: Chat request with custom stop sequences that terminates generation at a stop token', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/stop_sequences`);
-    const result = await client.chat(null);
+    const result = await client.chat({ messages: [{ content: "List items until you see STOP", role: "user" }], model: "gpt-4", stop: ["STOP", "END"] });
     expect(result.choices.length).toBe(1);
     expect(result.choices["0"].finishReason.trim()).toBe("stop");
   });
 
   it('tool_choice_required: Chat request with tool_choice set to required forces the model to call a tool', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/tool_choice_required`);
-    const result = await client.chat(null);
+    const result = await client.chat({ messages: [{ content: "What is the weather today?", role: "user" }], model: "gpt-4", tool_choice: "required", tools: [{ function: { description: "Get the current weather for a given location", name: "get_weather", parameters: { properties: { location: { description: "The city name", type: "string" } }, required: ["location"], type: "object" } }, type: "function" }] });
     expect(result.choices.length).toBe(1);
     expect(result.choices["0"].message.toolCalls.length).toBeGreaterThan(0);
     expect(result.choices["0"].message.toolCalls["0"].function.name.trim()).toBe("get_weather");
@@ -84,7 +84,7 @@ describe('chat', () => {
 
   it('tool_choice_specific: Chat request with tool_choice specifying a particular function to call', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/tool_choice_specific`);
-    const result = await client.chat(null);
+    const result = await client.chat({ messages: [{ content: "What is the weather in Paris?", role: "user" }], model: "gpt-4", tool_choice: { function: { name: "get_weather" }, type: "function" }, tools: [{ function: { description: "Get the current weather for a given location", name: "get_weather", parameters: { properties: { location: { description: "The city name", type: "string" } }, required: ["location"], type: "object" } }, type: "function" }, { function: { description: "Search the web for information", name: "search_web", parameters: { properties: { query: { description: "The search query", type: "string" } }, required: ["query"], type: "object" } }, type: "function" }] });
     expect(result.choices.length).toBe(1);
     expect(result.choices["0"].message.toolCalls.length).toBeGreaterThan(0);
     expect(result.choices["0"].message.toolCalls["0"].function.name.trim()).toBe("get_weather");

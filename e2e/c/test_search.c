@@ -10,7 +10,13 @@
 
 void test_search_basic(void) {
     /* Basic web search request with a simple query */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMSearchRequest* search_request_handle = literllm_search_request_from_json("{\"model\":\"brave/web-search\",\"query\":\"What is Rust programming language?\"}");
+    assert(search_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMSearchResponse* result = literllm_default_client_search(client, search_request_handle);
     assert(result != NULL && "expected call to succeed");
-    literllm_chat_completion_response_free(result);
+    literllm_search_response_free(result);
+    literllm_search_request_free(search_request_handle);
+    literllm_default_client_free(client);
 }

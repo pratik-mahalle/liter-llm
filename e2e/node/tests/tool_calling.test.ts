@@ -5,7 +5,7 @@ import { createClient } from '@kreuzberg/liter-llm';
 describe('tool-calling', () => {
   it('anthropic_tool_calling: Chat request to Anthropic provider with a tool definition; assistant responds with a tool call', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/anthropic_tool_calling`);
-    const result = await client.chat(null);
+    const result = await client.chat({ max_tokens: 256, messages: [{ content: "What is the weather in London?", role: "user" }], model: "anthropic/claude-3-5-sonnet-20241022", tool_choice: "auto", tools: [{ function: { description: "Get the current weather for a given location", name: "get_weather", parameters: { properties: { location: { description: "The city and country, e.g. London, UK", type: "string" }, unit: { description: "The temperature unit to use", enum: ["celsius", "fahrenheit"], type: "string" } }, required: ["location"], type: "object" } }, type: "function" }] });
     expect(result.choices.length).toBe(1);
     expect(result.choices["0"].message.toolCalls.length).toBeGreaterThan(0);
     expect(result.choices["0"].message.toolCalls["0"].function.name.trim()).toBe("get_weather");
@@ -14,7 +14,7 @@ describe('tool-calling', () => {
 
   it('single_tool_call: Chat request with a tool definition; assistant responds with a tool call', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/single_tool_call`);
-    const result = await client.chat(null);
+    const result = await client.chat({ messages: [{ content: "What is the weather in San Francisco?", role: "user" }], model: "gpt-4", tool_choice: "auto", tools: [{ function: { description: "Get the current weather for a given location", name: "get_weather", parameters: { properties: { location: { description: "The city and state, e.g. San Francisco, CA", type: "string" }, unit: { description: "The temperature unit to use", enum: ["celsius", "fahrenheit"], type: "string" } }, required: ["location"], type: "object" } }, type: "function" }] });
     expect(result.choices.length).toBe(1);
     expect(result.choices["0"].message.toolCalls.length).toBeGreaterThan(0);
     expect(result.choices["0"].message.toolCalls["0"].function.name.trim()).toBe("get_weather");

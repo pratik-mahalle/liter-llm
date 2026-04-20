@@ -18,7 +18,7 @@ async fn test_all_message_types() {
     let mock_server = MockServer::start(vec![mock_route]).await;
     let request_json = serde_json::json!(null);
     let request = serde_json::from_value(request_json).unwrap();
-    let result = chat(request).await.expect("should succeed");
+    let result = chat(&request).await.expect("should succeed");
     assert_eq!(result.choices.len(), 1, "expected exactly 1 elements, got {}", result.choices.len());
     assert_eq!(result.choices.get("0").map(|s| s.as_str()).finish_reason.trim(), r#"stop"#, "equals assertion failed");
 }
@@ -36,7 +36,7 @@ async fn test_multimodal_content() {
     let mock_server = MockServer::start(vec![mock_route]).await;
     let request_json = serde_json::json!(null);
     let request = serde_json::from_value(request_json).unwrap();
-    let result = chat(request).await.expect("should succeed");
+    let result = chat(&request).await.expect("should succeed");
     assert_eq!(result.choices.len(), 1, "expected exactly 1 elements, got {}", result.choices.len());
     assert_eq!(result.choices.get("0").map(|s| s.as_str()).finish_reason.trim(), r#"stop"#, "equals assertion failed");
 }

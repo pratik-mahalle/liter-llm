@@ -10,11 +10,14 @@
 
 void test_batch_embed(void) {
     /* Embedding request with multiple input strings returns one embedding object per input */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("[\"Hello\",\"World\"]");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
+    LITERLLMEmbeddingRequest* embedding_request_handle = literllm_embedding_request_from_json("{\"input\":[\"Hello\",\"World\"],\"model\":\"text-embedding-3-small\"}");
+    assert(embedding_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMEmbeddingResponse* result = literllm_default_client_embed(client, embedding_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* data = literllm_chat_completion_response_data(result);
-    char* data_json = literllm_chat_completion_response_data(result);
+    char* data = literllm_embedding_response_data(result);
+    char* data_json = literllm_embedding_response_data(result);
     assert(data_json != NULL);
     char* data_0_embedding = alef_json_get_string(data_json, "0");
     {
@@ -32,17 +35,21 @@ void test_batch_embed(void) {
     literllm_free_string(data);
     free(data_0_embedding);
     literllm_free_string(data_json);
-    literllm_conversion_options_free(options_handle);
-    literllm_chat_completion_response_free(result);
+    literllm_embedding_response_free(result);
+    literllm_embedding_request_free(embedding_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_embed_encoding_format(void) {
     /* Embedding request with explicit encoding_format of float returns float array embeddings */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("\"Test input\"");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
+    LITERLLMEmbeddingRequest* embedding_request_handle = literllm_embedding_request_from_json("{\"encoding_format\":\"float\",\"input\":\"Test input\",\"model\":\"text-embedding-3-small\"}");
+    assert(embedding_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMEmbeddingResponse* result = literllm_default_client_embed(client, embedding_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* data = literllm_chat_completion_response_data(result);
-    char* data_json = literllm_chat_completion_response_data(result);
+    char* data = literllm_embedding_response_data(result);
+    char* data_json = literllm_embedding_response_data(result);
     assert(data_json != NULL);
     char* data_0_embedding = alef_json_get_string(data_json, "0");
     {
@@ -60,25 +67,33 @@ void test_embed_encoding_format(void) {
     literllm_free_string(data);
     free(data_0_embedding);
     literllm_free_string(data_json);
-    literllm_conversion_options_free(options_handle);
-    literllm_chat_completion_response_free(result);
+    literllm_embedding_response_free(result);
+    literllm_embedding_request_free(embedding_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_embed_error_401(void) {
     /* 401 Unauthorized error on embedding request when API key is invalid */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("\"Hello world\"");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
-    literllm_conversion_options_free(options_handle);
+    LITERLLMEmbeddingRequest* embedding_request_handle = literllm_embedding_request_from_json("{\"input\":\"Hello world\",\"model\":\"text-embedding-3-small\"}");
+    assert(embedding_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMEmbeddingResponse* result = literllm_default_client_embed(client, embedding_request_handle);
+    literllm_embedding_request_free(embedding_request_handle);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }
 
 void test_embed_with_dimensions(void) {
     /* Embedding request with explicit dimensions parameter returns embeddings of the requested size */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("\"Hello world\"");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
+    LITERLLMEmbeddingRequest* embedding_request_handle = literllm_embedding_request_from_json("{\"dimensions\":256,\"input\":\"Hello world\",\"model\":\"text-embedding-3-small\"}");
+    assert(embedding_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMEmbeddingResponse* result = literllm_default_client_embed(client, embedding_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* data = literllm_chat_completion_response_data(result);
-    char* data_json = literllm_chat_completion_response_data(result);
+    char* data = literllm_embedding_response_data(result);
+    char* data_json = literllm_embedding_response_data(result);
     assert(data_json != NULL);
     char* data_0_embedding = alef_json_get_string(data_json, "0");
     {
@@ -96,17 +111,21 @@ void test_embed_with_dimensions(void) {
     literllm_free_string(data);
     free(data_0_embedding);
     literllm_free_string(data_json);
-    literllm_conversion_options_free(options_handle);
-    literllm_chat_completion_response_free(result);
+    literllm_embedding_response_free(result);
+    literllm_embedding_request_free(embedding_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_local_embed_ollama(void) {
     /* Embedding request via Ollama local provider with all-minilm model */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("\"The quick brown fox jumps over the lazy dog\"");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
+    LITERLLMEmbeddingRequest* embedding_request_handle = literllm_embedding_request_from_json("{\"input\":\"The quick brown fox jumps over the lazy dog\",\"model\":\"ollama/all-minilm\"}");
+    assert(embedding_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMEmbeddingResponse* result = literllm_default_client_embed(client, embedding_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* data = literllm_chat_completion_response_data(result);
-    char* data_json = literllm_chat_completion_response_data(result);
+    char* data = literllm_embedding_response_data(result);
+    char* data_json = literllm_embedding_response_data(result);
     assert(data_json != NULL);
     char* data_0_embedding = alef_json_get_string(data_json, "0");
     {
@@ -124,6 +143,7 @@ void test_local_embed_ollama(void) {
     literllm_free_string(data);
     free(data_0_embedding);
     literllm_free_string(data_json);
-    literllm_conversion_options_free(options_handle);
-    literllm_chat_completion_response_free(result);
+    literllm_embedding_response_free(result);
+    literllm_embedding_request_free(embedding_request_handle);
+    literllm_default_client_free(client);
 }

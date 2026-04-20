@@ -10,9 +10,11 @@
 
 void test_edge_file_empty_list(void) {
     /* List files when no files have been uploaded */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMListFilesResponse* result = literllm_default_client_list_files(client);
     assert(result != NULL && "expected call to succeed");
-    char* data = literllm_chat_completion_response_data(result);
+    char* data = literllm_list_files_response_data(result);
     {
         /* count_equals: count elements in array */
         assert(data != NULL && "expected non-null collection JSON");
@@ -20,75 +22,108 @@ void test_edge_file_empty_list(void) {
         assert(elem_count == 0 && "expected 0 elements");
     }
     literllm_free_string(data);
-    literllm_chat_completion_response_free(result);
+    literllm_list_files_response_free(result);
+    literllm_default_client_free(client);
 }
 
 void test_edge_file_large_upload(void) {
     /* Upload a large file successfully */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMFileRequest* file_request_handle = literllm_file_request_from_json("{\"file\":\"large_training_data.jsonl\",\"purpose\":\"fine-tune\"}");
+    assert(file_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMFileResponse* result = literllm_default_client_create_file(client, file_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* id = literllm_chat_completion_response_id(result);
+    char* id = literllm_file_response_id(result);
     assert(strlen(id) > 0 && "expected non-empty value");
     literllm_free_string(id);
-    literllm_chat_completion_response_free(result);
+    literllm_file_response_free(result);
+    literllm_file_request_free(file_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_error_file_auth_401(void) {
     /* 401 Unauthorized when listing files with invalid API key */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMListFilesResponse* result = literllm_default_client_list_files(client);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }
 
 void test_error_file_bad_purpose(void) {
     /* 400 Bad Request when uploading a file with invalid purpose */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMFileRequest* file_request_handle = literllm_file_request_from_json("{\"file\":\"data.jsonl\",\"purpose\":\"invalid-purpose\"}");
+    assert(file_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMFileResponse* result = literllm_default_client_create_file(client, file_request_handle);
+    literllm_file_request_free(file_request_handle);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }
 
 void test_error_file_not_found(void) {
     /* 404 Not Found when retrieving a nonexistent file */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMFileResponse* result = literllm_default_client_retrieve_file(client);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }
 
 void test_smoke_create_file(void) {
     /* Upload a file for use with the API */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMFileRequest* file_request_handle = literllm_file_request_from_json("{\"file\":\"training_data.jsonl\",\"purpose\":\"fine-tune\"}");
+    assert(file_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMFileResponse* result = literllm_default_client_create_file(client, file_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* id = literllm_chat_completion_response_id(result);
+    char* id = literllm_file_response_id(result);
     assert(strlen(id) > 0 && "expected non-empty value");
     literllm_free_string(id);
-    literllm_chat_completion_response_free(result);
+    literllm_file_response_free(result);
+    literllm_file_request_free(file_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_smoke_delete_file(void) {
     /* Delete an uploaded file */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMDeleteFileResponse* result = literllm_default_client_delete_file(client);
     assert(result != NULL && "expected call to succeed");
-    char* id = literllm_chat_completion_response_id(result);
-    char* deleted = literllm_chat_completion_response_deleted(result);
+    char* id = literllm_delete_file_response_id(result);
+    char* deleted = literllm_delete_file_response_deleted(result);
     assert(strlen(id) > 0 && "expected non-empty value");
     assert(strcmp(deleted, 1) == 0 && "equals assertion failed");
     literllm_free_string(id);
     literllm_free_string(deleted);
-    literllm_chat_completion_response_free(result);
+    literllm_delete_file_response_free(result);
+    literllm_default_client_free(client);
 }
 
 void test_smoke_file_content(void) {
     /* Retrieve the content of an uploaded file */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMFileContentResponse* result = literllm_default_client_file_content(client);
     assert(result != NULL && "expected call to succeed");
-    char* content = literllm_chat_completion_response_content(result);
+    char* content = literllm_file_content_response_content(result);
     assert(strlen(content) > 0 && "expected non-empty value");
     literllm_free_string(content);
-    literllm_chat_completion_response_free(result);
+    literllm_file_content_response_free(result);
+    literllm_default_client_free(client);
 }
 
 void test_smoke_list_files(void) {
     /* List all uploaded files */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMListFilesResponse* result = literllm_default_client_list_files(client);
     assert(result != NULL && "expected call to succeed");
-    char* data = literllm_chat_completion_response_data(result);
+    char* data = literllm_list_files_response_data(result);
     {
         /* count_equals: count elements in array */
         assert(data != NULL && "expected non-null collection JSON");
@@ -96,15 +131,19 @@ void test_smoke_list_files(void) {
         assert(elem_count == 2 && "expected 2 elements");
     }
     literllm_free_string(data);
-    literllm_chat_completion_response_free(result);
+    literllm_list_files_response_free(result);
+    literllm_default_client_free(client);
 }
 
 void test_smoke_retrieve_file(void) {
     /* Retrieve metadata for an uploaded file */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMFileResponse* result = literllm_default_client_retrieve_file(client);
     assert(result != NULL && "expected call to succeed");
-    char* id = literllm_chat_completion_response_id(result);
+    char* id = literllm_file_response_id(result);
     assert(strlen(id) > 0 && "expected non-empty value");
     literllm_free_string(id);
-    literllm_chat_completion_response_free(result);
+    literllm_file_response_free(result);
+    literllm_default_client_free(client);
 }

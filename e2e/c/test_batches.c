@@ -10,15 +10,20 @@
 
 void test_edge_batch_already_cancelled(void) {
     /* Attempt to cancel an already-cancelled batch */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMBatchResponse* result = literllm_default_client_cancel_batch(client);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }
 
 void test_edge_batch_empty_list(void) {
     /* List batches when no batches exist */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMListBatchesResponse* result = literllm_default_client_list_batches(client);
     assert(result != NULL && "expected call to succeed");
-    char* data = literllm_chat_completion_response_data(result);
+    char* data = literllm_list_batches_response_data(result);
     {
         /* count_equals: count elements in array */
         assert(data != NULL && "expected non-null collection JSON");
@@ -26,71 +31,101 @@ void test_edge_batch_empty_list(void) {
         assert(elem_count == 0 && "expected 0 elements");
     }
     literllm_free_string(data);
-    literllm_chat_completion_response_free(result);
+    literllm_list_batches_response_free(result);
+    literllm_default_client_free(client);
 }
 
 void test_error_batch_auth_401(void) {
     /* 401 Unauthorized when creating a batch with invalid API key */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMBatchRequest* batch_request_handle = literllm_batch_request_from_json("{\"completion_window\":\"24h\",\"endpoint\":\"/v1/chat/completions\",\"input_file_id\":\"file-abc123\"}");
+    assert(batch_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMBatchResponse* result = literllm_default_client_create_batch(client, batch_request_handle);
+    literllm_batch_request_free(batch_request_handle);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }
 
 void test_error_batch_invalid_file(void) {
     /* 400 Bad Request when creating a batch with invalid input file */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMBatchRequest* batch_request_handle = literllm_batch_request_from_json("{\"completion_window\":\"24h\",\"endpoint\":\"/v1/chat/completions\",\"input_file_id\":\"file-wrong-purpose\"}");
+    assert(batch_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMBatchResponse* result = literllm_default_client_create_batch(client, batch_request_handle);
+    literllm_batch_request_free(batch_request_handle);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }
 
 void test_error_batch_not_found(void) {
     /* 404 Not Found when retrieving a nonexistent batch */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMBatchResponse* result = literllm_default_client_retrieve_batch(client);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }
 
 void test_smoke_batch_completed(void) {
     /* Retrieve a completed batch job with output file */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMBatchResponse* result = literllm_default_client_retrieve_batch(client);
     assert(result != NULL && "expected call to succeed");
-    char* id = literllm_chat_completion_response_id(result);
-    char* status = literllm_chat_completion_response_status(result);
+    char* id = literllm_batch_response_id(result);
+    char* status = literllm_batch_response_status(result);
     assert(strlen(id) > 0 && "expected non-empty value");
     assert(str_trim_eq(status, "completed") == 0 && "equals assertion failed");
     literllm_free_string(id);
     literllm_free_string(status);
-    literllm_chat_completion_response_free(result);
+    literllm_batch_response_free(result);
+    literllm_default_client_free(client);
 }
 
 void test_smoke_cancel_batch(void) {
     /* Cancel a running batch job */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMBatchResponse* result = literllm_default_client_cancel_batch(client);
     assert(result != NULL && "expected call to succeed");
-    char* id = literllm_chat_completion_response_id(result);
-    char* status = literllm_chat_completion_response_status(result);
+    char* id = literllm_batch_response_id(result);
+    char* status = literllm_batch_response_status(result);
     assert(strlen(id) > 0 && "expected non-empty value");
     assert(str_trim_eq(status, "cancelling") == 0 && "equals assertion failed");
     literllm_free_string(id);
     literllm_free_string(status);
-    literllm_chat_completion_response_free(result);
+    literllm_batch_response_free(result);
+    literllm_default_client_free(client);
 }
 
 void test_smoke_create_batch(void) {
     /* Create a new batch processing job */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMBatchRequest* batch_request_handle = literllm_batch_request_from_json("{\"completion_window\":\"24h\",\"endpoint\":\"/v1/chat/completions\",\"input_file_id\":\"file-abc123\"}");
+    assert(batch_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMBatchResponse* result = literllm_default_client_create_batch(client, batch_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* id = literllm_chat_completion_response_id(result);
-    char* status = literllm_chat_completion_response_status(result);
+    char* id = literllm_batch_response_id(result);
+    char* status = literllm_batch_response_status(result);
     assert(strlen(id) > 0 && "expected non-empty value");
     assert(str_trim_eq(status, "validating") == 0 && "equals assertion failed");
     literllm_free_string(id);
     literllm_free_string(status);
-    literllm_chat_completion_response_free(result);
+    literllm_batch_response_free(result);
+    literllm_batch_request_free(batch_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_smoke_list_batches(void) {
     /* List all batch jobs */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMListBatchesResponse* result = literllm_default_client_list_batches(client);
     assert(result != NULL && "expected call to succeed");
-    char* data = literllm_chat_completion_response_data(result);
+    char* data = literllm_list_batches_response_data(result);
     {
         /* count_equals: count elements in array */
         assert(data != NULL && "expected non-null collection JSON");
@@ -98,18 +133,22 @@ void test_smoke_list_batches(void) {
         assert(elem_count == 2 && "expected 2 elements");
     }
     literllm_free_string(data);
-    literllm_chat_completion_response_free(result);
+    literllm_list_batches_response_free(result);
+    literllm_default_client_free(client);
 }
 
 void test_smoke_retrieve_batch(void) {
     /* Retrieve the status of a batch job */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMBatchResponse* result = literllm_default_client_retrieve_batch(client);
     assert(result != NULL && "expected call to succeed");
-    char* id = literllm_chat_completion_response_id(result);
-    char* status = literllm_chat_completion_response_status(result);
+    char* id = literllm_batch_response_id(result);
+    char* status = literllm_batch_response_status(result);
     assert(strlen(id) > 0 && "expected non-empty value");
     assert(str_trim_eq(status, "in_progress") == 0 && "equals assertion failed");
     literllm_free_string(id);
     literllm_free_string(status);
-    literllm_chat_completion_response_free(result);
+    literllm_batch_response_free(result);
+    literllm_default_client_free(client);
 }

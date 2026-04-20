@@ -10,9 +10,11 @@
 
 void test_empty_model_list(void) {
     /* List models response returns an empty data array when no models are available */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMListModelsResponse* result = literllm_default_client_list_models(client);
     assert(result != NULL && "expected call to succeed");
-    char* data = literllm_chat_completion_response_data(result);
+    char* data = literllm_list_models_response_data(result);
     {
         /* count_min: count top-level JSON array elements */
         assert(data != NULL && "expected non-null collection JSON");
@@ -26,11 +28,15 @@ void test_empty_model_list(void) {
         assert(elem_count == 0 && "expected 0 elements");
     }
     literllm_free_string(data);
-    literllm_chat_completion_response_free(result);
+    literllm_list_models_response_free(result);
+    literllm_default_client_free(client);
 }
 
 void test_list_models_error_401(void) {
     /* 401 Unauthorized error on list models request when API key is invalid */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMListModelsResponse* result = literllm_default_client_list_models(client);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }

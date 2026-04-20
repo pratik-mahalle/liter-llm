@@ -5,6 +5,6 @@ import { createClient } from '@kreuzberg/liter-llm';
 describe('ocr', () => {
   it('ocr_url_document: OCR request with a document URL input', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/ocr_url_document`);
-    await client.chat(null);
+    await client.chat({ document: { type: "document_url", url: "https://example.com/doc.pdf" }, model: "mistral/mistral-ocr-latest" });
   });
 });

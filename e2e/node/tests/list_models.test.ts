@@ -5,7 +5,7 @@ import { createClient } from '@kreuzberg/liter-llm';
 describe('list-models', () => {
   it('empty_model_list: List models response returns an empty data array when no models are available', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/empty_model_list`);
-    const result = await client.chat(null);
+    const result = await client.chat({  });
     expect(result.data.length).toBeGreaterThanOrEqual(0);
     expect(result.data.length).toBe(0);
   });
@@ -13,7 +13,7 @@ describe('list-models', () => {
   it('list_models_error_401: 401 Unauthorized error on list models request when API key is invalid', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/list_models_error_401`);
     await expect(async () => {
-      await client.chat(null);
+      await client.chat({  });
     }).rejects.toThrow();
   });
 });

@@ -5,25 +5,25 @@ import { createClient } from '@kreuzberg/liter-llm';
 describe('cache', () => {
   it('cache_hit: Tests that identical chat requests return cached response', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/cache_hit`);
-    const result = await client.chat(null);
+    const result = await client.chat({ messages: [{ content: "Hello", role: "user" }], model: "gpt-4" });
     expect(result.cacheHit).toBe(true);
   });
 
   it('cache_miss_ttl: Tests that cache expires after TTL', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/cache_miss_ttl`);
-    const result = await client.chat(null);
+    const result = await client.chat({ messages: [{ content: "Hello", role: "user" }], model: "gpt-4" });
     expect(result.cacheHit).toBe(true);
   });
 
   it('cache_opendal_memory: Cache hit with OpenDAL memory backend returns cached response on repeat request', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/cache_opendal_memory`);
-    const result = await client.chat(null);
+    const result = await client.chat({ messages: [{ content: "Hello", role: "user" }], model: "openai/gpt-4o" });
     expect(result.cacheHit).toBe(true);
   });
 
   it('cache_stream_bypass: Tests that streaming requests bypass cache entirely', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/cache_stream_bypass`);
-    const result = await client.chat(null);
+    const result = await client.chat({ messages: [{ content: "Hello", role: "user" }], model: "gpt-4" });
     expect(result.cacheBypassed).toBe(true);
   });
 });

@@ -5,7 +5,7 @@ import { createClient } from '@kreuzberg/liter-llm';
 describe('configuration', () => {
   it('custom_base_url: Client configured with a custom base URL routes all requests to that endpoint', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/custom_base_url`);
-    const result = await client.chat(null);
+    const result = await client.chat({ messages: [{ content: "Hello", role: "user" }], model: "local-model" });
     expect(result.choices.length).toBe(1);
     expect(result.choices["0"].message.content.trim()).toBe("Hi there!");
     expect(result.choices["0"].finishReason.trim()).toBe("stop");
@@ -14,14 +14,14 @@ describe('configuration', () => {
 
   it('extra_headers: Client configured with extra custom headers successfully completes a chat request', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/extra_headers`);
-    const result = await client.chat(null);
+    const result = await client.chat({ messages: [{ content: "Hello", role: "user" }], model: "gpt-4" });
     expect(result.choices.length).toBe(1);
     expect(result.choices["0"].finishReason.trim()).toBe("stop");
   });
 
   it('local_provider_llamacpp: llamacpp local provider routes requests via llamacpp/ model prefix with no auth', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/local_provider_llamacpp`);
-    const result = await client.chat(null);
+    const result = await client.chat({ messages: [{ content: "Hello", role: "user" }], model: "llamacpp/my-model" });
     expect(result.choices.length).toBe(1);
     expect(result.choices["0"].message.content.trim()).toBe("Hi there! I'm running locally.");
     expect(result.choices["0"].finishReason.trim()).toBe("stop");
@@ -30,7 +30,7 @@ describe('configuration', () => {
 
   it('local_provider_ollama: Ollama local provider routes requests via ollama/ model prefix with no auth', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/local_provider_ollama`);
-    const result = await client.chat(null);
+    const result = await client.chat({ messages: [{ content: "Hello", role: "user" }], model: "ollama/qwen2:0.5b" });
     expect(result.choices.length).toBe(1);
     expect(result.choices["0"].message.content.trim()).toBe("Hello! How can I help you today?");
     expect(result.choices["0"].finishReason.trim()).toBe("stop");
@@ -39,7 +39,7 @@ describe('configuration', () => {
 
   it('local_provider_vllm: vLLM local provider routes requests via vllm/ model prefix with no auth', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/local_provider_vllm`);
-    const result = await client.chat(null);
+    const result = await client.chat({ messages: [{ content: "Hello", role: "user" }], model: "vllm/meta-llama/Llama-3.2-1B" });
     expect(result.choices.length).toBe(1);
     expect(result.choices["0"].message.content.trim()).toBe("Hello! How may I assist you?");
     expect(result.choices["0"].finishReason.trim()).toBe("stop");

@@ -10,7 +10,13 @@
 
 void test_api_surface_parity(void) {
     /* Canonical API surface definition for cross-binding parity verification */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }

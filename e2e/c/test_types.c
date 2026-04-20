@@ -10,7 +10,11 @@
 
 void test_all_message_types(void) {
     /* Request with all message role types (system, user, assistant, tool) to verify round-trip serialization */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"messages\":[{\"content\":\"You are a helpful assistant.\",\"role\":\"system\"},{\"content\":\"What is the weather in Paris?\",\"role\":\"user\"},{\"content\":null,\"role\":\"assistant\",\"tool_calls\":[{\"function\":{\"arguments\":\"{\\\"location\\\": \\\"Paris, France\\\"}\",\"name\":\"get_weather\"},\"id\":\"call_xyz789\",\"type\":\"function\"}]},{\"content\":\"{\\\"temperature\\\": 18, \\\"unit\\\": \\\"celsius\\\", \\\"description\\\": \\\"Partly cloudy\\\"}\",\"role\":\"tool\",\"tool_call_id\":\"call_xyz789\"}],\"model\":\"gpt-4\"}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* choices_json = literllm_chat_completion_response_choices(result);
@@ -27,11 +31,17 @@ void test_all_message_types(void) {
     free(choices_0_finish_reason);
     literllm_free_string(choices_json);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_multimodal_content(void) {
     /* User message with mixed text and image_url content parts to verify multimodal serialization */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"max_tokens\":100,\"messages\":[{\"content\":[{\"text\":\"What is in this image?\",\"type\":\"text\"},{\"image_url\":{\"detail\":\"low\",\"url\":\"https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png\"},\"type\":\"image_url\"}],\"role\":\"user\"}],\"model\":\"gpt-4o\"}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* choices_json = literllm_chat_completion_response_choices(result);
@@ -48,4 +58,6 @@ void test_multimodal_content(void) {
     free(choices_0_finish_reason);
     literllm_free_string(choices_json);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }

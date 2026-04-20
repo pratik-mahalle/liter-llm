@@ -5,6 +5,6 @@ import { createClient } from '@kreuzberg/liter-llm';
 describe('search', () => {
   it('search_basic: Basic web search request with a simple query', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/search_basic`);
-    await client.chat(null);
+    await client.chat({ model: "brave/web-search", query: "What is Rust programming language?" });
   });
 });

@@ -10,7 +10,11 @@
 
 void test_binding_api_parity(void) {
     /* Verify all bindings expose the full API surface — constructor accepts all config options and every method exists */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"messages\":[{\"content\":\"Contract test\",\"role\":\"user\"}],\"model\":\"openai/gpt-4o\"}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* choices_json = literllm_chat_completion_response_choices(result);
@@ -39,18 +43,32 @@ void test_binding_api_parity(void) {
     literllm_usage_free(usage_handle);
     literllm_free_string(choices_json);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_contract_ocr(void) {
     /* Verify ocr() method exists in all bindings */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMOcrRequest* ocr_request_handle = literllm_ocr_request_from_json("{\"document\":{\"type\":\"document_url\",\"url\":\"https://example.com/contract-test.pdf\"},\"model\":\"mistral/mistral-ocr-latest\"}");
+    assert(ocr_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMOcrResponse* result = literllm_default_client_ocr(client, ocr_request_handle);
     assert(result != NULL && "expected call to succeed");
-    literllm_chat_completion_response_free(result);
+    literllm_ocr_response_free(result);
+    literllm_ocr_request_free(ocr_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_contract_search(void) {
     /* Verify search() method exists in all bindings */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMSearchRequest* search_request_handle = literllm_search_request_from_json("{\"model\":\"brave/web-search\",\"query\":\"contract test query\"}");
+    assert(search_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMSearchResponse* result = literllm_default_client_search(client, search_request_handle);
     assert(result != NULL && "expected call to succeed");
-    literllm_chat_completion_response_free(result);
+    literllm_search_response_free(result);
+    literllm_search_request_free(search_request_handle);
+    literllm_default_client_free(client);
 }

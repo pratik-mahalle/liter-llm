@@ -15,7 +15,7 @@ final class TranscribeTest extends TestCase
     public function test_edge_transcribe_empty_audio(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->transcribe_async(null);
         $this->assertStringContainsString("", $result->text);
     }
 
@@ -24,7 +24,7 @@ final class TranscribeTest extends TestCase
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        $client->chat_async(null);
+        $client->transcribe_async(null);
     }
 
     /** 400 Bad Request when audio format is unsupported */
@@ -32,14 +32,14 @@ final class TranscribeTest extends TestCase
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        $client->chat_async(null);
+        $client->transcribe_async(null);
     }
 
     /** Basic audio transcription */
     public function test_smoke_transcribe_basic(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->transcribe_async(null);
         $this->assertStringContainsString("Hello, this is a test transcription.", $result->text);
     }
 
@@ -47,7 +47,7 @@ final class TranscribeTest extends TestCase
     public function test_smoke_transcribe_with_language(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->transcribe_async(null);
         $this->assertStringContainsString("Hallo, dies ist ein Testtranskription.", $result->text);
     }
 }

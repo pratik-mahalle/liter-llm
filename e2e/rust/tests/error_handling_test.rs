@@ -18,7 +18,7 @@ async fn test_anthropic_error_auth() {
     let mock_server = MockServer::start(vec![mock_route]).await;
     let request_json = serde_json::json!(null);
     let request = serde_json::from_value(request_json).unwrap();
-    let result = chat(request).await;
+    let result = chat(&request).await;
     assert!(result.is_err(), "expected call to fail");
     assert!(result.as_ref().unwrap_err().to_string().contains("Authentication"), "error message mismatch");
 }
@@ -36,7 +36,7 @@ async fn test_auth_401() {
     let mock_server = MockServer::start(vec![mock_route]).await;
     let request_json = serde_json::json!(null);
     let request = serde_json::from_value(request_json).unwrap();
-    let result = chat(request).await;
+    let result = chat(&request).await;
     assert!(result.is_err(), "expected call to fail");
     assert!(result.as_ref().unwrap_err().to_string().contains("Authentication"), "error message mismatch");
 }
@@ -54,7 +54,7 @@ async fn test_azure_error_auth() {
     let mock_server = MockServer::start(vec![mock_route]).await;
     let request_json = serde_json::json!(null);
     let request = serde_json::from_value(request_json).unwrap();
-    let result = chat(request).await;
+    let result = chat(&request).await;
     assert!(result.is_err(), "expected call to fail");
     assert!(result.as_ref().unwrap_err().to_string().contains("Authentication"), "error message mismatch");
 }
@@ -72,7 +72,7 @@ async fn test_bad_request_400() {
     let mock_server = MockServer::start(vec![mock_route]).await;
     let request_json = serde_json::json!(null);
     let request = serde_json::from_value(request_json).unwrap();
-    let result = chat(request).await;
+    let result = chat(&request).await;
     assert!(result.is_err(), "expected call to fail");
     assert!(result.as_ref().unwrap_err().to_string().contains("BadRequest"), "error message mismatch");
 }
@@ -90,7 +90,7 @@ async fn test_bedrock_error_auth() {
     let mock_server = MockServer::start(vec![mock_route]).await;
     let request_json = serde_json::json!(null);
     let request = serde_json::from_value(request_json).unwrap();
-    let result = chat(request).await;
+    let result = chat(&request).await;
     assert!(result.is_err(), "expected call to fail");
     assert!(result.as_ref().unwrap_err().to_string().contains("Authentication"), "error message mismatch");
 }
@@ -108,7 +108,7 @@ async fn test_content_policy_violation() {
     let mock_server = MockServer::start(vec![mock_route]).await;
     let request_json = serde_json::json!(null);
     let request = serde_json::from_value(request_json).unwrap();
-    let result = chat(request).await;
+    let result = chat(&request).await;
     assert!(result.is_err(), "expected call to fail");
     assert!(result.as_ref().unwrap_err().to_string().contains("ContentPolicy"), "error message mismatch");
 }
@@ -126,7 +126,7 @@ async fn test_context_window_exceeded() {
     let mock_server = MockServer::start(vec![mock_route]).await;
     let request_json = serde_json::json!(null);
     let request = serde_json::from_value(request_json).unwrap();
-    let result = chat(request).await;
+    let result = chat(&request).await;
     assert!(result.is_err(), "expected call to fail");
     assert!(result.as_ref().unwrap_err().to_string().contains("ContextWindowExceeded"), "error message mismatch");
 }
@@ -144,7 +144,7 @@ async fn test_forbidden_403() {
     let mock_server = MockServer::start(vec![mock_route]).await;
     let request_json = serde_json::json!(null);
     let request = serde_json::from_value(request_json).unwrap();
-    let result = chat(request).await;
+    let result = chat(&request).await;
     assert!(result.is_err(), "expected call to fail");
     assert!(result.as_ref().unwrap_err().to_string().contains("Authentication"), "error message mismatch");
 }
@@ -162,7 +162,7 @@ async fn test_gateway_timeout_504() {
     let mock_server = MockServer::start(vec![mock_route]).await;
     let request_json = serde_json::json!(null);
     let request = serde_json::from_value(request_json).unwrap();
-    let result = chat(request).await;
+    let result = chat(&request).await;
     assert!(result.is_err(), "expected call to fail");
     assert!(result.as_ref().unwrap_err().to_string().contains("ServiceUnavailable"), "error message mismatch");
 }
@@ -180,7 +180,7 @@ async fn test_github_copilot_error_auth() {
     let mock_server = MockServer::start(vec![mock_route]).await;
     let request_json = serde_json::json!(null);
     let request = serde_json::from_value(request_json).unwrap();
-    let result = chat(request).await;
+    let result = chat(&request).await;
     assert!(result.is_err(), "expected call to fail");
     assert!(result.as_ref().unwrap_err().to_string().contains("Authentication"), "error message mismatch");
 }
@@ -198,7 +198,7 @@ async fn test_not_found_404() {
     let mock_server = MockServer::start(vec![mock_route]).await;
     let request_json = serde_json::json!(null);
     let request = serde_json::from_value(request_json).unwrap();
-    let result = chat(request).await;
+    let result = chat(&request).await;
     assert!(result.is_err(), "expected call to fail");
     assert!(result.as_ref().unwrap_err().to_string().contains("NotFound"), "error message mismatch");
 }
@@ -216,7 +216,7 @@ async fn test_rate_limit_429() {
     let mock_server = MockServer::start(vec![mock_route]).await;
     let request_json = serde_json::json!(null);
     let request = serde_json::from_value(request_json).unwrap();
-    let result = chat(request).await;
+    let result = chat(&request).await;
     assert!(result.is_err(), "expected call to fail");
     assert!(result.as_ref().unwrap_err().to_string().contains("RateLimited"), "error message mismatch");
 }
@@ -234,7 +234,7 @@ async fn test_server_error_500() {
     let mock_server = MockServer::start(vec![mock_route]).await;
     let request_json = serde_json::json!(null);
     let request = serde_json::from_value(request_json).unwrap();
-    let result = chat(request).await;
+    let result = chat(&request).await;
     assert!(result.is_err(), "expected call to fail");
     assert!(result.as_ref().unwrap_err().to_string().contains("ServerError"), "error message mismatch");
 }
@@ -252,7 +252,7 @@ async fn test_service_unavailable_502() {
     let mock_server = MockServer::start(vec![mock_route]).await;
     let request_json = serde_json::json!(null);
     let request = serde_json::from_value(request_json).unwrap();
-    let result = chat(request).await;
+    let result = chat(&request).await;
     assert!(result.is_err(), "expected call to fail");
     assert!(result.as_ref().unwrap_err().to_string().contains("ServiceUnavailable"), "error message mismatch");
 }
@@ -270,7 +270,7 @@ async fn test_vertex_error_auth() {
     let mock_server = MockServer::start(vec![mock_route]).await;
     let request_json = serde_json::json!(null);
     let request = serde_json::from_value(request_json).unwrap();
-    let result = chat(request).await;
+    let result = chat(&request).await;
     assert!(result.is_err(), "expected call to fail");
     assert!(result.as_ref().unwrap_err().to_string().contains("Authentication"), "error message mismatch");
 }

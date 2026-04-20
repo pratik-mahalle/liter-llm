@@ -10,9 +10,13 @@
 
 void test_edge_rerank_empty_query(void) {
     /* Reranking with an empty query string */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMRerankRequest* rerank_request_handle = literllm_rerank_request_from_json("{\"documents\":[\"Some document\",\"Another document\"],\"model\":\"rerank-v3.5\",\"query\":\"\"}");
+    assert(rerank_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMRerankResponse* result = literllm_default_client_rerank(client, rerank_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* results = literllm_chat_completion_response_results(result);
+    char* results = literllm_rerank_response_results(result);
     {
         /* count_equals: count elements in array */
         assert(results != NULL && "expected non-null collection JSON");
@@ -20,15 +24,21 @@ void test_edge_rerank_empty_query(void) {
         assert(elem_count == 2 && "expected 2 elements");
     }
     literllm_free_string(results);
-    literllm_chat_completion_response_free(result);
+    literllm_rerank_response_free(result);
+    literllm_rerank_request_free(rerank_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_edge_rerank_single_doc(void) {
     /* Reranking with only a single document */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMRerankRequest* rerank_request_handle = literllm_rerank_request_from_json("{\"documents\":[\"Artificial intelligence is the simulation of human intelligence.\"],\"model\":\"rerank-v3.5\",\"query\":\"What is AI?\"}");
+    assert(rerank_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMRerankResponse* result = literllm_default_client_rerank(client, rerank_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* results = literllm_chat_completion_response_results(result);
-    char* results_json = literllm_chat_completion_response_results(result);
+    char* results = literllm_rerank_response_results(result);
+    char* results_json = literllm_rerank_response_results(result);
     assert(results_json != NULL);
     char* results_0_relevance_score = alef_json_get_string(results_json, "0");
     {
@@ -41,27 +51,45 @@ void test_edge_rerank_single_doc(void) {
     literllm_free_string(results);
     free(results_0_relevance_score);
     literllm_free_string(results_json);
-    literllm_chat_completion_response_free(result);
+    literllm_rerank_response_free(result);
+    literllm_rerank_request_free(rerank_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_error_rerank_auth_401(void) {
     /* 401 Unauthorized for reranking with invalid API key */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMRerankRequest* rerank_request_handle = literllm_rerank_request_from_json("{\"documents\":[\"doc1\"],\"model\":\"rerank-v3.5\",\"query\":\"test\"}");
+    assert(rerank_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMRerankResponse* result = literllm_default_client_rerank(client, rerank_request_handle);
+    literllm_rerank_request_free(rerank_request_handle);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }
 
 void test_error_rerank_bad_request(void) {
     /* 400 Bad Request for reranking with invalid model */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMRerankRequest* rerank_request_handle = literllm_rerank_request_from_json("{\"documents\":[\"doc1\"],\"model\":\"nonexistent-rerank\",\"query\":\"test\"}");
+    assert(rerank_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMRerankResponse* result = literllm_default_client_rerank(client, rerank_request_handle);
+    literllm_rerank_request_free(rerank_request_handle);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }
 
 void test_smoke_rerank_basic(void) {
     /* Basic reranking of documents against a query */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMRerankRequest* rerank_request_handle = literllm_rerank_request_from_json("{\"documents\":[\"Machine learning is a subset of AI.\",\"The weather is sunny today.\",\"Deep learning uses neural networks.\"],\"model\":\"rerank-v3.5\",\"query\":\"What is machine learning?\"}");
+    assert(rerank_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMRerankResponse* result = literllm_default_client_rerank(client, rerank_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* results = literllm_chat_completion_response_results(result);
-    char* results_json = literllm_chat_completion_response_results(result);
+    char* results = literllm_rerank_response_results(result);
+    char* results_json = literllm_rerank_response_results(result);
     assert(results_json != NULL);
     char* results_0_relevance_score = alef_json_get_string(results_json, "0");
     {
@@ -74,15 +102,21 @@ void test_smoke_rerank_basic(void) {
     literllm_free_string(results);
     free(results_0_relevance_score);
     literllm_free_string(results_json);
-    literllm_chat_completion_response_free(result);
+    literllm_rerank_response_free(result);
+    literllm_rerank_request_free(rerank_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_smoke_rerank_return_docs(void) {
     /* Reranking with return_documents flag to include document text */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMRerankRequest* rerank_request_handle = literllm_rerank_request_from_json("{\"documents\":[\"Rust is a systems programming language.\",\"Iron rusts when exposed to water.\"],\"model\":\"rerank-v3.5\",\"query\":\"What is Rust?\",\"return_documents\":true}");
+    assert(rerank_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMRerankResponse* result = literllm_default_client_rerank(client, rerank_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* results = literllm_chat_completion_response_results(result);
-    char* results_json = literllm_chat_completion_response_results(result);
+    char* results = literllm_rerank_response_results(result);
+    char* results_json = literllm_rerank_response_results(result);
     assert(results_json != NULL);
     char* results_0_document = alef_json_get_string(results_json, "0");
     char* results_0_relevance_score = alef_json_get_string(results_json, "0");
@@ -98,15 +132,21 @@ void test_smoke_rerank_return_docs(void) {
     free(results_0_document);
     free(results_0_relevance_score);
     literllm_free_string(results_json);
-    literllm_chat_completion_response_free(result);
+    literllm_rerank_response_free(result);
+    literllm_rerank_request_free(rerank_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_smoke_rerank_with_top_n(void) {
     /* Reranking with top_n parameter to limit results */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMRerankRequest* rerank_request_handle = literllm_rerank_request_from_json("{\"documents\":[\"Python is a programming language.\",\"Cats are cute animals.\",\"Python was created by Guido van Rossum.\",\"The sun is a star.\"],\"model\":\"rerank-v3.5\",\"query\":\"What is Python?\",\"top_n\":2}");
+    assert(rerank_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMRerankResponse* result = literllm_default_client_rerank(client, rerank_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* results = literllm_chat_completion_response_results(result);
-    char* results_json = literllm_chat_completion_response_results(result);
+    char* results = literllm_rerank_response_results(result);
+    char* results_json = literllm_rerank_response_results(result);
     assert(results_json != NULL);
     char* results_0_relevance_score = alef_json_get_string(results_json, "0");
     {
@@ -119,5 +159,7 @@ void test_smoke_rerank_with_top_n(void) {
     literllm_free_string(results);
     free(results_0_relevance_score);
     literllm_free_string(results_json);
-    literllm_chat_completion_response_free(result);
+    literllm_rerank_response_free(result);
+    literllm_rerank_request_free(rerank_request_handle);
+    literllm_default_client_free(client);
 }

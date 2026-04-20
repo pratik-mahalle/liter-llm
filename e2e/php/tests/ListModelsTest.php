@@ -15,7 +15,7 @@ final class ListModelsTest extends TestCase
     public function test_empty_model_list(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->list_models_async();
         $this->assertGreaterThanOrEqual(0, count($result->data));
         $this->assertCount(0, $result->data);
     }
@@ -25,6 +25,6 @@ final class ListModelsTest extends TestCase
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        $client->chat_async(null);
+        $client->list_models_async();
     }
 }

@@ -1883,7 +1883,6 @@ impl CustomProviderConfig {
 
 #[derive(Clone)]
 #[pyclass(frozen)]
-#[derive(Default)]
 pub struct Message {
     pub(crate) inner: liter_llm::types::Message,
 }
@@ -1918,6 +1917,14 @@ impl serde::Serialize for Message {
     }
 }
 
+impl Default for Message {
+    fn default() -> Self {
+        Self {
+            inner: Default::default(),
+        }
+    }
+}
+
 impl<'de> serde::Deserialize<'de> for Message {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let inner = liter_llm::types::Message::deserialize(deserializer)?;
@@ -1927,7 +1934,6 @@ impl<'de> serde::Deserialize<'de> for Message {
 
 #[derive(Clone)]
 #[pyclass(frozen)]
-#[derive(Default)]
 pub struct UserContent {
     pub(crate) inner: liter_llm::types::UserContent,
 }
@@ -1962,6 +1968,14 @@ impl serde::Serialize for UserContent {
     }
 }
 
+impl Default for UserContent {
+    fn default() -> Self {
+        Self {
+            inner: Default::default(),
+        }
+    }
+}
+
 impl<'de> serde::Deserialize<'de> for UserContent {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let inner = liter_llm::types::UserContent::deserialize(deserializer)?;
@@ -1971,7 +1985,6 @@ impl<'de> serde::Deserialize<'de> for UserContent {
 
 #[derive(Clone)]
 #[pyclass(frozen)]
-#[derive(Default)]
 pub struct ContentPart {
     pub(crate) inner: liter_llm::types::ContentPart,
 }
@@ -2006,6 +2019,14 @@ impl serde::Serialize for ContentPart {
     }
 }
 
+impl Default for ContentPart {
+    fn default() -> Self {
+        Self {
+            inner: Default::default(),
+        }
+    }
+}
+
 impl<'de> serde::Deserialize<'de> for ContentPart {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let inner = liter_llm::types::ContentPart::deserialize(deserializer)?;
@@ -2031,7 +2052,6 @@ pub enum ToolType {
 
 #[derive(Clone)]
 #[pyclass(frozen)]
-#[derive(Default)]
 pub struct ToolChoice {
     pub(crate) inner: liter_llm::types::ToolChoice,
 }
@@ -2066,6 +2086,14 @@ impl serde::Serialize for ToolChoice {
     }
 }
 
+impl Default for ToolChoice {
+    fn default() -> Self {
+        Self {
+            inner: Default::default(),
+        }
+    }
+}
+
 impl<'de> serde::Deserialize<'de> for ToolChoice {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let inner = liter_llm::types::ToolChoice::deserialize(deserializer)?;
@@ -2085,7 +2113,6 @@ pub enum ToolChoiceMode {
 
 #[derive(Clone)]
 #[pyclass(frozen)]
-#[derive(Default)]
 pub struct ResponseFormat {
     pub(crate) inner: liter_llm::types::ResponseFormat,
 }
@@ -2120,6 +2147,14 @@ impl serde::Serialize for ResponseFormat {
     }
 }
 
+impl Default for ResponseFormat {
+    fn default() -> Self {
+        Self {
+            inner: Default::default(),
+        }
+    }
+}
+
 impl<'de> serde::Deserialize<'de> for ResponseFormat {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let inner = liter_llm::types::ResponseFormat::deserialize(deserializer)?;
@@ -2129,7 +2164,6 @@ impl<'de> serde::Deserialize<'de> for ResponseFormat {
 
 #[derive(Clone)]
 #[pyclass(frozen)]
-#[derive(Default)]
 pub struct StopSequence {
     pub(crate) inner: liter_llm::types::StopSequence,
 }
@@ -2161,6 +2195,14 @@ impl From<liter_llm::types::StopSequence> for StopSequence {
 impl serde::Serialize for StopSequence {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         self.inner.serialize(serializer)
+    }
+}
+
+impl Default for StopSequence {
+    fn default() -> Self {
+        Self {
+            inner: Default::default(),
+        }
     }
 }
 
@@ -2202,7 +2244,6 @@ pub enum EmbeddingFormat {
 
 #[derive(Clone)]
 #[pyclass(frozen)]
-#[derive(Default)]
 pub struct EmbeddingInput {
     pub(crate) inner: liter_llm::types::EmbeddingInput,
 }
@@ -2237,6 +2278,14 @@ impl serde::Serialize for EmbeddingInput {
     }
 }
 
+impl Default for EmbeddingInput {
+    fn default() -> Self {
+        Self {
+            inner: Default::default(),
+        }
+    }
+}
+
 impl<'de> serde::Deserialize<'de> for EmbeddingInput {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let inner = liter_llm::types::EmbeddingInput::deserialize(deserializer)?;
@@ -2246,7 +2295,6 @@ impl<'de> serde::Deserialize<'de> for EmbeddingInput {
 
 #[derive(Clone)]
 #[pyclass(frozen)]
-#[derive(Default)]
 pub struct ModerationInput {
     pub(crate) inner: liter_llm::types::ModerationInput,
 }
@@ -2281,6 +2329,14 @@ impl serde::Serialize for ModerationInput {
     }
 }
 
+impl Default for ModerationInput {
+    fn default() -> Self {
+        Self {
+            inner: Default::default(),
+        }
+    }
+}
+
 impl<'de> serde::Deserialize<'de> for ModerationInput {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let inner = liter_llm::types::ModerationInput::deserialize(deserializer)?;
@@ -2290,7 +2346,6 @@ impl<'de> serde::Deserialize<'de> for ModerationInput {
 
 #[derive(Clone)]
 #[pyclass(frozen)]
-#[derive(Default)]
 pub struct RerankDocument {
     pub(crate) inner: liter_llm::types::RerankDocument,
 }
@@ -2325,6 +2380,14 @@ impl serde::Serialize for RerankDocument {
     }
 }
 
+impl Default for RerankDocument {
+    fn default() -> Self {
+        Self {
+            inner: Default::default(),
+        }
+    }
+}
+
 impl<'de> serde::Deserialize<'de> for RerankDocument {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let inner = liter_llm::types::RerankDocument::deserialize(deserializer)?;
@@ -2334,7 +2397,6 @@ impl<'de> serde::Deserialize<'de> for RerankDocument {
 
 #[derive(Clone)]
 #[pyclass(frozen)]
-#[derive(Default)]
 pub struct OcrDocument {
     pub(crate) inner: liter_llm::types::OcrDocument,
 }
@@ -2369,6 +2431,14 @@ impl serde::Serialize for OcrDocument {
     }
 }
 
+impl Default for OcrDocument {
+    fn default() -> Self {
+        Self {
+            inner: Default::default(),
+        }
+    }
+}
+
 impl<'de> serde::Deserialize<'de> for OcrDocument {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let inner = liter_llm::types::OcrDocument::deserialize(deserializer)?;
@@ -2378,7 +2448,6 @@ impl<'de> serde::Deserialize<'de> for OcrDocument {
 
 #[derive(Clone)]
 #[pyclass(frozen)]
-#[derive(Default)]
 pub struct AuthHeaderFormat {
     pub(crate) inner: liter_llm::provider::custom::AuthHeaderFormat,
 }
@@ -2410,6 +2479,14 @@ impl From<liter_llm::provider::custom::AuthHeaderFormat> for AuthHeaderFormat {
 impl serde::Serialize for AuthHeaderFormat {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         self.inner.serialize(serializer)
+    }
+}
+
+impl Default for AuthHeaderFormat {
+    fn default() -> Self {
+        Self {
+            inner: Default::default(),
+        }
     }
 }
 

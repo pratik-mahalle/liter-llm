@@ -18,6 +18,6 @@ async fn test_api_surface_parity() {
     let mock_server = MockServer::start(vec![mock_route]).await;
     let request_json = serde_json::json!(null);
     let request = serde_json::from_value(request_json).unwrap();
-    let _ = chat(request).await;
+    let _ = chat(&request).await;
 }
 

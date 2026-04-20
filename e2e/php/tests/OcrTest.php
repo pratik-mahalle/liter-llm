@@ -16,6 +16,6 @@ final class OcrTest extends TestCase
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectNotToPerformAssertions();
-        $result = $client->chat_async(null);
+        $result = $client->ocr_async(null);
     }
 }

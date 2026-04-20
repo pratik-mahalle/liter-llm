@@ -10,42 +10,72 @@
 
 void test_edge_transcribe_empty_audio(void) {
     /* Transcription of a silent or empty audio file returns empty text */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMTranscriptionRequest* transcription_request_handle = literllm_transcription_request_from_json("{\"file\":\"silence.mp3\",\"model\":\"whisper-1\"}");
+    assert(transcription_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMTranscriptionResponse* result = literllm_default_client_transcribe(client, transcription_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* text = literllm_chat_completion_response_text(result);
+    char* text = literllm_transcription_response_text(result);
     assert(strstr(text, "") != NULL && "expected to contain substring");
     literllm_free_string(text);
-    literllm_chat_completion_response_free(result);
+    literllm_transcription_response_free(result);
+    literllm_transcription_request_free(transcription_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_error_transcribe_auth_401(void) {
     /* 401 Unauthorized for transcription with invalid API key */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMTranscriptionRequest* transcription_request_handle = literllm_transcription_request_from_json("{\"file\":\"audio.mp3\",\"model\":\"whisper-1\"}");
+    assert(transcription_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMTranscriptionResponse* result = literllm_default_client_transcribe(client, transcription_request_handle);
+    literllm_transcription_request_free(transcription_request_handle);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }
 
 void test_error_transcribe_bad_format(void) {
     /* 400 Bad Request when audio format is unsupported */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMTranscriptionRequest* transcription_request_handle = literllm_transcription_request_from_json("{\"file\":\"audio.xyz\",\"model\":\"whisper-1\"}");
+    assert(transcription_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMTranscriptionResponse* result = literllm_default_client_transcribe(client, transcription_request_handle);
+    literllm_transcription_request_free(transcription_request_handle);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }
 
 void test_smoke_transcribe_basic(void) {
     /* Basic audio transcription */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMTranscriptionRequest* transcription_request_handle = literllm_transcription_request_from_json("{\"file\":\"audio.mp3\",\"model\":\"whisper-1\"}");
+    assert(transcription_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMTranscriptionResponse* result = literllm_default_client_transcribe(client, transcription_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* text = literllm_chat_completion_response_text(result);
+    char* text = literllm_transcription_response_text(result);
     assert(strstr(text, "Hello, this is a test transcription.") != NULL && "expected to contain substring");
     literllm_free_string(text);
-    literllm_chat_completion_response_free(result);
+    literllm_transcription_response_free(result);
+    literllm_transcription_request_free(transcription_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_smoke_transcribe_with_language(void) {
     /* Audio transcription with explicit language hint */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMTranscriptionRequest* transcription_request_handle = literllm_transcription_request_from_json("{\"file\":\"audio_de.mp3\",\"language\":\"de\",\"model\":\"whisper-1\"}");
+    assert(transcription_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMTranscriptionResponse* result = literllm_default_client_transcribe(client, transcription_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* text = literllm_chat_completion_response_text(result);
+    char* text = literllm_transcription_response_text(result);
     assert(strstr(text, "Hallo, dies ist ein Testtranskription.") != NULL && "expected to contain substring");
     literllm_free_string(text);
-    literllm_chat_completion_response_free(result);
+    literllm_transcription_response_free(result);
+    literllm_transcription_request_free(transcription_request_handle);
+    literllm_default_client_free(client);
 }

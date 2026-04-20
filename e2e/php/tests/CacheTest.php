@@ -39,7 +39,7 @@ final class CacheTest extends TestCase
     public function test_cache_stream_bypass(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->chat_stream_async(null);
         $this->assertTrue($result->cache_bypassed);
     }
 }

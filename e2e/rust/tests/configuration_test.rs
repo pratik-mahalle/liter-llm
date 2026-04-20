@@ -18,7 +18,7 @@ async fn test_custom_base_url() {
     let mock_server = MockServer::start(vec![mock_route]).await;
     let request_json = serde_json::json!(null);
     let request = serde_json::from_value(request_json).unwrap();
-    let result = chat(request).await.expect("should succeed");
+    let result = chat(&request).await.expect("should succeed");
     assert_eq!(result.choices.len(), 1, "expected exactly 1 elements, got {}", result.choices.len());
     assert_eq!(result.choices.get("0").map(|s| s.as_str()).message.content.trim(), r#"Hi there!"#, "equals assertion failed");
     assert_eq!(result.choices.get("0").map(|s| s.as_str()).finish_reason.trim(), r#"stop"#, "equals assertion failed");
@@ -38,7 +38,7 @@ async fn test_extra_headers() {
     let mock_server = MockServer::start(vec![mock_route]).await;
     let request_json = serde_json::json!(null);
     let request = serde_json::from_value(request_json).unwrap();
-    let result = chat(request).await.expect("should succeed");
+    let result = chat(&request).await.expect("should succeed");
     assert_eq!(result.choices.len(), 1, "expected exactly 1 elements, got {}", result.choices.len());
     assert_eq!(result.choices.get("0").map(|s| s.as_str()).finish_reason.trim(), r#"stop"#, "equals assertion failed");
 }
@@ -56,7 +56,7 @@ async fn test_local_provider_llamacpp() {
     let mock_server = MockServer::start(vec![mock_route]).await;
     let request_json = serde_json::json!(null);
     let request = serde_json::from_value(request_json).unwrap();
-    let result = chat(request).await.expect("should succeed");
+    let result = chat(&request).await.expect("should succeed");
     assert_eq!(result.choices.len(), 1, "expected exactly 1 elements, got {}", result.choices.len());
     assert_eq!(result.choices.get("0").map(|s| s.as_str()).message.content.trim(), r#"Hi there! I'm running locally."#, "equals assertion failed");
     assert_eq!(result.choices.get("0").map(|s| s.as_str()).finish_reason.trim(), r#"stop"#, "equals assertion failed");
@@ -76,7 +76,7 @@ async fn test_local_provider_ollama() {
     let mock_server = MockServer::start(vec![mock_route]).await;
     let request_json = serde_json::json!(null);
     let request = serde_json::from_value(request_json).unwrap();
-    let result = chat(request).await.expect("should succeed");
+    let result = chat(&request).await.expect("should succeed");
     assert_eq!(result.choices.len(), 1, "expected exactly 1 elements, got {}", result.choices.len());
     assert_eq!(result.choices.get("0").map(|s| s.as_str()).message.content.trim(), r#"Hello! How can I help you today?"#, "equals assertion failed");
     assert_eq!(result.choices.get("0").map(|s| s.as_str()).finish_reason.trim(), r#"stop"#, "equals assertion failed");
@@ -96,7 +96,7 @@ async fn test_local_provider_vllm() {
     let mock_server = MockServer::start(vec![mock_route]).await;
     let request_json = serde_json::json!(null);
     let request = serde_json::from_value(request_json).unwrap();
-    let result = chat(request).await.expect("should succeed");
+    let result = chat(&request).await.expect("should succeed");
     assert_eq!(result.choices.len(), 1, "expected exactly 1 elements, got {}", result.choices.len());
     assert_eq!(result.choices.get("0").map(|s| s.as_str()).message.content.trim(), r#"Hello! How may I assist you?"#, "equals assertion failed");
     assert_eq!(result.choices.get("0").map(|s| s.as_str()).finish_reason.trim(), r#"stop"#, "equals assertion failed");

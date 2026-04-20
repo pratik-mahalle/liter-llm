@@ -15,7 +15,7 @@ final class SpeechTest extends TestCase
     public function test_edge_speech_long_input(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async("This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. End of input.");
+        $result = $client->speech_async(json_encode("This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. End of input."));
         $this->assertNotEmpty($result->audio);
     }
 
@@ -24,7 +24,7 @@ final class SpeechTest extends TestCase
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        $client->chat_async("Hello");
+        $client->speech_async(json_encode("Hello"));
     }
 
     /** 400 Bad Request for speech with unsupported model */
@@ -32,14 +32,14 @@ final class SpeechTest extends TestCase
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        $client->chat_async("Hello");
+        $client->speech_async(json_encode("Hello"));
     }
 
     /** Basic text-to-speech generation */
     public function test_smoke_speech_basic(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async("Hello, world!");
+        $result = $client->speech_async(json_encode("Hello, world!"));
         $this->assertNotEmpty($result->audio);
     }
 
@@ -47,7 +47,7 @@ final class SpeechTest extends TestCase
     public function test_smoke_speech_mp3_format(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async("The quick brown fox jumps over the lazy dog.");
+        $result = $client->speech_async(json_encode("The quick brown fox jumps over the lazy dog."));
         $this->assertNotEmpty($result->audio);
     }
 }

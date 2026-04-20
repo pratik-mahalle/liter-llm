@@ -10,10 +10,14 @@
 
 void test_edge_image_b64_response(void) {
     /* Image generation returning base64-encoded data instead of URL */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMImageRequest* image_request_handle = literllm_image_request_from_json("{\"model\":\"dall-e-3\",\"n\":1,\"prompt\":\"A blue circle\",\"response_format\":\"b64_json\",\"size\":\"1024x1024\"}");
+    assert(image_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMImageResponse* result = literllm_default_client_image_generate(client, image_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* data = literllm_chat_completion_response_data(result);
-    char* data_json = literllm_chat_completion_response_data(result);
+    char* data = literllm_image_response_data(result);
+    char* data_json = literllm_image_response_data(result);
     assert(data_json != NULL);
     char* data_0_b64_json = alef_json_get_string(data_json, "0");
     {
@@ -26,39 +30,69 @@ void test_edge_image_b64_response(void) {
     literllm_free_string(data);
     free(data_0_b64_json);
     literllm_free_string(data_json);
-    literllm_chat_completion_response_free(result);
+    literllm_image_response_free(result);
+    literllm_image_request_free(image_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_edge_image_empty_prompt(void) {
     /* Image generation with an empty prompt returns 400 */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMImageRequest* image_request_handle = literllm_image_request_from_json("{\"model\":\"dall-e-3\",\"n\":1,\"prompt\":\"\",\"size\":\"1024x1024\"}");
+    assert(image_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMImageResponse* result = literllm_default_client_image_generate(client, image_request_handle);
+    literllm_image_request_free(image_request_handle);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }
 
 void test_error_image_auth_401(void) {
     /* 401 Unauthorized when generating images with invalid API key */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMImageRequest* image_request_handle = literllm_image_request_from_json("{\"model\":\"dall-e-3\",\"n\":1,\"prompt\":\"A cat\",\"size\":\"1024x1024\"}");
+    assert(image_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMImageResponse* result = literllm_default_client_image_generate(client, image_request_handle);
+    literllm_image_request_free(image_request_handle);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }
 
 void test_error_image_bad_request(void) {
     /* 400 Bad Request when image generation parameters are invalid */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMImageRequest* image_request_handle = literllm_image_request_from_json("{\"model\":\"dall-e-3\",\"n\":1,\"prompt\":\"A cat\",\"size\":\"9999x9999\"}");
+    assert(image_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMImageResponse* result = literllm_default_client_image_generate(client, image_request_handle);
+    literllm_image_request_free(image_request_handle);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }
 
 void test_error_image_rate_limit(void) {
     /* 429 Rate limit exceeded for image generation */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMImageRequest* image_request_handle = literllm_image_request_from_json("{\"model\":\"dall-e-3\",\"n\":1,\"prompt\":\"A cat\",\"size\":\"1024x1024\"}");
+    assert(image_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMImageResponse* result = literllm_default_client_image_generate(client, image_request_handle);
+    literllm_image_request_free(image_request_handle);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }
 
 void test_smoke_image_basic(void) {
     /* Basic image generation with a text prompt */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMImageRequest* image_request_handle = literllm_image_request_from_json("{\"model\":\"dall-e-3\",\"n\":1,\"prompt\":\"A white cat sitting on a windowsill\",\"size\":\"1024x1024\"}");
+    assert(image_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMImageResponse* result = literllm_default_client_image_generate(client, image_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* data = literllm_chat_completion_response_data(result);
-    char* data_json = literllm_chat_completion_response_data(result);
+    char* data = literllm_image_response_data(result);
+    char* data_json = literllm_image_response_data(result);
     assert(data_json != NULL);
     char* data_0_url = alef_json_get_string(data_json, "0");
     {
@@ -71,15 +105,21 @@ void test_smoke_image_basic(void) {
     literllm_free_string(data);
     free(data_0_url);
     literllm_free_string(data_json);
-    literllm_chat_completion_response_free(result);
+    literllm_image_response_free(result);
+    literllm_image_request_free(image_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_smoke_image_multiple(void) {
     /* Image generation requesting multiple images */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMImageRequest* image_request_handle = literllm_image_request_from_json("{\"model\":\"dall-e-2\",\"n\":3,\"prompt\":\"A red bicycle\",\"size\":\"256x256\"}");
+    assert(image_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMImageResponse* result = literllm_default_client_image_generate(client, image_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* data = literllm_chat_completion_response_data(result);
-    char* data_json = literllm_chat_completion_response_data(result);
+    char* data = literllm_image_response_data(result);
+    char* data_json = literllm_image_response_data(result);
     assert(data_json != NULL);
     char* data_0_url = alef_json_get_string(data_json, "0");
     {
@@ -92,15 +132,21 @@ void test_smoke_image_multiple(void) {
     literllm_free_string(data);
     free(data_0_url);
     literllm_free_string(data_json);
-    literllm_chat_completion_response_free(result);
+    literllm_image_response_free(result);
+    literllm_image_request_free(image_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_smoke_image_with_size(void) {
     /* Image generation with explicit size parameter */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMImageRequest* image_request_handle = literllm_image_request_from_json("{\"model\":\"dall-e-3\",\"n\":1,\"prompt\":\"A sunset over mountains\",\"size\":\"1792x1024\"}");
+    assert(image_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMImageResponse* result = literllm_default_client_image_generate(client, image_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* data = literllm_chat_completion_response_data(result);
-    char* data_json = literllm_chat_completion_response_data(result);
+    char* data = literllm_image_response_data(result);
+    char* data_json = literllm_image_response_data(result);
     assert(data_json != NULL);
     char* data_0_url = alef_json_get_string(data_json, "0");
     {
@@ -113,5 +159,7 @@ void test_smoke_image_with_size(void) {
     literllm_free_string(data);
     free(data_0_url);
     literllm_free_string(data_json);
-    literllm_chat_completion_response_free(result);
+    literllm_image_response_free(result);
+    literllm_image_request_free(image_request_handle);
+    literllm_default_client_free(client);
 }

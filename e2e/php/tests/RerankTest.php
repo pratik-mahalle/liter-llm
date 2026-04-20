@@ -15,7 +15,7 @@ final class RerankTest extends TestCase
     public function test_edge_rerank_empty_query(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->rerank_async(null);
         $this->assertCount(2, $result->results);
     }
 
@@ -23,7 +23,7 @@ final class RerankTest extends TestCase
     public function test_edge_rerank_single_doc(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->rerank_async(null);
         $this->assertCount(1, $result->results);
         $this->assertGreaterThan(0.9, $result->results["0"]->relevance_score);
     }
@@ -33,7 +33,7 @@ final class RerankTest extends TestCase
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        $client->chat_async(null);
+        $client->rerank_async(null);
     }
 
     /** 400 Bad Request for reranking with invalid model */
@@ -41,14 +41,14 @@ final class RerankTest extends TestCase
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        $client->chat_async(null);
+        $client->rerank_async(null);
     }
 
     /** Basic reranking of documents against a query */
     public function test_smoke_rerank_basic(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->rerank_async(null);
         $this->assertCount(3, $result->results);
         $this->assertGreaterThan(0.9, $result->results["0"]->relevance_score);
     }
@@ -57,7 +57,7 @@ final class RerankTest extends TestCase
     public function test_smoke_rerank_return_docs(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->rerank_async(null);
         $this->assertCount(2, $result->results);
         $this->assertNotEmpty($result->results["0"]->document);
         $this->assertGreaterThan(0.9, $result->results["0"]->relevance_score);
@@ -67,7 +67,7 @@ final class RerankTest extends TestCase
     public function test_smoke_rerank_with_top_n(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->rerank_async(null);
         $this->assertCount(2, $result->results);
         $this->assertGreaterThan(0.9, $result->results["0"]->relevance_score);
     }

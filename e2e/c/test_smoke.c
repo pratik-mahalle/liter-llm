@@ -10,7 +10,11 @@
 
 void test_anthropic_chat(void) {
     /* Basic chat completion via the Anthropic provider (claude-3-5-sonnet-20241022) with system and user messages */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"max_tokens\":16,\"messages\":[{\"content\":\"You are a helpful assistant.\",\"role\":\"system\"},{\"content\":\"Say hello in one word.\",\"role\":\"user\"}],\"model\":\"anthropic/claude-3-5-sonnet-20241022\",\"temperature\":0}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* choices_json = literllm_chat_completion_response_choices(result);
@@ -39,11 +43,17 @@ void test_anthropic_chat(void) {
     literllm_usage_free(usage_handle);
     literllm_free_string(choices_json);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_azure_chat(void) {
     /* Chat completion via Azure OpenAI with the azure/ prefix for provider routing — verifies the prefix is stripped before dispatching and the response is normalised to the standard OpenAI chat completion shape */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"max_tokens\":16,\"messages\":[{\"content\":\"Say hello\",\"role\":\"user\"}],\"model\":\"azure/gpt-4\",\"temperature\":0}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* choices_json = literllm_chat_completion_response_choices(result);
@@ -72,15 +82,20 @@ void test_azure_chat(void) {
     literllm_usage_free(usage_handle);
     literllm_free_string(choices_json);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_azure_embed(void) {
     /* Embedding request via Azure OpenAI using the azure/ provider prefix — response follows the standard OpenAI embeddings shape that Azure returns unchanged */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("\"Hello world\"");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
+    LITERLLMEmbeddingRequest* embedding_request_handle = literllm_embedding_request_from_json("{\"input\":\"Hello world\",\"model\":\"azure/text-embedding-ada-002\"}");
+    assert(embedding_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMEmbeddingResponse* result = literllm_default_client_embed(client, embedding_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* data = literllm_chat_completion_response_data(result);
-    char* data_json = literllm_chat_completion_response_data(result);
+    char* data = literllm_embedding_response_data(result);
+    char* data_json = literllm_embedding_response_data(result);
     assert(data_json != NULL);
     char* data_0_embedding = alef_json_get_string(data_json, "0");
     {
@@ -98,13 +113,18 @@ void test_azure_embed(void) {
     literllm_free_string(data);
     free(data_0_embedding);
     literllm_free_string(data_json);
-    literllm_conversion_options_free(options_handle);
-    literllm_chat_completion_response_free(result);
+    literllm_embedding_response_free(result);
+    literllm_embedding_request_free(embedding_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_basic_chat(void) {
     /* Basic chat completion with a single user message */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"messages\":[{\"content\":\"Say hello\",\"role\":\"user\"}],\"model\":\"gpt-4\",\"temperature\":0}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* choices_json = literllm_chat_completion_response_choices(result);
@@ -133,15 +153,20 @@ void test_basic_chat(void) {
     literllm_usage_free(usage_handle);
     literllm_free_string(choices_json);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_basic_embed(void) {
     /* Basic embedding request for a single input string */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("\"Hello world\"");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
+    LITERLLMEmbeddingRequest* embedding_request_handle = literllm_embedding_request_from_json("{\"input\":\"Hello world\",\"model\":\"text-embedding-3-small\"}");
+    assert(embedding_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMEmbeddingResponse* result = literllm_default_client_embed(client, embedding_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* data = literllm_chat_completion_response_data(result);
-    char* data_json = literllm_chat_completion_response_data(result);
+    char* data = literllm_embedding_response_data(result);
+    char* data_json = literllm_embedding_response_data(result);
     assert(data_json != NULL);
     char* data_0_embedding = alef_json_get_string(data_json, "0");
     {
@@ -159,15 +184,18 @@ void test_basic_embed(void) {
     literllm_free_string(data);
     free(data_0_embedding);
     literllm_free_string(data_json);
-    literllm_conversion_options_free(options_handle);
-    literllm_chat_completion_response_free(result);
+    literllm_embedding_response_free(result);
+    literllm_embedding_request_free(embedding_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_basic_list_models(void) {
     /* List available models from the API */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMListModelsResponse* result = literllm_default_client_list_models(client);
     assert(result != NULL && "expected call to succeed");
-    char* data = literllm_chat_completion_response_data(result);
+    char* data = literllm_list_models_response_data(result);
     {
         /* count_min: count top-level JSON array elements */
         assert(data != NULL && "expected non-null collection JSON");
@@ -175,12 +203,17 @@ void test_basic_list_models(void) {
         assert(elem_count >= 1 && "expected at least 1 elements");
     }
     literllm_free_string(data);
-    literllm_chat_completion_response_free(result);
+    literllm_list_models_response_free(result);
+    literllm_default_client_free(client);
 }
 
 void test_bedrock_chat(void) {
     /* Basic chat completion via the AWS Bedrock provider using the bedrock/ prefix for routing — verifies the prefix is stripped before dispatching and the Converse API response is normalised to the standard OpenAI chat completion shape */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"max_tokens\":16,\"messages\":[{\"content\":\"Say hello in one word.\",\"role\":\"user\"}],\"model\":\"bedrock/anthropic.claude-3-sonnet-20240229-v1:0\",\"temperature\":0}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* choices_json = literllm_chat_completion_response_choices(result);
@@ -209,11 +242,17 @@ void test_bedrock_chat(void) {
     literllm_usage_free(usage_handle);
     literllm_free_string(choices_json);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_github_copilot_chat(void) {
     /* Basic chat completion via the GitHub Copilot provider (gpt-4o) with a single user message */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"max_tokens\":16,\"messages\":[{\"content\":\"Say hello in one word.\",\"role\":\"user\"}],\"model\":\"github_copilot/gpt-4o\",\"temperature\":0}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* choices_json = literllm_chat_completion_response_choices(result);
@@ -242,23 +281,33 @@ void test_github_copilot_chat(void) {
     literllm_usage_free(usage_handle);
     literllm_free_string(choices_json);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_local_chat_ollama(void) {
     /* Chat completion against local Ollama with qwen2:0.5b model */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"max_tokens\":10,\"messages\":[{\"content\":\"Say hello in one word.\",\"role\":\"user\"}],\"model\":\"ollama/qwen2:0.5b\"}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     assert(strlen(choices) > 0 && "expected non-empty value");
     literllm_free_string(choices);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_local_list_models_ollama(void) {
     /* List models from local Ollama instance */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMListModelsResponse* result = literllm_default_client_list_models(client);
     assert(result != NULL && "expected call to succeed");
-    char* data = literllm_chat_completion_response_data(result);
+    char* data = literllm_list_models_response_data(result);
     {
         /* count_min: count top-level JSON array elements */
         assert(data != NULL && "expected non-null collection JSON");
@@ -266,22 +315,33 @@ void test_local_list_models_ollama(void) {
         assert(elem_count >= 1 && "expected at least 1 elements");
     }
     literllm_free_string(data);
-    literllm_chat_completion_response_free(result);
+    literllm_list_models_response_free(result);
+    literllm_default_client_free(client);
 }
 
 void test_smoke_cache_memory(void) {
     /* Test in-memory caching by sending identical requests twice */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"max_tokens\":5,\"messages\":[{\"content\":\"What is 2+2? Answer with just the number.\",\"role\":\"user\"}],\"model\":\"openai/gpt-4o-mini\"}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     assert(strlen(choices) > 0 && "expected non-empty value");
     literllm_free_string(choices);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_smoke_chat_anthropic(void) {
     /* Basic chat completion against real Anthropic API */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"max_tokens\":10,\"messages\":[{\"content\":\"Say hello in exactly one word.\",\"role\":\"user\"}],\"model\":\"anthropic/claude-sonnet-4-20250514\"}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* usage = literllm_chat_completion_response_usage(result);
@@ -290,11 +350,17 @@ void test_smoke_chat_anthropic(void) {
     literllm_free_string(choices);
     literllm_free_string(usage);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_smoke_chat_gemini(void) {
     /* Basic chat completion against real Google Gemini API */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"max_tokens\":10,\"messages\":[{\"content\":\"Say hello in exactly one word.\",\"role\":\"user\"}],\"model\":\"gemini/gemini-2.5-flash-lite\"}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* usage = literllm_chat_completion_response_usage(result);
@@ -303,11 +369,17 @@ void test_smoke_chat_gemini(void) {
     literllm_free_string(choices);
     literllm_free_string(usage);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_smoke_chat_openai(void) {
     /* Basic chat completion against real OpenAI API */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"max_tokens\":10,\"messages\":[{\"content\":\"Say hello in exactly one word.\",\"role\":\"user\"}],\"model\":\"openai/gpt-4o-mini\"}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* usage = literllm_chat_completion_response_usage(result);
@@ -316,25 +388,33 @@ void test_smoke_chat_openai(void) {
     literllm_free_string(choices);
     literllm_free_string(usage);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_smoke_embed_openai(void) {
     /* Embeddings request against real OpenAI API */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("[\"Hello world\"]");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
+    LITERLLMEmbeddingRequest* embedding_request_handle = literllm_embedding_request_from_json("{\"input\":[\"Hello world\"],\"model\":\"openai/text-embedding-3-small\"}");
+    assert(embedding_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMEmbeddingResponse* result = literllm_default_client_embed(client, embedding_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* data = literllm_chat_completion_response_data(result);
+    char* data = literllm_embedding_response_data(result);
     assert(strlen(data) > 0 && "expected non-empty value");
     literllm_free_string(data);
-    literllm_conversion_options_free(options_handle);
-    literllm_chat_completion_response_free(result);
+    literllm_embedding_response_free(result);
+    literllm_embedding_request_free(embedding_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_smoke_list_models_openai(void) {
     /* List models against real OpenAI API */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMListModelsResponse* result = literllm_default_client_list_models(client);
     assert(result != NULL && "expected call to succeed");
-    char* data = literllm_chat_completion_response_data(result);
+    char* data = literllm_list_models_response_data(result);
     {
         /* count_min: count top-level JSON array elements */
         assert(data != NULL && "expected non-null collection JSON");
@@ -342,24 +422,35 @@ void test_smoke_list_models_openai(void) {
         assert(elem_count >= 1 && "expected at least 1 elements");
     }
     literllm_free_string(data);
-    literllm_chat_completion_response_free(result);
+    literllm_list_models_response_free(result);
+    literllm_default_client_free(client);
 }
 
 void test_smoke_provider_routing(void) {
     /* Test provider routing by sending requests to OpenAI and Anthropic */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"max_tokens\":5,\"messages\":[{\"content\":\"Say hi.\",\"role\":\"user\"}],\"model\":\"openai/gpt-4o-mini\"}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     assert(strlen(choices) > 0 && "expected non-empty value");
     literllm_free_string(choices);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_smoke_streaming_openai(void) {
     /* Chat streaming against real OpenAI API, verifies chunks received */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionChunkRequest* chat_completion_chunk_request_handle = literllm_chat_completion_chunk_request_from_json("{\"max_tokens\":50,\"messages\":[{\"content\":\"Count from 1 to 5.\",\"role\":\"user\"}],\"model\":\"openai/gpt-4o-mini\"}");
+    assert(chat_completion_chunk_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionChunk* result = literllm_default_client_chat_stream(client, chat_completion_chunk_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* chunks = literllm_chat_completion_response_chunks(result);
+    char* chunks = literllm_chat_completion_chunk_chunks(result);
     {
         /* count_min: count top-level JSON array elements */
         assert(chunks != NULL && "expected non-null collection JSON");
@@ -367,12 +458,18 @@ void test_smoke_streaming_openai(void) {
         assert(elem_count >= 1 && "expected at least 1 elements");
     }
     literllm_free_string(chunks);
-    literllm_chat_completion_response_free(result);
+    literllm_chat_completion_chunk_free(result);
+    literllm_chat_completion_chunk_request_free(chat_completion_chunk_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_vertex_chat(void) {
     /* Basic chat completion via the Google Vertex AI provider using the vertex_ai/ prefix for routing — verifies the prefix is stripped before dispatching and the Gemini response is normalised to the standard OpenAI chat completion shape */
-    LITERLLMChatCompletionResponse* result = chat();
+    LITERLLMChatCompletionRequest* chat_completion_request_handle = literllm_chat_completion_request_from_json("{\"max_tokens\":16,\"messages\":[{\"content\":\"Say hello in one word.\",\"role\":\"user\"}],\"model\":\"vertex_ai/gemini-2.0-flash\",\"temperature\":0}");
+    assert(chat_completion_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMChatCompletionResponse* result = literllm_default_client_chat(client, chat_completion_request_handle);
     assert(result != NULL && "expected call to succeed");
     char* choices = literllm_chat_completion_response_choices(result);
     char* choices_json = literllm_chat_completion_response_choices(result);
@@ -401,15 +498,20 @@ void test_vertex_chat(void) {
     literllm_usage_free(usage_handle);
     literllm_free_string(choices_json);
     literllm_chat_completion_response_free(result);
+    literllm_chat_completion_request_free(chat_completion_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_vertex_embed(void) {
     /* Embedding request via Google Vertex AI using the vertex_ai/ provider prefix and the text-embedding-005 model — response follows the standard OpenAI embeddings shape */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("\"Hello\"");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
+    LITERLLMEmbeddingRequest* embedding_request_handle = literllm_embedding_request_from_json("{\"input\":\"Hello\",\"model\":\"vertex_ai/text-embedding-005\"}");
+    assert(embedding_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMEmbeddingResponse* result = literllm_default_client_embed(client, embedding_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* data = literllm_chat_completion_response_data(result);
-    char* data_json = literllm_chat_completion_response_data(result);
+    char* data = literllm_embedding_response_data(result);
+    char* data_json = literllm_embedding_response_data(result);
     assert(data_json != NULL);
     char* data_0_embedding = alef_json_get_string(data_json, "0");
     {
@@ -427,6 +529,7 @@ void test_vertex_embed(void) {
     literllm_free_string(data);
     free(data_0_embedding);
     literllm_free_string(data_json);
-    literllm_conversion_options_free(options_handle);
-    literllm_chat_completion_response_free(result);
+    literllm_embedding_response_free(result);
+    literllm_embedding_request_free(embedding_request_handle);
+    literllm_default_client_free(client);
 }

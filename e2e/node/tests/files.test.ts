@@ -5,65 +5,65 @@ import { createClient } from '@kreuzberg/liter-llm';
 describe('files', () => {
   it('edge_file_empty_list: List files when no files have been uploaded', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/edge_file_empty_list`);
-    const result = await client.chat(null);
+    const result = await client.chat({  });
     expect(result.data.length).toBe(0);
   });
 
   it('edge_file_large_upload: Upload a large file successfully', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/edge_file_large_upload`);
-    const result = await client.chat(null);
+    const result = await client.chat({ file: "large_training_data.jsonl", purpose: "fine-tune" });
     expect(result.id.length).toBeGreaterThan(0);
   });
 
   it('error_file_auth_401: 401 Unauthorized when listing files with invalid API key', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/error_file_auth_401`);
     await expect(async () => {
-      await client.chat(null);
+      await client.chat({  });
     }).rejects.toThrow();
   });
 
   it('error_file_bad_purpose: 400 Bad Request when uploading a file with invalid purpose', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/error_file_bad_purpose`);
     await expect(async () => {
-      await client.chat(null);
+      await client.chat({ file: "data.jsonl", purpose: "invalid-purpose" });
     }).rejects.toThrow();
   });
 
   it('error_file_not_found: 404 Not Found when retrieving a nonexistent file', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/error_file_not_found`);
     await expect(async () => {
-      await client.chat(null);
+      await client.chat({ file_id: "file-nonexistent" });
     }).rejects.toThrow();
   });
 
   it('smoke_create_file: Upload a file for use with the API', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/smoke_create_file`);
-    const result = await client.chat(null);
+    const result = await client.chat({ file: "training_data.jsonl", purpose: "fine-tune" });
     expect(result.id.length).toBeGreaterThan(0);
   });
 
   it('smoke_delete_file: Delete an uploaded file', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/smoke_delete_file`);
-    const result = await client.chat(null);
+    const result = await client.chat({ file_id: "file-abc123" });
     expect(result.id.length).toBeGreaterThan(0);
     expect(result.deleted).toBe(true);
   });
 
   it('smoke_file_content: Retrieve the content of an uploaded file', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/smoke_file_content`);
-    const result = await client.chat(null);
+    const result = await client.chat({ file_id: "file-abc123" });
     expect(result.content.length).toBeGreaterThan(0);
   });
 
   it('smoke_list_files: List all uploaded files', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/smoke_list_files`);
-    const result = await client.chat(null);
+    const result = await client.chat({  });
     expect(result.data.length).toBe(2);
   });
 
   it('smoke_retrieve_file: Retrieve metadata for an uploaded file', async () => {
     const client = createClient('test-key', `${process.env.MOCK_SERVER_URL}/fixtures/smoke_retrieve_file`);
-    const result = await client.chat(null);
+    const result = await client.chat({ file_id: "file-abc123" });
     expect(result.id.length).toBeGreaterThan(0);
   });
 });

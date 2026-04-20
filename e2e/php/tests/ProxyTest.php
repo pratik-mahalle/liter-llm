@@ -41,7 +41,7 @@ final class ProxyTest extends TestCase
     public function test_proxy_chat_streaming(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->chat_stream_async(null);
         $this->assertGreaterThanOrEqual(3, count($result->chunks));
         $this->assertEquals("1 2 3", $result->stream_content);
         $this->assertTrue($result->stream_complete);
@@ -51,7 +51,7 @@ final class ProxyTest extends TestCase
     public function test_proxy_embeddings(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async("Hello world");
+        $result = $client->embed_async(json_encode("Hello world"));
         $this->assertCount(1, $result->data);
     }
 
@@ -59,7 +59,7 @@ final class ProxyTest extends TestCase
     public function test_proxy_health(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->list_models_async();
         $this->assertGreaterThanOrEqual(1, count($result->data));
     }
 
@@ -67,7 +67,7 @@ final class ProxyTest extends TestCase
     public function test_proxy_image_generate(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->image_generate_async(null);
         $this->assertCount(1, $result->data);
         $this->assertNotEmpty($result->data["0"]->url);
     }
@@ -76,7 +76,7 @@ final class ProxyTest extends TestCase
     public function test_proxy_models_list(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->list_models_async();
         $this->assertGreaterThanOrEqual(1, count($result->data));
     }
 
@@ -84,7 +84,7 @@ final class ProxyTest extends TestCase
     public function test_proxy_moderation(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async("The weather is nice today.");
+        $result = $client->moderate_async(json_encode("The weather is nice today."));
         $this->assertCount(1, $result->results);
         $this->assertEquals(false, $result->results["0"]->flagged);
     }
@@ -93,7 +93,7 @@ final class ProxyTest extends TestCase
     public function test_proxy_rerank(): void
     {
         $client = \Liter\Llm\LiterLlm::createClient('test-key');
-        $result = $client->chat_async(null);
+        $result = $client->rerank_async(null);
         $this->assertCount(2, $result->results);
         $this->assertGreaterThan(0.9, $result->results["0"]->relevance_score);
     }

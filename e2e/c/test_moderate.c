@@ -10,11 +10,14 @@
 
 void test_edge_moderate_all_categories(void) {
     /* Moderation response with multiple categories flagged */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("\"Extremely harmful content targeting multiple categories\"");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
+    LITERLLMModerationRequest* moderation_request_handle = literllm_moderation_request_from_json("{\"input\":\"Extremely harmful content targeting multiple categories\",\"model\":\"omni-moderation-latest\"}");
+    assert(moderation_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMModerationResponse* result = literllm_default_client_moderate(client, moderation_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* results = literllm_chat_completion_response_results(result);
-    char* results_json = literllm_chat_completion_response_results(result);
+    char* results = literllm_moderation_response_results(result);
+    char* results_json = literllm_moderation_response_results(result);
     assert(results_json != NULL);
     char* results_0_flagged = alef_json_get_string(results_json, "0");
     {
@@ -27,17 +30,21 @@ void test_edge_moderate_all_categories(void) {
     literllm_free_string(results);
     free(results_0_flagged);
     literllm_free_string(results_json);
-    literllm_conversion_options_free(options_handle);
-    literllm_chat_completion_response_free(result);
+    literllm_moderation_response_free(result);
+    literllm_moderation_request_free(moderation_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_edge_moderate_empty_input(void) {
     /* Moderation with empty string input */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("\"\"");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
+    LITERLLMModerationRequest* moderation_request_handle = literllm_moderation_request_from_json("{\"input\":\"\",\"model\":\"omni-moderation-latest\"}");
+    assert(moderation_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMModerationResponse* result = literllm_default_client_moderate(client, moderation_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* results = literllm_chat_completion_response_results(result);
-    char* results_json = literllm_chat_completion_response_results(result);
+    char* results = literllm_moderation_response_results(result);
+    char* results_json = literllm_moderation_response_results(result);
     assert(results_json != NULL);
     char* results_0_flagged = alef_json_get_string(results_json, "0");
     {
@@ -50,33 +57,45 @@ void test_edge_moderate_empty_input(void) {
     literllm_free_string(results);
     free(results_0_flagged);
     literllm_free_string(results_json);
-    literllm_conversion_options_free(options_handle);
-    literllm_chat_completion_response_free(result);
+    literllm_moderation_response_free(result);
+    literllm_moderation_request_free(moderation_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_error_moderate_auth_401(void) {
     /* 401 Unauthorized for moderation with invalid API key */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("\"Hello\"");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
-    literllm_conversion_options_free(options_handle);
+    LITERLLMModerationRequest* moderation_request_handle = literllm_moderation_request_from_json("{\"input\":\"Hello\",\"model\":\"omni-moderation-latest\"}");
+    assert(moderation_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMModerationResponse* result = literllm_default_client_moderate(client, moderation_request_handle);
+    literllm_moderation_request_free(moderation_request_handle);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }
 
 void test_error_moderate_bad_request(void) {
     /* 400 Bad Request for moderation with invalid model */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("\"Hello\"");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
-    literllm_conversion_options_free(options_handle);
+    LITERLLMModerationRequest* moderation_request_handle = literllm_moderation_request_from_json("{\"input\":\"Hello\",\"model\":\"nonexistent-moderation\"}");
+    assert(moderation_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMModerationResponse* result = literllm_default_client_moderate(client, moderation_request_handle);
+    literllm_moderation_request_free(moderation_request_handle);
+    literllm_default_client_free(client);
     assert(result == NULL && "expected call to fail");
 }
 
 void test_smoke_moderate_batch(void) {
     /* Moderate multiple inputs in a single request */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("[\"Hello world\",\"Nice weather today\"]");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
+    LITERLLMModerationRequest* moderation_request_handle = literllm_moderation_request_from_json("{\"input\":[\"Hello world\",\"Nice weather today\"],\"model\":\"omni-moderation-latest\"}");
+    assert(moderation_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMModerationResponse* result = literllm_default_client_moderate(client, moderation_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* results = literllm_chat_completion_response_results(result);
-    char* results_json = literllm_chat_completion_response_results(result);
+    char* results = literllm_moderation_response_results(result);
+    char* results_json = literllm_moderation_response_results(result);
     assert(results_json != NULL);
     char* results_0_flagged = alef_json_get_string(results_json, "0");
     {
@@ -89,17 +108,21 @@ void test_smoke_moderate_batch(void) {
     literllm_free_string(results);
     free(results_0_flagged);
     literllm_free_string(results_json);
-    literllm_conversion_options_free(options_handle);
-    literllm_chat_completion_response_free(result);
+    literllm_moderation_response_free(result);
+    literllm_moderation_request_free(moderation_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_smoke_moderate_flagged(void) {
     /* Moderation detects flagged content */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("\"I want to hurt someone very badly\"");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
+    LITERLLMModerationRequest* moderation_request_handle = literllm_moderation_request_from_json("{\"input\":\"I want to hurt someone very badly\",\"model\":\"omni-moderation-latest\"}");
+    assert(moderation_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMModerationResponse* result = literllm_default_client_moderate(client, moderation_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* results = literllm_chat_completion_response_results(result);
-    char* results_json = literllm_chat_completion_response_results(result);
+    char* results = literllm_moderation_response_results(result);
+    char* results_json = literllm_moderation_response_results(result);
     assert(results_json != NULL);
     char* results_0_flagged = alef_json_get_string(results_json, "0");
     {
@@ -112,17 +135,21 @@ void test_smoke_moderate_flagged(void) {
     literllm_free_string(results);
     free(results_0_flagged);
     literllm_free_string(results_json);
-    literllm_conversion_options_free(options_handle);
-    literllm_chat_completion_response_free(result);
+    literllm_moderation_response_free(result);
+    literllm_moderation_request_free(moderation_request_handle);
+    literllm_default_client_free(client);
 }
 
 void test_smoke_moderate_single(void) {
     /* Moderate a single non-flagged input */
-    LITERLLMConversionOptions* options_handle = literllm_conversion_options_from_json("\"The weather is nice today.\"");
-    LITERLLMChatCompletionResponse* result = chat(options_handle);
+    LITERLLMModerationRequest* moderation_request_handle = literllm_moderation_request_from_json("{\"input\":\"The weather is nice today.\",\"model\":\"omni-moderation-latest\"}");
+    assert(moderation_request_handle != NULL && "failed to build request");
+    LITERLLMDefaultClient* client = literllm_create_client("test-key", NULL, 0, 0, NULL);
+    assert(client != NULL && "failed to create client");
+    LITERLLMModerationResponse* result = literllm_default_client_moderate(client, moderation_request_handle);
     assert(result != NULL && "expected call to succeed");
-    char* results = literllm_chat_completion_response_results(result);
-    char* results_json = literllm_chat_completion_response_results(result);
+    char* results = literllm_moderation_response_results(result);
+    char* results_json = literllm_moderation_response_results(result);
     assert(results_json != NULL);
     char* results_0_flagged = alef_json_get_string(results_json, "0");
     {
@@ -135,6 +162,7 @@ void test_smoke_moderate_single(void) {
     literllm_free_string(results);
     free(results_0_flagged);
     literllm_free_string(results_json);
-    literllm_conversion_options_free(options_handle);
-    literllm_chat_completion_response_free(result);
+    literllm_moderation_response_free(result);
+    literllm_moderation_request_free(moderation_request_handle);
+    literllm_default_client_free(client);
 }
