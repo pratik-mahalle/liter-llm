@@ -60,6 +60,11 @@ jobs:
       - name: Setup Rust
         uses: kreuzberg-dev/actions/setup-rust@v1
 
+      - name: Create WASM pkg stub
+        if: matrix.runtime == 'node'
+        run: mkdir -p crates/liter-llm-wasm/pkg && echo '{"name":"liter_llm","version":"0.0.0"}' > crates/liter-llm-wasm/pkg/package.json
+        shell: bash
+
       - name: Setup Node Workspace
         if: matrix.runtime == 'node'
         uses: kreuzberg-dev/actions/setup-node-workspace@v1

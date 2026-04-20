@@ -38,12 +38,12 @@
 	},
 	"autoload": {
 		"psr-4": {
-			"LiterLlm\\": "src/"
+			"Liter\\Llm\\": "src/"
 		}
 	},
 	"autoload-dev": {
 		"psr-4": {
-			"LiterLlm\\Tests\\": "tests/"
+			"Liter\\Llm\\Tests\\": "tests/"
 		}
 	},
 	"scripts": {

@@ -63,6 +63,10 @@ jobs:
         run: cargo install wasm-pack
         shell: bash
 
+      - name: Create WASM pkg stub
+        run: mkdir -p crates/liter-llm-wasm/pkg && echo '{"name":"liter_llm","version":"0.0.0"}' > crates/liter-llm-wasm/pkg/package.json
+        shell: bash
+
       - name: Setup Node Workspace
         uses: kreuzberg-dev/actions/setup-node-workspace@v1
 
