@@ -15,7 +15,7 @@ public abstract record OcrDocument
     /// A publicly accessible document URL.
     /// </summary>
     public sealed record Url(
-        [property: JsonPropertyName("url")] string Url
+        string Value
     ) : OcrDocument;
 
     /// <summary>
@@ -41,8 +41,9 @@ internal sealed class OcrDocumentJsonConverter : JsonConverter<OcrDocument>
         var json = root.GetRawText();
         return tag switch
         {
-            "document_url" => JsonSerializer.Deserialize<OcrDocument.Url>(json, options)!
-                ?? throw new JsonException("Failed to deserialize OcrDocument.Url"),
+            "document_url" => new OcrDocument.Url(
+                JsonSerializer.Deserialize<string>(json, options)!
+                    ?? throw new JsonException("Failed to deserialize OcrDocument.Url.Value")),
             "base64" => JsonSerializer.Deserialize<OcrDocument.Base64>(json, options)!
                 ?? throw new JsonException("Failed to deserialize OcrDocument.Base64"),
             _ => throw new JsonException($"Unknown OcrDocument discriminator: {tag}")
@@ -56,7 +57,7 @@ internal sealed class OcrDocumentJsonConverter : JsonConverter<OcrDocument>
         {
             case OcrDocument.Url v:
                 {
-                    var doc = JsonSerializer.SerializeToDocument(v, options);
+                    var doc = JsonSerializer.SerializeToDocument(v.Value, options);
                     writer.WriteStartObject();
                     writer.WriteString("type", "document_url");
                     foreach (var prop in doc.RootElement.EnumerateObject())

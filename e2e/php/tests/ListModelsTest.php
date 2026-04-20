@@ -14,7 +14,8 @@ final class ListModelsTest extends TestCase
     /** List models response returns an empty data array when no models are available */
     public function test_empty_model_list(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         $this->assertGreaterThanOrEqual(0, count($result->data));
         // TODO: unsupported assertion type: count_equals
     }
@@ -22,7 +23,8 @@ final class ListModelsTest extends TestCase
     /** 401 Unauthorized error on list models request when API key is invalid */
     public function test_list_models_error_401(): void
     {
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        LiterLlm::chat(null);
+        $client->chat(null);
     }
 }

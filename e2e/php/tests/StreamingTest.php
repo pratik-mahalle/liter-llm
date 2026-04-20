@@ -14,7 +14,8 @@ final class StreamingTest extends TestCase
     /** Streaming chat completion via the Anthropic provider (claude-3-5-sonnet-20241022) yielding multiple SSE chunks */
     public function test_anthropic_stream(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         $this->assertGreaterThanOrEqual(3, count($result->chunks));
         $this->assertEquals("One Two Three", $result->stream_content);
         // TODO: unsupported assertion type: is_true
@@ -23,7 +24,8 @@ final class StreamingTest extends TestCase
     /** Streaming chat completion via Azure OpenAI — verifies the azure/ prefix routes correctly and SSE chunks are delivered in the standard OpenAI chat.completion.chunk shape */
     public function test_azure_stream(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         $this->assertGreaterThanOrEqual(3, count($result->chunks));
         $this->assertEquals("1 2 3", $result->stream_content);
         // TODO: unsupported assertion type: is_true
@@ -32,7 +34,8 @@ final class StreamingTest extends TestCase
     /** Streaming chat completion that produces content across multiple SSE chunks */
     public function test_basic_stream(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         $this->assertGreaterThanOrEqual(3, count($result->chunks));
         $this->assertEquals("1 2 3", $result->stream_content);
     }
@@ -40,7 +43,8 @@ final class StreamingTest extends TestCase
     /** Streaming chat completion via the AWS Bedrock provider using the bedrock/ prefix — verifies SSE chunks are yielded and assembled correctly from the Converse streaming API */
     public function test_bedrock_stream(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         $this->assertGreaterThanOrEqual(2, count($result->chunks));
         $this->assertEquals("One Two Three", $result->stream_content);
         // TODO: unsupported assertion type: is_true
@@ -49,7 +53,8 @@ final class StreamingTest extends TestCase
     /** Streaming chat completion that produces no content chunks before the DONE signal */
     public function test_empty_stream(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         $this->assertGreaterThanOrEqual(0, count($result->chunks));
         $this->assertEquals("", $result->stream_content);
     }
@@ -57,7 +62,8 @@ final class StreamingTest extends TestCase
     /** Streaming chat completion via Ollama local provider with SSE chunks */
     public function test_local_stream_ollama(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         $this->assertGreaterThanOrEqual(3, count($result->chunks));
         $this->assertEquals("1 2 3", $result->stream_content);
         // TODO: unsupported assertion type: is_true
@@ -66,7 +72,8 @@ final class StreamingTest extends TestCase
     /** Verify that the [DONE] sentinel signal properly terminates the stream */
     public function test_stream_done_signal(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: is_true
         $this->assertEquals("Done", $result->stream_content);
         // TODO: unsupported assertion type: is_true
@@ -75,14 +82,16 @@ final class StreamingTest extends TestCase
     /** 401 Unauthorized error on stream initiation before any chunks are received */
     public function test_stream_error_401(): void
     {
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        LiterLlm::chat(null);
+        $client->chat(null);
     }
 
     /** Streaming chat completion where the assistant responds with a tool call across multiple chunks */
     public function test_stream_with_tool_calls(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         $this->assertGreaterThanOrEqual(4, count($result->chunks));
         $this->assertEquals("tool_calls", $result->finish_reason);
         $this->assertNotEmpty($result->tool_calls);
@@ -92,7 +101,8 @@ final class StreamingTest extends TestCase
     /** Streaming chat completion that includes a usage summary in the final chunk */
     public function test_stream_with_usage(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         $this->assertGreaterThanOrEqual(3, count($result->chunks));
         $this->assertEquals("Hi there!", $result->stream_content);
         $this->assertEquals(18, $result->usage->total_tokens);
@@ -101,7 +111,8 @@ final class StreamingTest extends TestCase
     /** Streaming chat completion via the Google Vertex AI provider using the vertex_ai/ prefix — verifies SSE chunks from the Gemini streaming endpoint are yielded and assembled correctly */
     public function test_vertex_stream(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         $this->assertGreaterThanOrEqual(2, count($result->chunks));
         $this->assertEquals("One Two Three", $result->stream_content);
         // TODO: unsupported assertion type: is_true

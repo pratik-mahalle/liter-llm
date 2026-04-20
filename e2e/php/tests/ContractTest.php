@@ -14,7 +14,8 @@ final class ContractTest extends TestCase
     /** Verify all bindings expose the full API surface — constructor accepts all config options and every method exists */
     public function test_binding_api_parity(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertEquals("OK", $result->choices["0"]->message->content);
         $this->assertEquals("stop", $result->choices["0"]->finish_reason);
@@ -25,14 +26,16 @@ final class ContractTest extends TestCase
     /** Verify ocr() method exists in all bindings */
     public function test_contract_ocr(): void
     {
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectNotToPerformAssertions();
-        $result = LiterLlm::chat(null);
+        $result = $client->chat(null);
     }
 
     /** Verify search() method exists in all bindings */
     public function test_contract_search(): void
     {
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectNotToPerformAssertions();
-        $result = LiterLlm::chat(null);
+        $result = $client->chat(null);
     }
 }

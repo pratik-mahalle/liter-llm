@@ -14,7 +14,8 @@ final class ParityTest extends TestCase
     /** Canonical API surface definition for cross-binding parity verification */
     public function test_api_surface_parity(): void
     {
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectNotToPerformAssertions();
-        $result = LiterLlm::chat(null);
+        $result = $client->chat(null);
     }
 }

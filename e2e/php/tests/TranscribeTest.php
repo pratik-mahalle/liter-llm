@@ -14,35 +14,40 @@ final class TranscribeTest extends TestCase
     /** Transcription of a silent or empty audio file returns empty text */
     public function test_edge_transcribe_empty_audio(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         $this->assertStringContainsString("", $result->text);
     }
 
     /** 401 Unauthorized for transcription with invalid API key */
     public function test_error_transcribe_auth_401(): void
     {
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        LiterLlm::chat(null);
+        $client->chat(null);
     }
 
     /** 400 Bad Request when audio format is unsupported */
     public function test_error_transcribe_bad_format(): void
     {
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        LiterLlm::chat(null);
+        $client->chat(null);
     }
 
     /** Basic audio transcription */
     public function test_smoke_transcribe_basic(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         $this->assertStringContainsString("Hello, this is a test transcription.", $result->text);
     }
 
     /** Audio transcription with explicit language hint */
     public function test_smoke_transcribe_with_language(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         $this->assertStringContainsString("Hallo, dies ist ein Testtranskription.", $result->text);
     }
 }

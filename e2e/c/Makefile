@@ -3,13 +3,13 @@ CC = gcc
 FFI_DIR = ffi
 
 ifneq ($(wildcard $(FFI_DIR)/include/liter_llm.h),)
-    CFLAGS = -Wall -Wextra -I$(FFI_DIR)/include
+    CFLAGS = -Wall -Wextra -I. -I$(FFI_DIR)/include
     LDFLAGS = -L$(FFI_DIR)/lib -lliter_llm -Wl,-rpath,$(FFI_DIR)/lib
 else ifneq ($(wildcard ../../crates/liter-llm-ffi/include/liter_llm.h),)
-    CFLAGS = -Wall -Wextra -I../../crates/liter-llm-ffi/include
+    CFLAGS = -Wall -Wextra -I. -I../../crates/liter-llm-ffi/include
     LDFLAGS = -L../../target/release -lliter_llm -Wl,-rpath,../../target/release
 else
-    CFLAGS = -Wall -Wextra $(shell pkg-config --cflags liter_llm 2>/dev/null)
+    CFLAGS = -Wall -Wextra -I. $(shell pkg-config --cflags liter_llm 2>/dev/null)
     LDFLAGS = $(shell pkg-config --libs liter_llm 2>/dev/null)
 endif
 

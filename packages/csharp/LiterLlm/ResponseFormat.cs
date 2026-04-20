@@ -13,7 +13,7 @@ public abstract record ResponseFormat
     public sealed record JsonObject() : ResponseFormat;
 
     public sealed record JsonSchema(
-        [property: JsonPropertyName("json_schema")] JsonSchemaFormat JsonSchema
+        JsonSchemaFormat Value
     ) : ResponseFormat;
 
 }
@@ -35,8 +35,9 @@ internal sealed class ResponseFormatJsonConverter : JsonConverter<ResponseFormat
                 ?? throw new JsonException("Failed to deserialize ResponseFormat.Text"),
             "json_object" => JsonSerializer.Deserialize<ResponseFormat.JsonObject>(json, options)!
                 ?? throw new JsonException("Failed to deserialize ResponseFormat.JsonObject"),
-            "json_schema" => JsonSerializer.Deserialize<ResponseFormat.JsonSchema>(json, options)!
-                ?? throw new JsonException("Failed to deserialize ResponseFormat.JsonSchema"),
+            "json_schema" => new ResponseFormat.JsonSchema(
+                JsonSerializer.Deserialize<JsonSchemaFormat>(json, options)!
+                    ?? throw new JsonException("Failed to deserialize ResponseFormat.JsonSchema.Value")),
             _ => throw new JsonException($"Unknown ResponseFormat discriminator: {tag}")
         };
     }
@@ -68,7 +69,7 @@ internal sealed class ResponseFormatJsonConverter : JsonConverter<ResponseFormat
                 }
             case ResponseFormat.JsonSchema v:
                 {
-                    var doc = JsonSerializer.SerializeToDocument(v, options);
+                    var doc = JsonSerializer.SerializeToDocument(v.Value, options);
                     writer.WriteStartObject();
                     writer.WriteString("type", "json_schema");
                     foreach (var prop in doc.RootElement.EnumerateObject())

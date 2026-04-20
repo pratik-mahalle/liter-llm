@@ -14,7 +14,8 @@ final class ChatTest extends TestCase
     /** Chat request that includes a developer role message alongside user messages */
     public function test_developer_message(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertEquals("s[::-1]", $result->choices["0"]->message->content);
         $this->assertEquals("stop", $result->choices["0"]->finish_reason);
@@ -23,7 +24,8 @@ final class ChatTest extends TestCase
     /** Chat response stopped by content filter with finish_reason of content_filter and null content */
     public function test_finish_reason_content_filter(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertEquals("content_filter", $result->choices["0"]->finish_reason);
     }
@@ -31,7 +33,8 @@ final class ChatTest extends TestCase
     /** Chat response truncated due to max_tokens limit with finish_reason of length */
     public function test_finish_reason_length(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertEquals("length", $result->choices["0"]->finish_reason);
     }
@@ -39,7 +42,8 @@ final class ChatTest extends TestCase
     /** Multi-turn conversation with system, user, assistant, and follow-up user messages */
     public function test_multi_turn_conversation(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertEquals("4 + 4 equals 8.", $result->choices["0"]->message->content);
         $this->assertEquals("stop", $result->choices["0"]->finish_reason);
@@ -48,7 +52,8 @@ final class ChatTest extends TestCase
     /** Chat request that results in parallel tool calls in the response */
     public function test_parallel_tool_calls(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertNotEmpty($result->choices["0"]->message->tool_calls);
         // TODO: unsupported assertion type: count_equals
@@ -58,7 +63,8 @@ final class ChatTest extends TestCase
     /** Chat request with response_format json_object that returns valid JSON content */
     public function test_response_format_json_object(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertNotEmpty($result->choices["0"]->message->content);
         $this->assertEquals("stop", $result->choices["0"]->finish_reason);
@@ -67,7 +73,8 @@ final class ChatTest extends TestCase
     /** Chat request with response_format json_schema that validates the output structure */
     public function test_response_format_json_schema(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertNotEmpty($result->choices["0"]->message->content);
         $this->assertEquals("stop", $result->choices["0"]->finish_reason);
@@ -76,7 +83,8 @@ final class ChatTest extends TestCase
     /** Chat request with seed parameter for deterministic output; response includes system_fingerprint */
     public function test_seed_parameter(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertEquals("stop", $result->choices["0"]->finish_reason);
         $this->assertNotEmpty($result->system_fingerprint);
@@ -85,7 +93,8 @@ final class ChatTest extends TestCase
     /** Chat request with custom stop sequences that terminates generation at a stop token */
     public function test_stop_sequences(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertEquals("stop", $result->choices["0"]->finish_reason);
     }
@@ -93,7 +102,8 @@ final class ChatTest extends TestCase
     /** Chat request with tool_choice set to required forces the model to call a tool */
     public function test_tool_choice_required(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertNotEmpty($result->choices["0"]->message->tool_calls);
         $this->assertEquals("get_weather", $result->choices["0"]->message->tool_calls["0"]->function->name);
@@ -103,7 +113,8 @@ final class ChatTest extends TestCase
     /** Chat request with tool_choice specifying a particular function to call */
     public function test_tool_choice_specific(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertNotEmpty($result->choices["0"]->message->tool_calls);
         $this->assertEquals("get_weather", $result->choices["0"]->message->tool_calls["0"]->function->name);

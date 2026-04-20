@@ -14,7 +14,8 @@ final class ImageGenerateTest extends TestCase
     /** Image generation returning base64-encoded data instead of URL */
     public function test_edge_image_b64_response(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertNotEmpty($result->data["0"]->b64_json);
     }
@@ -22,35 +23,40 @@ final class ImageGenerateTest extends TestCase
     /** Image generation with an empty prompt returns 400 */
     public function test_edge_image_empty_prompt(): void
     {
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        LiterLlm::chat(null);
+        $client->chat(null);
     }
 
     /** 401 Unauthorized when generating images with invalid API key */
     public function test_error_image_auth_401(): void
     {
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        LiterLlm::chat(null);
+        $client->chat(null);
     }
 
     /** 400 Bad Request when image generation parameters are invalid */
     public function test_error_image_bad_request(): void
     {
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        LiterLlm::chat(null);
+        $client->chat(null);
     }
 
     /** 429 Rate limit exceeded for image generation */
     public function test_error_image_rate_limit(): void
     {
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        LiterLlm::chat(null);
+        $client->chat(null);
     }
 
     /** Basic image generation with a text prompt */
     public function test_smoke_image_basic(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertNotEmpty($result->data["0"]->url);
     }
@@ -58,7 +64,8 @@ final class ImageGenerateTest extends TestCase
     /** Image generation requesting multiple images */
     public function test_smoke_image_multiple(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertNotEmpty($result->data["0"]->url);
     }
@@ -66,7 +73,8 @@ final class ImageGenerateTest extends TestCase
     /** Image generation with explicit size parameter */
     public function test_smoke_image_with_size(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertNotEmpty($result->data["0"]->url);
     }

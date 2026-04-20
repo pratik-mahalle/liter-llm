@@ -14,7 +14,8 @@ final class ModerateTest extends TestCase
     /** Moderation response with multiple categories flagged */
     public function test_edge_moderate_all_categories(): void
     {
-        $result = LiterLlm::chat("Extremely harmful content targeting multiple categories");
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat("Extremely harmful content targeting multiple categories");
         // TODO: unsupported assertion type: count_equals
         $this->assertEquals(true, $result->results["0"]->flagged);
     }
@@ -22,7 +23,8 @@ final class ModerateTest extends TestCase
     /** Moderation with empty string input */
     public function test_edge_moderate_empty_input(): void
     {
-        $result = LiterLlm::chat("");
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat("");
         // TODO: unsupported assertion type: count_equals
         $this->assertEquals(false, $result->results["0"]->flagged);
     }
@@ -30,21 +32,24 @@ final class ModerateTest extends TestCase
     /** 401 Unauthorized for moderation with invalid API key */
     public function test_error_moderate_auth_401(): void
     {
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        LiterLlm::chat("Hello");
+        $client->chat("Hello");
     }
 
     /** 400 Bad Request for moderation with invalid model */
     public function test_error_moderate_bad_request(): void
     {
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        LiterLlm::chat("Hello");
+        $client->chat("Hello");
     }
 
     /** Moderate multiple inputs in a single request */
     public function test_smoke_moderate_batch(): void
     {
-        $result = LiterLlm::chat(["Hello world", "Nice weather today"]);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(["Hello world", "Nice weather today"]);
         // TODO: unsupported assertion type: count_equals
         $this->assertEquals(false, $result->results["0"]->flagged);
     }
@@ -52,7 +57,8 @@ final class ModerateTest extends TestCase
     /** Moderation detects flagged content */
     public function test_smoke_moderate_flagged(): void
     {
-        $result = LiterLlm::chat("I want to hurt someone very badly");
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat("I want to hurt someone very badly");
         // TODO: unsupported assertion type: count_equals
         $this->assertEquals(true, $result->results["0"]->flagged);
     }
@@ -60,7 +66,8 @@ final class ModerateTest extends TestCase
     /** Moderate a single non-flagged input */
     public function test_smoke_moderate_single(): void
     {
-        $result = LiterLlm::chat("The weather is nice today.");
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat("The weather is nice today.");
         // TODO: unsupported assertion type: count_equals
         $this->assertEquals(false, $result->results["0"]->flagged);
     }

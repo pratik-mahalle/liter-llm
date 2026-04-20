@@ -14,7 +14,8 @@ final class SearchTest extends TestCase
     /** Basic web search request with a simple query */
     public function test_search_basic(): void
     {
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectNotToPerformAssertions();
-        $result = LiterLlm::chat(null);
+        $result = $client->chat(null);
     }
 }

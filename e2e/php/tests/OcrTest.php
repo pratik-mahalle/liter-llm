@@ -14,7 +14,8 @@ final class OcrTest extends TestCase
     /** OCR request with a document URL input */
     public function test_ocr_url_document(): void
     {
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectNotToPerformAssertions();
-        $result = LiterLlm::chat(null);
+        $result = $client->chat(null);
     }
 }

@@ -14,35 +14,40 @@ final class SpeechTest extends TestCase
     /** Speech generation with a very long input text */
     public function test_edge_speech_long_input(): void
     {
-        $result = LiterLlm::chat("This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. End of input.");
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat("This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. This is a long input text. End of input.");
         $this->assertNotEmpty($result->audio);
     }
 
     /** 401 Unauthorized for speech generation with invalid API key */
     public function test_error_speech_auth_401(): void
     {
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        LiterLlm::chat("Hello");
+        $client->chat("Hello");
     }
 
     /** 400 Bad Request for speech with unsupported model */
     public function test_error_speech_bad_model(): void
     {
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        LiterLlm::chat("Hello");
+        $client->chat("Hello");
     }
 
     /** Basic text-to-speech generation */
     public function test_smoke_speech_basic(): void
     {
-        $result = LiterLlm::chat("Hello, world!");
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat("Hello, world!");
         $this->assertNotEmpty($result->audio);
     }
 
     /** Text-to-speech with explicit MP3 response format */
     public function test_smoke_speech_mp3_format(): void
     {
-        $result = LiterLlm::chat("The quick brown fox jumps over the lazy dog.");
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat("The quick brown fox jumps over the lazy dog.");
         $this->assertNotEmpty($result->audio);
     }
 }

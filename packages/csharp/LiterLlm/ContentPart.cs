@@ -9,19 +9,19 @@ namespace LiterLlm;
 public abstract record ContentPart
 {
     public sealed record Text(
-        [property: JsonPropertyName("text")] string Text
+        string Value
     ) : ContentPart;
 
     public sealed record ImageUrl(
-        [property: JsonPropertyName("image_url")] ImageUrl ImageUrl
+        ImageUrl Value
     ) : ContentPart;
 
     public sealed record Document(
-        [property: JsonPropertyName("document")] DocumentContent Document
+        DocumentContent Value
     ) : ContentPart;
 
     public sealed record InputAudio(
-        [property: JsonPropertyName("input_audio")] AudioContent InputAudio
+        AudioContent Value
     ) : ContentPart;
 
 }
@@ -39,14 +39,18 @@ internal sealed class ContentPartJsonConverter : JsonConverter<ContentPart>
         var json = root.GetRawText();
         return tag switch
         {
-            "text" => JsonSerializer.Deserialize<ContentPart.Text>(json, options)!
-                ?? throw new JsonException("Failed to deserialize ContentPart.Text"),
-            "image_url" => JsonSerializer.Deserialize<ContentPart.ImageUrl>(json, options)!
-                ?? throw new JsonException("Failed to deserialize ContentPart.ImageUrl"),
-            "document" => JsonSerializer.Deserialize<ContentPart.Document>(json, options)!
-                ?? throw new JsonException("Failed to deserialize ContentPart.Document"),
-            "input_audio" => JsonSerializer.Deserialize<ContentPart.InputAudio>(json, options)!
-                ?? throw new JsonException("Failed to deserialize ContentPart.InputAudio"),
+            "text" => new ContentPart.Text(
+                JsonSerializer.Deserialize<string>(json, options)!
+                    ?? throw new JsonException("Failed to deserialize ContentPart.Text.Value")),
+            "image_url" => new ContentPart.ImageUrl(
+                JsonSerializer.Deserialize<ImageUrl>(json, options)!
+                    ?? throw new JsonException("Failed to deserialize ContentPart.ImageUrl.Value")),
+            "document" => new ContentPart.Document(
+                JsonSerializer.Deserialize<DocumentContent>(json, options)!
+                    ?? throw new JsonException("Failed to deserialize ContentPart.Document.Value")),
+            "input_audio" => new ContentPart.InputAudio(
+                JsonSerializer.Deserialize<AudioContent>(json, options)!
+                    ?? throw new JsonException("Failed to deserialize ContentPart.InputAudio.Value")),
             _ => throw new JsonException($"Unknown ContentPart discriminator: {tag}")
         };
     }
@@ -58,7 +62,7 @@ internal sealed class ContentPartJsonConverter : JsonConverter<ContentPart>
         {
             case ContentPart.Text v:
                 {
-                    var doc = JsonSerializer.SerializeToDocument(v, options);
+                    var doc = JsonSerializer.SerializeToDocument(v.Value, options);
                     writer.WriteStartObject();
                     writer.WriteString("type", "text");
                     foreach (var prop in doc.RootElement.EnumerateObject())
@@ -68,7 +72,7 @@ internal sealed class ContentPartJsonConverter : JsonConverter<ContentPart>
                 }
             case ContentPart.ImageUrl v:
                 {
-                    var doc = JsonSerializer.SerializeToDocument(v, options);
+                    var doc = JsonSerializer.SerializeToDocument(v.Value, options);
                     writer.WriteStartObject();
                     writer.WriteString("type", "image_url");
                     foreach (var prop in doc.RootElement.EnumerateObject())
@@ -78,7 +82,7 @@ internal sealed class ContentPartJsonConverter : JsonConverter<ContentPart>
                 }
             case ContentPart.Document v:
                 {
-                    var doc = JsonSerializer.SerializeToDocument(v, options);
+                    var doc = JsonSerializer.SerializeToDocument(v.Value, options);
                     writer.WriteStartObject();
                     writer.WriteString("type", "document");
                     foreach (var prop in doc.RootElement.EnumerateObject())
@@ -88,7 +92,7 @@ internal sealed class ContentPartJsonConverter : JsonConverter<ContentPart>
                 }
             case ContentPart.InputAudio v:
                 {
-                    var doc = JsonSerializer.SerializeToDocument(v, options);
+                    var doc = JsonSerializer.SerializeToDocument(v.Value, options);
                     writer.WriteStartObject();
                     writer.WriteString("type", "input_audio");
                     foreach (var prop in doc.RootElement.EnumerateObject())

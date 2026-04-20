@@ -14,7 +14,8 @@ final class ConfigurationTest extends TestCase
     /** Client configured with a custom base URL routes all requests to that endpoint */
     public function test_custom_base_url(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertEquals("Hi there!", $result->choices["0"]->message->content);
         $this->assertEquals("stop", $result->choices["0"]->finish_reason);
@@ -24,7 +25,8 @@ final class ConfigurationTest extends TestCase
     /** Client configured with extra custom headers successfully completes a chat request */
     public function test_extra_headers(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertEquals("stop", $result->choices["0"]->finish_reason);
     }
@@ -32,7 +34,8 @@ final class ConfigurationTest extends TestCase
     /** llamacpp local provider routes requests via llamacpp/ model prefix with no auth */
     public function test_local_provider_llamacpp(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertEquals("Hi there! I'm running locally.", $result->choices["0"]->message->content);
         $this->assertEquals("stop", $result->choices["0"]->finish_reason);
@@ -42,7 +45,8 @@ final class ConfigurationTest extends TestCase
     /** Ollama local provider routes requests via ollama/ model prefix with no auth */
     public function test_local_provider_ollama(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertEquals("Hello! How can I help you today?", $result->choices["0"]->message->content);
         $this->assertEquals("stop", $result->choices["0"]->finish_reason);
@@ -52,7 +56,8 @@ final class ConfigurationTest extends TestCase
     /** vLLM local provider routes requests via vllm/ model prefix with no auth */
     public function test_local_provider_vllm(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertEquals("Hello! How may I assist you?", $result->choices["0"]->message->content);
         $this->assertEquals("stop", $result->choices["0"]->finish_reason);

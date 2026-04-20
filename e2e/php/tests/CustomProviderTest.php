@@ -14,14 +14,16 @@ final class CustomProviderTest extends TestCase
     /** Tests custom provider with custom auth header */
     public function test_provider_auth(): void
     {
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectNotToPerformAssertions();
-        $result = LiterLlm::chat(null);
+        $result = $client->chat(null);
     }
 
     /** Tests that a custom provider can be registered and routes requests */
     public function test_register_provider(): void
     {
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectNotToPerformAssertions();
-        $result = LiterLlm::chat(null);
+        $result = $client->chat(null);
     }
 }

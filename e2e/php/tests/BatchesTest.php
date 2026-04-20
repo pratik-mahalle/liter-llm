@@ -14,42 +14,48 @@ final class BatchesTest extends TestCase
     /** Attempt to cancel an already-cancelled batch */
     public function test_edge_batch_already_cancelled(): void
     {
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        LiterLlm::chat(null);
+        $client->chat(null);
     }
 
     /** List batches when no batches exist */
     public function test_edge_batch_empty_list(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
     }
 
     /** 401 Unauthorized when creating a batch with invalid API key */
     public function test_error_batch_auth_401(): void
     {
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        LiterLlm::chat(null);
+        $client->chat(null);
     }
 
     /** 400 Bad Request when creating a batch with invalid input file */
     public function test_error_batch_invalid_file(): void
     {
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        LiterLlm::chat(null);
+        $client->chat(null);
     }
 
     /** 404 Not Found when retrieving a nonexistent batch */
     public function test_error_batch_not_found(): void
     {
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
         $this->expectException(\Exception::class);
-        LiterLlm::chat(null);
+        $client->chat(null);
     }
 
     /** Retrieve a completed batch job with output file */
     public function test_smoke_batch_completed(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         $this->assertNotEmpty($result->id);
         $this->assertEquals("completed", $result->status);
     }
@@ -57,7 +63,8 @@ final class BatchesTest extends TestCase
     /** Cancel a running batch job */
     public function test_smoke_cancel_batch(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         $this->assertNotEmpty($result->id);
         $this->assertEquals("cancelling", $result->status);
     }
@@ -65,7 +72,8 @@ final class BatchesTest extends TestCase
     /** Create a new batch processing job */
     public function test_smoke_create_batch(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         $this->assertNotEmpty($result->id);
         $this->assertEquals("validating", $result->status);
     }
@@ -73,14 +81,16 @@ final class BatchesTest extends TestCase
     /** List all batch jobs */
     public function test_smoke_list_batches(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
     }
 
     /** Retrieve the status of a batch job */
     public function test_smoke_retrieve_batch(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         $this->assertNotEmpty($result->id);
         $this->assertEquals("in_progress", $result->status);
     }

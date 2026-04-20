@@ -14,28 +14,32 @@ final class CacheTest extends TestCase
     /** Tests that identical chat requests return cached response */
     public function test_cache_hit(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: is_true
     }
 
     /** Tests that cache expires after TTL */
     public function test_cache_miss_ttl(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: is_true
     }
 
     /** Cache hit with OpenDAL memory backend returns cached response on repeat request */
     public function test_cache_opendal_memory(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: is_true
     }
 
     /** Tests that streaming requests bypass cache entirely */
     public function test_cache_stream_bypass(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: is_true
     }
 }

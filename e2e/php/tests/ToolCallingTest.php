@@ -14,7 +14,8 @@ final class ToolCallingTest extends TestCase
     /** Chat request to Anthropic provider with a tool definition; assistant responds with a tool call */
     public function test_anthropic_tool_calling(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertNotEmpty($result->choices["0"]->message->tool_calls);
         $this->assertEquals("get_weather", $result->choices["0"]->message->tool_calls["0"]->function->name);
@@ -24,7 +25,8 @@ final class ToolCallingTest extends TestCase
     /** Chat request with a tool definition; assistant responds with a tool call */
     public function test_single_tool_call(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertNotEmpty($result->choices["0"]->message->tool_calls);
         $this->assertEquals("get_weather", $result->choices["0"]->message->tool_calls["0"]->function->name);

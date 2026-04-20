@@ -14,7 +14,8 @@ final class SmokeTest extends TestCase
     /** Basic chat completion via the Anthropic provider (claude-3-5-sonnet-20241022) with system and user messages */
     public function test_anthropic_chat(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertEquals("Hello!", $result->choices["0"]->message->content);
         $this->assertEquals("stop", $result->choices["0"]->finish_reason);
@@ -25,7 +26,8 @@ final class SmokeTest extends TestCase
     /** Chat completion via Azure OpenAI with the azure/ prefix for provider routing — verifies the prefix is stripped before dispatching and the response is normalised to the standard OpenAI chat completion shape */
     public function test_azure_chat(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertEquals("Hello!", $result->choices["0"]->message->content);
         $this->assertEquals("stop", $result->choices["0"]->finish_reason);
@@ -36,7 +38,8 @@ final class SmokeTest extends TestCase
     /** Embedding request via Azure OpenAI using the azure/ provider prefix — response follows the standard OpenAI embeddings shape that Azure returns unchanged */
     public function test_azure_embed(): void
     {
-        $result = LiterLlm::chat("Hello world");
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat("Hello world");
         // TODO: unsupported assertion type: count_equals
         // TODO: unsupported assertion type: count_equals
     }
@@ -44,7 +47,8 @@ final class SmokeTest extends TestCase
     /** Basic chat completion with a single user message */
     public function test_basic_chat(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertEquals("Hello!", $result->choices["0"]->message->content);
         $this->assertEquals("stop", $result->choices["0"]->finish_reason);
@@ -55,7 +59,8 @@ final class SmokeTest extends TestCase
     /** Basic embedding request for a single input string */
     public function test_basic_embed(): void
     {
-        $result = LiterLlm::chat("Hello world");
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat("Hello world");
         // TODO: unsupported assertion type: count_equals
         // TODO: unsupported assertion type: count_equals
     }
@@ -63,14 +68,16 @@ final class SmokeTest extends TestCase
     /** List available models from the API */
     public function test_basic_list_models(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         $this->assertGreaterThanOrEqual(1, count($result->data));
     }
 
     /** Basic chat completion via the AWS Bedrock provider using the bedrock/ prefix for routing — verifies the prefix is stripped before dispatching and the Converse API response is normalised to the standard OpenAI chat completion shape */
     public function test_bedrock_chat(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertEquals("Hello!", $result->choices["0"]->message->content);
         $this->assertEquals("stop", $result->choices["0"]->finish_reason);
@@ -81,7 +88,8 @@ final class SmokeTest extends TestCase
     /** Basic chat completion via the GitHub Copilot provider (gpt-4o) with a single user message */
     public function test_github_copilot_chat(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertEquals("Hello!", $result->choices["0"]->message->content);
         $this->assertEquals("stop", $result->choices["0"]->finish_reason);
@@ -92,28 +100,32 @@ final class SmokeTest extends TestCase
     /** Chat completion against local Ollama with qwen2:0.5b model */
     public function test_local_chat_ollama(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         $this->assertNotEmpty($result->choices);
     }
 
     /** List models from local Ollama instance */
     public function test_local_list_models_ollama(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         $this->assertGreaterThanOrEqual(1, count($result->data));
     }
 
     /** Test in-memory caching by sending identical requests twice */
     public function test_smoke_cache_memory(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         $this->assertNotEmpty($result->choices);
     }
 
     /** Basic chat completion against real Anthropic API */
     public function test_smoke_chat_anthropic(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         $this->assertNotEmpty($result->choices);
         $this->assertNotEmpty($result->usage);
     }
@@ -121,7 +133,8 @@ final class SmokeTest extends TestCase
     /** Basic chat completion against real Google Gemini API */
     public function test_smoke_chat_gemini(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         $this->assertNotEmpty($result->choices);
         $this->assertNotEmpty($result->usage);
     }
@@ -129,7 +142,8 @@ final class SmokeTest extends TestCase
     /** Basic chat completion against real OpenAI API */
     public function test_smoke_chat_openai(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         $this->assertNotEmpty($result->choices);
         $this->assertNotEmpty($result->usage);
     }
@@ -137,35 +151,40 @@ final class SmokeTest extends TestCase
     /** Embeddings request against real OpenAI API */
     public function test_smoke_embed_openai(): void
     {
-        $result = LiterLlm::chat(["Hello world"]);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(["Hello world"]);
         $this->assertNotEmpty($result->data);
     }
 
     /** List models against real OpenAI API */
     public function test_smoke_list_models_openai(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         $this->assertGreaterThanOrEqual(1, count($result->data));
     }
 
     /** Test provider routing by sending requests to OpenAI and Anthropic */
     public function test_smoke_provider_routing(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         $this->assertNotEmpty($result->choices);
     }
 
     /** Chat streaming against real OpenAI API, verifies chunks received */
     public function test_smoke_streaming_openai(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         $this->assertGreaterThanOrEqual(1, count($result->chunks));
     }
 
     /** Basic chat completion via the Google Vertex AI provider using the vertex_ai/ prefix for routing — verifies the prefix is stripped before dispatching and the Gemini response is normalised to the standard OpenAI chat completion shape */
     public function test_vertex_chat(): void
     {
-        $result = LiterLlm::chat(null);
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat(null);
         // TODO: unsupported assertion type: count_equals
         $this->assertEquals("Hello!", $result->choices["0"]->message->content);
         $this->assertEquals("stop", $result->choices["0"]->finish_reason);
@@ -176,7 +195,8 @@ final class SmokeTest extends TestCase
     /** Embedding request via Google Vertex AI using the vertex_ai/ provider prefix and the text-embedding-005 model — response follows the standard OpenAI embeddings shape */
     public function test_vertex_embed(): void
     {
-        $result = LiterLlm::chat("Hello");
+        $client = \Liter\Llm\LiterLlm::createClient('test-key');
+        $result = $client->chat("Hello");
         // TODO: unsupported assertion type: count_equals
         // TODO: unsupported assertion type: count_equals
     }
