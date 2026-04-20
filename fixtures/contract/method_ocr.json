@@ -2,10 +2,7 @@
 	"id": "contract_ocr",
 	"description": "Verify ocr() method exists in all bindings",
 	"category": "contract",
-	"tags": [
-		"contract",
-		"parity"
-	],
+	"tags": ["contract", "parity"],
 	"call": "ocr",
 	"input": {
 		"model": "mistral/mistral-ocr-latest",

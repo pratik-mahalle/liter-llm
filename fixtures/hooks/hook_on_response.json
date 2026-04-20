@@ -2,9 +2,7 @@
 	"id": "hook_on_response",
 	"description": "Tests that on_response hook is called with response data",
 	"category": "hooks",
-	"tags": [
-		"hooks"
-	],
+	"tags": ["hooks"],
 	"skip": {
 		"languages": []
 	},

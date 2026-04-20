@@ -2,10 +2,7 @@
 	"id": "embed_error_401",
 	"description": "401 Unauthorized error on embedding request when API key is invalid",
 	"category": "embed",
-	"tags": [
-		"embed",
-		"error-handling"
-	],
+	"tags": ["embed", "error-handling"],
 	"call": "embed",
 	"input": {
 		"model": "text-embedding-3-small",

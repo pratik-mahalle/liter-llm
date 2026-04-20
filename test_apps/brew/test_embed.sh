@@ -4,53 +4,53 @@
 set -euo pipefail
 
 test_batch_embed() {
-    # Embedding request with multiple input strings returns one embedding object per input
-    local output
-    output=$(liter_llm chat)
+  # Embedding request with multiple input strings returns one embedding object per input
+  local output
+  output=$(liter_llm chat)
 
-    # TODO: unsupported assertion type: count_equals
-    # TODO: unsupported assertion type: count_equals
+  # TODO: unsupported assertion type: count_equals
+  # TODO: unsupported assertion type: count_equals
 }
 
 test_embed_encoding_format() {
-    # Embedding request with explicit encoding_format of float returns float array embeddings
-    local output
-    output=$(liter_llm chat)
+  # Embedding request with explicit encoding_format of float returns float array embeddings
+  local output
+  output=$(liter_llm chat)
 
-    # TODO: unsupported assertion type: count_equals
-    # TODO: unsupported assertion type: count_equals
+  # TODO: unsupported assertion type: count_equals
+  # TODO: unsupported assertion type: count_equals
 }
 
 test_embed_error_401() {
-    # 401 Unauthorized error on embedding request when API key is invalid
-    if liter_llm chat >/dev/null 2>&1; then
-        echo 'FAIL [error]: expected command to fail but it succeeded' >&2
-        return 1
-    fi
+  # 401 Unauthorized error on embedding request when API key is invalid
+  if liter_llm chat >/dev/null 2>&1; then
+    echo 'FAIL [error]: expected command to fail but it succeeded' >&2
+    return 1
+  fi
 }
 
 test_embed_with_dimensions() {
-    # Embedding request with explicit dimensions parameter returns embeddings of the requested size
-    local output
-    output=$(liter_llm chat)
+  # Embedding request with explicit dimensions parameter returns embeddings of the requested size
+  local output
+  output=$(liter_llm chat)
 
-    # TODO: unsupported assertion type: count_equals
-    # TODO: unsupported assertion type: count_equals
+  # TODO: unsupported assertion type: count_equals
+  # TODO: unsupported assertion type: count_equals
 }
 
 test_local_embed_ollama() {
-    # Embedding request via Ollama local provider with all-minilm model
-    local output
-    output=$(liter_llm chat)
+  # Embedding request via Ollama local provider with all-minilm model
+  local output
+  output=$(liter_llm chat)
 
-    # TODO: unsupported assertion type: count_equals
-    # TODO: unsupported assertion type: count_equals
+  # TODO: unsupported assertion type: count_equals
+  # TODO: unsupported assertion type: count_equals
 }
 
 run_tests_embed() {
-    run_test test_batch_embed
-    run_test test_embed_encoding_format
-    run_test test_embed_error_401
-    run_test test_embed_with_dimensions
-    run_test test_local_embed_ollama
+  run_test test_batch_embed
+  run_test test_embed_encoding_format
+  run_test test_embed_error_401
+  run_test test_embed_with_dimensions
+  run_test test_local_embed_ollama
 }

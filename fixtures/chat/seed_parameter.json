@@ -2,9 +2,7 @@
 	"id": "seed_parameter",
 	"description": "Chat request with seed parameter for deterministic output; response includes system_fingerprint",
 	"category": "chat",
-	"tags": [
-		"chat"
-	],
+	"tags": ["chat"],
 	"call": "chat",
 	"input": {
 		"model": "gpt-4",

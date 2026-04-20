@@ -2,9 +2,7 @@
 	"id": "custom_base_url",
 	"description": "Client configured with a custom base URL routes all requests to that endpoint",
 	"category": "configuration",
-	"tags": [
-		"configuration"
-	],
+	"tags": ["configuration"],
 	"call": "chat",
 	"input": {
 		"model": "local-model",

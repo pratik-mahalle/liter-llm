@@ -2,10 +2,7 @@
 	"id": "error_speech_bad_model",
 	"description": "400 Bad Request for speech with unsupported model",
 	"category": "speech",
-	"tags": [
-		"error-handling",
-		"speech"
-	],
+	"tags": ["error-handling", "speech"],
 	"call": "speech",
 	"input": {
 		"model": "tts-nonexistent",

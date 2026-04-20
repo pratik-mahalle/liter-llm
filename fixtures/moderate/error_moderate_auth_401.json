@@ -2,10 +2,7 @@
 	"id": "error_moderate_auth_401",
 	"description": "401 Unauthorized for moderation with invalid API key",
 	"category": "moderate",
-	"tags": [
-		"error-handling",
-		"moderate"
-	],
+	"tags": ["error-handling", "moderate"],
 	"call": "moderate",
 	"input": {
 		"model": "omni-moderation-latest",

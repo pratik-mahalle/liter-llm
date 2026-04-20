@@ -4,40 +4,40 @@
 set -euo pipefail
 
 test_cache_hit() {
-    # Tests that identical chat requests return cached response
-    local output
-    output=$(liter_llm chat)
+  # Tests that identical chat requests return cached response
+  local output
+  output=$(liter_llm chat)
 
-    # TODO: unsupported assertion type: is_true
+  # TODO: unsupported assertion type: is_true
 }
 
 test_cache_miss_ttl() {
-    # Tests that cache expires after TTL
-    local output
-    output=$(liter_llm chat)
+  # Tests that cache expires after TTL
+  local output
+  output=$(liter_llm chat)
 
-    # TODO: unsupported assertion type: is_true
+  # TODO: unsupported assertion type: is_true
 }
 
 test_cache_opendal_memory() {
-    # Cache hit with OpenDAL memory backend returns cached response on repeat request
-    local output
-    output=$(liter_llm chat)
+  # Cache hit with OpenDAL memory backend returns cached response on repeat request
+  local output
+  output=$(liter_llm chat)
 
-    # TODO: unsupported assertion type: is_true
+  # TODO: unsupported assertion type: is_true
 }
 
 test_cache_stream_bypass() {
-    # Tests that streaming requests bypass cache entirely
-    local output
-    output=$(liter_llm chat)
+  # Tests that streaming requests bypass cache entirely
+  local output
+  output=$(liter_llm chat)
 
-    # TODO: unsupported assertion type: is_true
+  # TODO: unsupported assertion type: is_true
 }
 
 run_tests_cache() {
-    run_test test_cache_hit
-    run_test test_cache_miss_ttl
-    run_test test_cache_opendal_memory
-    run_test test_cache_stream_bypass
+  run_test test_cache_hit
+  run_test test_cache_miss_ttl
+  run_test test_cache_opendal_memory
+  run_test test_cache_stream_bypass
 }

@@ -68,7 +68,7 @@ jobs:
           RUST_BACKTRACE: full
         run: >
           cargo test -p liter-llm --features full
-          -- --include-ignored
+          -- --include-ignored --skip live_device_flow
         shell: bash
 
       - name: Check Rust Formatting

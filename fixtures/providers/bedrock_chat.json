@@ -2,10 +2,7 @@
 	"id": "bedrock_chat",
 	"description": "Basic chat completion via the AWS Bedrock provider using the bedrock/ prefix for routing — verifies the prefix is stripped before dispatching and the Converse API response is normalised to the standard OpenAI chat completion shape",
 	"category": "smoke",
-	"tags": [
-		"smoke",
-		"bedrock"
-	],
+	"tags": ["smoke", "bedrock"],
 	"call": "chat",
 	"input": {
 		"model": "bedrock/anthropic.claude-3-sonnet-20240229-v1:0",

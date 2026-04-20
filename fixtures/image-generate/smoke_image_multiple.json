@@ -2,10 +2,7 @@
 	"id": "smoke_image_multiple",
 	"description": "Image generation requesting multiple images",
 	"category": "image-generate",
-	"tags": [
-		"smoke",
-		"image"
-	],
+	"tags": ["smoke", "image"],
 	"call": "image_generate",
 	"input": {
 		"model": "dall-e-2",

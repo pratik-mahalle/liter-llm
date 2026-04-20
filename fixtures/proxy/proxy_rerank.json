@@ -2,10 +2,7 @@
 	"id": "proxy_rerank",
 	"description": "Document reranking request routed through the proxy",
 	"category": "proxy",
-	"tags": [
-		"proxy",
-		"rerank"
-	],
+	"tags": ["proxy", "rerank"],
 	"call": "rerank",
 	"input": {
 		"model": "rerank-v3.5",

@@ -2,10 +2,7 @@
 	"id": "smoke_list_batches",
 	"description": "List all batch jobs",
 	"category": "batches",
-	"tags": [
-		"smoke",
-		"batches"
-	],
+	"tags": ["smoke", "batches"],
 	"call": "list_batches",
 	"input": {},
 	"mock_response": {

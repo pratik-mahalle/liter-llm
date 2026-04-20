@@ -2,10 +2,7 @@
 	"id": "error_file_auth_401",
 	"description": "401 Unauthorized when listing files with invalid API key",
 	"category": "files",
-	"tags": [
-		"error-handling",
-		"files"
-	],
+	"tags": ["error-handling", "files"],
 	"call": "list_files",
 	"input": {},
 	"mock_response": {

@@ -2,10 +2,7 @@
 	"id": "edge_image_empty_prompt",
 	"description": "Image generation with an empty prompt returns 400",
 	"category": "image-generate",
-	"tags": [
-		"edge-case",
-		"image"
-	],
+	"tags": ["edge-case", "image"],
 	"call": "image_generate",
 	"input": {
 		"model": "dall-e-3",

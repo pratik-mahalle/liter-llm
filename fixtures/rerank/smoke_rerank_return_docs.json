@@ -2,18 +2,12 @@
 	"id": "smoke_rerank_return_docs",
 	"description": "Reranking with return_documents flag to include document text",
 	"category": "rerank",
-	"tags": [
-		"smoke",
-		"rerank"
-	],
+	"tags": ["smoke", "rerank"],
 	"call": "rerank",
 	"input": {
 		"model": "rerank-v3.5",
 		"query": "What is Rust?",
-		"documents": [
-			"Rust is a systems programming language.",
-			"Iron rusts when exposed to water."
-		],
+		"documents": ["Rust is a systems programming language.", "Iron rusts when exposed to water."],
 		"return_documents": true
 	},
 	"mock_response": {

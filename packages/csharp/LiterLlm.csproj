@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>LiterLlm</RootNamespace>
+    <PackageId>LiterLlm</PackageId>
+    <Version>1.2.2</Version>
+    <Description>Universal LLM API client — 142+ providers, streaming, tool calling. Rust-powered with polyglot bindings.</Description>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <RepositoryUrl>https://github.com/kreuzberg-dev/liter-llm</RepositoryUrl>
+    <Authors>Na'aman Hirschfeld</Authors>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../../LICENSE" Pack="true" PackagePath="/" />
+    <None Include="runtimes/**" Pack="true" PackagePath="runtimes/" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

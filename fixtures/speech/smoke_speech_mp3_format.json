@@ -2,10 +2,7 @@
 	"id": "smoke_speech_mp3_format",
 	"description": "Text-to-speech with explicit MP3 response format",
 	"category": "speech",
-	"tags": [
-		"smoke",
-		"speech"
-	],
+	"tags": ["smoke", "speech"],
 	"call": "speech",
 	"input": {
 		"model": "tts-1-hd",

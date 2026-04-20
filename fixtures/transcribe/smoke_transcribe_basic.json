@@ -2,10 +2,7 @@
 	"id": "smoke_transcribe_basic",
 	"description": "Basic audio transcription",
 	"category": "transcribe",
-	"tags": [
-		"smoke",
-		"transcribe"
-	],
+	"tags": ["smoke", "transcribe"],
 	"call": "transcribe",
 	"input": {
 		"model": "whisper-1",

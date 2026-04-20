@@ -94,4 +94,3 @@ async fn test_local_embed_ollama() {
     // TODO: unsupported assertion type: count_equals
     // TODO: unsupported assertion type: count_equals
 }
-

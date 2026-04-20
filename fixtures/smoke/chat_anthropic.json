@@ -2,11 +2,7 @@
 	"id": "smoke_chat_anthropic",
 	"description": "Basic chat completion against real Anthropic API",
 	"category": "smoke",
-	"tags": [
-		"smoke",
-		"anthropic",
-		"chat"
-	],
+	"tags": ["smoke", "anthropic", "chat"],
 	"call": "chat",
 	"input": {
 		"model": "anthropic/claude-sonnet-4-20250514",

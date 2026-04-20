@@ -2,10 +2,7 @@
 	"id": "error_transcribe_auth_401",
 	"description": "401 Unauthorized for transcription with invalid API key",
 	"category": "transcribe",
-	"tags": [
-		"error-handling",
-		"transcribe"
-	],
+	"tags": ["error-handling", "transcribe"],
 	"call": "transcribe",
 	"input": {
 		"model": "whisper-1",

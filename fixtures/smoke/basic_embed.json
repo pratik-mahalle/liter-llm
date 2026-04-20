@@ -2,9 +2,7 @@
 	"id": "basic_embed",
 	"description": "Basic embedding request for a single input string",
 	"category": "smoke",
-	"tags": [
-		"smoke"
-	],
+	"tags": ["smoke"],
 	"call": "embed",
 	"input": {
 		"model": "text-embedding-3-small",
@@ -19,13 +17,7 @@
 				{
 					"object": "embedding",
 					"index": 0,
-					"embedding": [
-						0.1,
-						0.2,
-						0.3,
-						0.4,
-						0.5
-					]
+					"embedding": [0.1, 0.2, 0.3, 0.4, 0.5]
 				}
 			],
 			"usage": {

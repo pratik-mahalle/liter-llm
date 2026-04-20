@@ -2,10 +2,7 @@
 	"id": "smoke_create_batch",
 	"description": "Create a new batch processing job",
 	"category": "batches",
-	"tags": [
-		"smoke",
-		"batches"
-	],
+	"tags": ["smoke", "batches"],
 	"call": "create_batch",
 	"input": {
 		"input_file_id": "file-abc123",

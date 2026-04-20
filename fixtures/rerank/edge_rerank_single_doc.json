@@ -2,17 +2,12 @@
 	"id": "edge_rerank_single_doc",
 	"description": "Reranking with only a single document",
 	"category": "rerank",
-	"tags": [
-		"edge-case",
-		"rerank"
-	],
+	"tags": ["edge-case", "rerank"],
 	"call": "rerank",
 	"input": {
 		"model": "rerank-v3.5",
 		"query": "What is AI?",
-		"documents": [
-			"Artificial intelligence is the simulation of human intelligence."
-		]
+		"documents": ["Artificial intelligence is the simulation of human intelligence."]
 	},
 	"mock_response": {
 		"status": 200,

@@ -2,10 +2,7 @@
 	"id": "smoke_cancel_batch",
 	"description": "Cancel a running batch job",
 	"category": "batches",
-	"tags": [
-		"smoke",
-		"batches"
-	],
+	"tags": ["smoke", "batches"],
 	"call": "cancel_batch",
 	"input": {
 		"batch_id": "batch-def456"

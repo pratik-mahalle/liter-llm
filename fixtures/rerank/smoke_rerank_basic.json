@@ -2,10 +2,7 @@
 	"id": "smoke_rerank_basic",
 	"description": "Basic reranking of documents against a query",
 	"category": "rerank",
-	"tags": [
-		"smoke",
-		"rerank"
-	],
+	"tags": ["smoke", "rerank"],
 	"call": "rerank",
 	"input": {
 		"model": "rerank-v3.5",

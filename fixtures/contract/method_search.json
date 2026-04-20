@@ -2,10 +2,7 @@
 	"id": "contract_search",
 	"description": "Verify search() method exists in all bindings",
 	"category": "contract",
-	"tags": [
-		"contract",
-		"parity"
-	],
+	"tags": ["contract", "parity"],
 	"call": "search",
 	"input": {
 		"model": "brave/web-search",

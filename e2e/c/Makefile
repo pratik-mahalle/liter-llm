@@ -5,8 +5,8 @@ FFI_DIR = ffi
 ifneq ($(wildcard $(FFI_DIR)/include/liter_llm.h),)
     CFLAGS = -Wall -Wextra -I$(FFI_DIR)/include
     LDFLAGS = -L$(FFI_DIR)/lib -lliter_llm -Wl,-rpath,$(FFI_DIR)/lib
-else ifneq ($(wildcard ../../crates/ffi/include/liter_llm.h),)
-    CFLAGS = -Wall -Wextra -I../../crates/ffi/include
+else ifneq ($(wildcard ../../crates/liter-llm-ffi/include/liter_llm.h),)
+    CFLAGS = -Wall -Wextra -I../../crates/liter-llm-ffi/include
     LDFLAGS = -L../../target/release -lliter_llm -Wl,-rpath,../../target/release
 else
     CFLAGS = -Wall -Wextra $(shell pkg-config --cflags liter_llm 2>/dev/null)

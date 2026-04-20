@@ -2,10 +2,7 @@
 	"id": "cache_opendal_memory",
 	"description": "Cache hit with OpenDAL memory backend returns cached response on repeat request",
 	"category": "cache",
-	"tags": [
-		"cache",
-		"opendal"
-	],
+	"tags": ["cache", "opendal"],
 	"call": "chat",
 	"input": {
 		"model": "openai/gpt-4o",

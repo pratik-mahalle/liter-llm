@@ -2,10 +2,7 @@
 	"id": "error_response_auth_401",
 	"description": "401 Unauthorized when creating a response with invalid API key",
 	"category": "responses",
-	"tags": [
-		"error-handling",
-		"responses"
-	],
+	"tags": ["error-handling", "responses"],
 	"call": "create_response",
 	"input": {
 		"model": "gpt-4o",

@@ -7,6 +7,7 @@ Send a message to any provider using the `provider/model` prefix:
 ### Common Use Cases
 
 {% if snippets.streaming %}
+
 #### Streaming Responses
 
 Stream tokens in real time:
@@ -15,6 +16,7 @@ Stream tokens in real time:
 
 {% endif %}
 {% if snippets.tool_calling %}
+
 #### Tool Calling
 
 Define and invoke tools:

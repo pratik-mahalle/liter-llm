@@ -2,10 +2,7 @@
 	"id": "vertex_chat",
 	"description": "Basic chat completion via the Google Vertex AI provider using the vertex_ai/ prefix for routing — verifies the prefix is stripped before dispatching and the Gemini response is normalised to the standard OpenAI chat completion shape",
 	"category": "smoke",
-	"tags": [
-		"smoke",
-		"vertex_ai"
-	],
+	"tags": ["smoke", "vertex_ai"],
 	"call": "chat",
 	"input": {
 		"model": "vertex_ai/gemini-2.0-flash",

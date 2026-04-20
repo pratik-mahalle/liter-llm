@@ -2,17 +2,12 @@
 	"id": "error_rerank_bad_request",
 	"description": "400 Bad Request for reranking with invalid model",
 	"category": "rerank",
-	"tags": [
-		"error-handling",
-		"rerank"
-	],
+	"tags": ["error-handling", "rerank"],
 	"call": "rerank",
 	"input": {
 		"model": "nonexistent-rerank",
 		"query": "test",
-		"documents": [
-			"doc1"
-		]
+		"documents": ["doc1"]
 	},
 	"mock_response": {
 		"status": 400,

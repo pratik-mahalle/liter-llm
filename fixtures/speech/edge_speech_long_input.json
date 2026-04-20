@@ -2,10 +2,7 @@
 	"id": "edge_speech_long_input",
 	"description": "Speech generation with a very long input text",
 	"category": "speech",
-	"tags": [
-		"edge-case",
-		"speech"
-	],
+	"tags": ["edge-case", "speech"],
 	"call": "speech",
 	"input": {
 		"model": "tts-1",

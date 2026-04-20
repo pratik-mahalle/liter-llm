@@ -2,10 +2,7 @@
 	"id": "edge_file_large_upload",
 	"description": "Upload a large file successfully",
 	"category": "files",
-	"tags": [
-		"edge-case",
-		"files"
-	],
+	"tags": ["edge-case", "files"],
 	"call": "create_file",
 	"input": {
 		"file": "large_training_data.jsonl",

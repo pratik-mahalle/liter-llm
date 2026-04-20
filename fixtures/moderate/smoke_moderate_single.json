@@ -2,10 +2,7 @@
 	"id": "smoke_moderate_single",
 	"description": "Moderate a single non-flagged input",
 	"category": "moderate",
-	"tags": [
-		"smoke",
-		"moderate"
-	],
+	"tags": ["smoke", "moderate"],
 	"call": "moderate",
 	"input": {
 		"model": "omni-moderation-latest",

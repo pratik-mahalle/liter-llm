@@ -2,10 +2,7 @@
 	"id": "smoke_batch_completed",
 	"description": "Retrieve a completed batch job with output file",
 	"category": "batches",
-	"tags": [
-		"smoke",
-		"batches"
-	],
+	"tags": ["smoke", "batches"],
 	"call": "retrieve_batch",
 	"input": {
 		"batch_id": "batch-ghi789"

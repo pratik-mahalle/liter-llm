@@ -2,10 +2,7 @@
 	"id": "edge_response_large_input",
 	"description": "Response created with a very large input text",
 	"category": "responses",
-	"tags": [
-		"edge-case",
-		"responses"
-	],
+	"tags": ["edge-case", "responses"],
 	"call": "create_response",
 	"input": {
 		"model": "gpt-4o",

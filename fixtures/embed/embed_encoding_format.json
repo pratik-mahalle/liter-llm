@@ -2,9 +2,7 @@
 	"id": "embed_encoding_format",
 	"description": "Embedding request with explicit encoding_format of float returns float array embeddings",
 	"category": "embed",
-	"tags": [
-		"embed"
-	],
+	"tags": ["embed"],
 	"call": "embed",
 	"input": {
 		"model": "text-embedding-3-small",
@@ -20,13 +18,7 @@
 				{
 					"object": "embedding",
 					"index": 0,
-					"embedding": [
-						0.123,
-						0.456,
-						0.789,
-						0.012,
-						0.345
-					]
+					"embedding": [0.123, 0.456, 0.789, 0.012, 0.345]
 				}
 			],
 			"usage": {

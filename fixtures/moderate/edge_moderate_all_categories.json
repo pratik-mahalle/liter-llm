@@ -2,10 +2,7 @@
 	"id": "edge_moderate_all_categories",
 	"description": "Moderation response with multiple categories flagged",
 	"category": "moderate",
-	"tags": [
-		"edge-case",
-		"moderate"
-	],
+	"tags": ["edge-case", "moderate"],
 	"call": "moderate",
 	"input": {
 		"model": "omni-moderation-latest",

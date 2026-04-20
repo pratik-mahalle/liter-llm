@@ -2,10 +2,7 @@
 	"id": "smoke_list_files",
 	"description": "List all uploaded files",
 	"category": "files",
-	"tags": [
-		"smoke",
-		"files"
-	],
+	"tags": ["smoke", "files"],
 	"call": "list_files",
 	"input": {},
 	"mock_response": {

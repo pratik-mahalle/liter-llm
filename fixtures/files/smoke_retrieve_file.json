@@ -2,10 +2,7 @@
 	"id": "smoke_retrieve_file",
 	"description": "Retrieve metadata for an uploaded file",
 	"category": "files",
-	"tags": [
-		"smoke",
-		"files"
-	],
+	"tags": ["smoke", "files"],
 	"call": "retrieve_file",
 	"input": {
 		"file_id": "file-abc123"

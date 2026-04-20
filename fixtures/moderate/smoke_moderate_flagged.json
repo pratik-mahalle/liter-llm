@@ -2,10 +2,7 @@
 	"id": "smoke_moderate_flagged",
 	"description": "Moderation detects flagged content",
 	"category": "moderate",
-	"tags": [
-		"smoke",
-		"moderate"
-	],
+	"tags": ["smoke", "moderate"],
 	"call": "moderate",
 	"input": {
 		"model": "omni-moderation-latest",

@@ -2,10 +2,7 @@
 	"id": "error_file_not_found",
 	"description": "404 Not Found when retrieving a nonexistent file",
 	"category": "files",
-	"tags": [
-		"error-handling",
-		"files"
-	],
+	"tags": ["error-handling", "files"],
 	"call": "retrieve_file",
 	"input": {
 		"file_id": "file-nonexistent"

@@ -274,4 +274,3 @@ async fn test_vertex_error_auth() {
     assert!(result.is_err(), "expected call to fail");
     assert!(result.as_ref().unwrap_err().to_string().contains("Authentication"), "error message mismatch");
 }
-

@@ -40,4 +40,3 @@ async fn test_multimodal_content() {
     // TODO: unsupported assertion type: count_equals
     assert_eq!(result.choices.get("0").map(|s| s.as_str()).finish_reason.trim(), r#"stop"#, "equals assertion failed");
 }
-

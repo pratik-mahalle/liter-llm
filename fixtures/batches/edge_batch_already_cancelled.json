@@ -2,10 +2,7 @@
 	"id": "edge_batch_already_cancelled",
 	"description": "Attempt to cancel an already-cancelled batch",
 	"category": "batches",
-	"tags": [
-		"edge-case",
-		"batches"
-	],
+	"tags": ["edge-case", "batches"],
 	"call": "cancel_batch",
 	"input": {
 		"batch_id": "batch-cancelled001"

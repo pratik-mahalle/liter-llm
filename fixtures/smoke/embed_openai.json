@@ -2,17 +2,11 @@
 	"id": "smoke_embed_openai",
 	"description": "Embeddings request against real OpenAI API",
 	"category": "smoke",
-	"tags": [
-		"smoke",
-		"openai",
-		"embed"
-	],
+	"tags": ["smoke", "openai", "embed"],
 	"call": "embed",
 	"input": {
 		"model": "openai/text-embedding-3-small",
-		"input": [
-			"Hello world"
-		]
+		"input": ["Hello world"]
 	},
 	"env": {
 		"api_key_var": "OPENAI_API_KEY"

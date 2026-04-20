@@ -2,9 +2,7 @@
 	"id": "extra_headers",
 	"description": "Client configured with extra custom headers successfully completes a chat request",
 	"category": "configuration",
-	"tags": [
-		"configuration"
-	],
+	"tags": ["configuration"],
 	"call": "chat",
 	"input": {
 		"model": "gpt-4",

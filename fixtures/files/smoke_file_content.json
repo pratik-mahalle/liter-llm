@@ -2,10 +2,7 @@
 	"id": "smoke_file_content",
 	"description": "Retrieve the content of an uploaded file",
 	"category": "files",
-	"tags": [
-		"smoke",
-		"files"
-	],
+	"tags": ["smoke", "files"],
 	"call": "file_content",
 	"input": {
 		"file_id": "file-abc123"

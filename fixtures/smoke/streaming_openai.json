@@ -2,11 +2,7 @@
 	"id": "smoke_streaming_openai",
 	"description": "Chat streaming against real OpenAI API, verifies chunks received",
 	"category": "smoke",
-	"tags": [
-		"smoke",
-		"openai",
-		"streaming"
-	],
+	"tags": ["smoke", "openai", "streaming"],
 	"call": "chat_stream",
 	"input": {
 		"model": "openai/gpt-4o-mini",

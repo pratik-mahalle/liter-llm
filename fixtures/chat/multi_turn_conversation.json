@@ -2,9 +2,7 @@
 	"id": "multi_turn_conversation",
 	"description": "Multi-turn conversation with system, user, assistant, and follow-up user messages",
 	"category": "chat",
-	"tags": [
-		"chat"
-	],
+	"tags": ["chat"],
 	"call": "chat",
 	"input": {
 		"model": "gpt-4",

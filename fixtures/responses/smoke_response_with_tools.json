@@ -2,10 +2,7 @@
 	"id": "smoke_response_with_tools",
 	"description": "Response that includes tool call output items",
 	"category": "responses",
-	"tags": [
-		"smoke",
-		"responses"
-	],
+	"tags": ["smoke", "responses"],
 	"call": "create_response",
 	"input": {
 		"model": "gpt-4o",
@@ -22,9 +19,7 @@
 							"type": "string"
 						}
 					},
-					"required": [
-						"location"
-					]
+					"required": ["location"]
 				}
 			}
 		]

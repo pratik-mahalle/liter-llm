@@ -2,10 +2,7 @@
 	"id": "smoke_retrieve_batch",
 	"description": "Retrieve the status of a batch job",
 	"category": "batches",
-	"tags": [
-		"smoke",
-		"batches"
-	],
+	"tags": ["smoke", "batches"],
 	"call": "retrieve_batch",
 	"input": {
 		"batch_id": "batch-abc123"

@@ -2,9 +2,7 @@
 	"id": "hook_guardrail",
 	"description": "Tests that on_request hook can reject a request",
 	"category": "hooks",
-	"tags": [
-		"hooks"
-	],
+	"tags": ["hooks"],
 	"skip": {
 		"languages": []
 	},

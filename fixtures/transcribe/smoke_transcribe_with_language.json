@@ -2,10 +2,7 @@
 	"id": "smoke_transcribe_with_language",
 	"description": "Audio transcription with explicit language hint",
 	"category": "transcribe",
-	"tags": [
-		"smoke",
-		"transcribe"
-	],
+	"tags": ["smoke", "transcribe"],
 	"call": "transcribe",
 	"input": {
 		"model": "whisper-1",

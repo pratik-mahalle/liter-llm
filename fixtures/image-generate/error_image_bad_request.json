@@ -2,10 +2,7 @@
 	"id": "error_image_bad_request",
 	"description": "400 Bad Request when image generation parameters are invalid",
 	"category": "image-generate",
-	"tags": [
-		"error-handling",
-		"image"
-	],
+	"tags": ["error-handling", "image"],
 	"call": "image_generate",
 	"input": {
 		"model": "dall-e-3",

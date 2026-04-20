@@ -2,9 +2,7 @@
 	"id": "hook_on_error",
 	"description": "Tests that on_error hook is called on failure",
 	"category": "hooks",
-	"tags": [
-		"hooks"
-	],
+	"tags": ["hooks"],
 	"skip": {
 		"languages": []
 	},

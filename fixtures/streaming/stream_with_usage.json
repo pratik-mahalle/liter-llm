@@ -2,9 +2,7 @@
 	"id": "stream_with_usage",
 	"description": "Streaming chat completion that includes a usage summary in the final chunk",
 	"category": "streaming",
-	"tags": [
-		"streaming"
-	],
+	"tags": ["streaming"],
 	"call": "chat_stream",
 	"input": {
 		"model": "gpt-4",

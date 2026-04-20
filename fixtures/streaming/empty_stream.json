@@ -2,10 +2,7 @@
 	"id": "empty_stream",
 	"description": "Streaming chat completion that produces no content chunks before the DONE signal",
 	"category": "streaming",
-	"tags": [
-		"streaming",
-		"edge-case"
-	],
+	"tags": ["streaming", "edge-case"],
 	"call": "chat_stream",
 	"input": {
 		"model": "gpt-4",

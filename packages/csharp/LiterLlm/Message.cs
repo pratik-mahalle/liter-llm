@@ -12,30 +12,30 @@ namespace LiterLlm;
 public abstract record Message
 {
     public sealed record System(
-        [property: JsonPropertyName("0")] SystemMessage 0
+        SystemMessage Value
     ) : Message;
 
     public sealed record User(
-        [property: JsonPropertyName("0")] UserMessage 0
+        UserMessage Value
     ) : Message;
 
     public sealed record Assistant(
-        [property: JsonPropertyName("0")] AssistantMessage 0
+        AssistantMessage Value
     ) : Message;
 
     public sealed record Tool(
-        [property: JsonPropertyName("0")] ToolMessage 0
+        ToolMessage Value
     ) : Message;
 
     public sealed record Developer(
-        [property: JsonPropertyName("0")] DeveloperMessage 0
+        DeveloperMessage Value
     ) : Message;
 
     /// <summary>
     /// Deprecated legacy function-role message; retained for API compatibility.
     /// </summary>
     public sealed record Function(
-        [property: JsonPropertyName("0")] FunctionMessage 0
+        FunctionMessage Value
     ) : Message;
 
 }
@@ -53,18 +53,24 @@ internal sealed class MessageJsonConverter : JsonConverter<Message>
         var json = root.GetRawText();
         return tag switch
         {
-            "system" => JsonSerializer.Deserialize<Message.System>(json, options)!
-                ?? throw new JsonException("Failed to deserialize Message.System"),
-            "user" => JsonSerializer.Deserialize<Message.User>(json, options)!
-                ?? throw new JsonException("Failed to deserialize Message.User"),
-            "assistant" => JsonSerializer.Deserialize<Message.Assistant>(json, options)!
-                ?? throw new JsonException("Failed to deserialize Message.Assistant"),
-            "tool" => JsonSerializer.Deserialize<Message.Tool>(json, options)!
-                ?? throw new JsonException("Failed to deserialize Message.Tool"),
-            "developer" => JsonSerializer.Deserialize<Message.Developer>(json, options)!
-                ?? throw new JsonException("Failed to deserialize Message.Developer"),
-            "function" => JsonSerializer.Deserialize<Message.Function>(json, options)!
-                ?? throw new JsonException("Failed to deserialize Message.Function"),
+            "system" => new Message.System(
+                JsonSerializer.Deserialize<SystemMessage>(json, options)!
+                    ?? throw new JsonException("Failed to deserialize Message.System.Value")),
+            "user" => new Message.User(
+                JsonSerializer.Deserialize<UserMessage>(json, options)!
+                    ?? throw new JsonException("Failed to deserialize Message.User.Value")),
+            "assistant" => new Message.Assistant(
+                JsonSerializer.Deserialize<AssistantMessage>(json, options)!
+                    ?? throw new JsonException("Failed to deserialize Message.Assistant.Value")),
+            "tool" => new Message.Tool(
+                JsonSerializer.Deserialize<ToolMessage>(json, options)!
+                    ?? throw new JsonException("Failed to deserialize Message.Tool.Value")),
+            "developer" => new Message.Developer(
+                JsonSerializer.Deserialize<DeveloperMessage>(json, options)!
+                    ?? throw new JsonException("Failed to deserialize Message.Developer.Value")),
+            "function" => new Message.Function(
+                JsonSerializer.Deserialize<FunctionMessage>(json, options)!
+                    ?? throw new JsonException("Failed to deserialize Message.Function.Value")),
             _ => throw new JsonException($"Unknown Message discriminator: {tag}")
         };
     }
@@ -76,7 +82,7 @@ internal sealed class MessageJsonConverter : JsonConverter<Message>
         {
             case Message.System v:
                 {
-                    var doc = JsonSerializer.SerializeToDocument(v, options);
+                    var doc = JsonSerializer.SerializeToDocument(v.Value, options);
                     writer.WriteStartObject();
                     writer.WriteString("role", "system");
                     foreach (var prop in doc.RootElement.EnumerateObject())
@@ -86,7 +92,7 @@ internal sealed class MessageJsonConverter : JsonConverter<Message>
                 }
             case Message.User v:
                 {
-                    var doc = JsonSerializer.SerializeToDocument(v, options);
+                    var doc = JsonSerializer.SerializeToDocument(v.Value, options);
                     writer.WriteStartObject();
                     writer.WriteString("role", "user");
                     foreach (var prop in doc.RootElement.EnumerateObject())
@@ -96,7 +102,7 @@ internal sealed class MessageJsonConverter : JsonConverter<Message>
                 }
             case Message.Assistant v:
                 {
-                    var doc = JsonSerializer.SerializeToDocument(v, options);
+                    var doc = JsonSerializer.SerializeToDocument(v.Value, options);
                     writer.WriteStartObject();
                     writer.WriteString("role", "assistant");
                     foreach (var prop in doc.RootElement.EnumerateObject())
@@ -106,7 +112,7 @@ internal sealed class MessageJsonConverter : JsonConverter<Message>
                 }
             case Message.Tool v:
                 {
-                    var doc = JsonSerializer.SerializeToDocument(v, options);
+                    var doc = JsonSerializer.SerializeToDocument(v.Value, options);
                     writer.WriteStartObject();
                     writer.WriteString("role", "tool");
                     foreach (var prop in doc.RootElement.EnumerateObject())
@@ -116,7 +122,7 @@ internal sealed class MessageJsonConverter : JsonConverter<Message>
                 }
             case Message.Developer v:
                 {
-                    var doc = JsonSerializer.SerializeToDocument(v, options);
+                    var doc = JsonSerializer.SerializeToDocument(v.Value, options);
                     writer.WriteStartObject();
                     writer.WriteString("role", "developer");
                     foreach (var prop in doc.RootElement.EnumerateObject())
@@ -126,7 +132,7 @@ internal sealed class MessageJsonConverter : JsonConverter<Message>
                 }
             case Message.Function v:
                 {
-                    var doc = JsonSerializer.SerializeToDocument(v, options);
+                    var doc = JsonSerializer.SerializeToDocument(v.Value, options);
                     writer.WriteStartObject();
                     writer.WriteString("role", "function");
                     foreach (var prop in doc.RootElement.EnumerateObject())

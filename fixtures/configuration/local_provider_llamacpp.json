@@ -2,11 +2,7 @@
 	"id": "local_provider_llamacpp",
 	"description": "llamacpp local provider routes requests via llamacpp/ model prefix with no auth",
 	"category": "configuration",
-	"tags": [
-		"configuration",
-		"local",
-		"llamacpp"
-	],
+	"tags": ["configuration", "local", "llamacpp"],
 	"call": "chat",
 	"input": {
 		"model": "llamacpp/my-model",

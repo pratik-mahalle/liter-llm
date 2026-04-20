@@ -2,10 +2,7 @@
 	"id": "azure_chat",
 	"description": "Chat completion via Azure OpenAI with the azure/ prefix for provider routing — verifies the prefix is stripped before dispatching and the response is normalised to the standard OpenAI chat completion shape",
 	"category": "smoke",
-	"tags": [
-		"smoke",
-		"azure"
-	],
+	"tags": ["smoke", "azure"],
 	"call": "chat",
 	"input": {
 		"model": "azure/gpt-4",

@@ -2,10 +2,7 @@
 	"id": "edge_response_empty_output",
 	"description": "Response completes with empty output items",
 	"category": "responses",
-	"tags": [
-		"edge-case",
-		"responses"
-	],
+	"tags": ["edge-case", "responses"],
 	"call": "create_response",
 	"input": {
 		"model": "gpt-4o",

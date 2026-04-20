@@ -36,4 +36,3 @@ async fn test_register_provider() {
     let request = serde_json::from_value(request_json).unwrap();
     let _ = chat(request).await.expect("should succeed");
 }
-

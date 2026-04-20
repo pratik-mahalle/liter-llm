@@ -4,88 +4,88 @@
 set -euo pipefail
 
 test_edge_image_b64_response() {
-    # Image generation returning base64-encoded data instead of URL
-    local output
-    output=$(liter_llm chat)
+  # Image generation returning base64-encoded data instead of URL
+  local output
+  output=$(liter_llm chat)
 
-    # TODO: unsupported assertion type: count_equals
-    local val_data_0__b64_json
-    val_data_0__b64_json=$(echo "$output" | jq -r '.data[0].b64_json')
-    assert_not_empty "$val_data_0__b64_json" 'data[0].b64_json'
+  # TODO: unsupported assertion type: count_equals
+  local val_data_0__b64_json
+  val_data_0__b64_json=$(echo "$output" | jq -r '.data[0].b64_json')
+  assert_not_empty "$val_data_0__b64_json" 'data[0].b64_json'
 }
 
 test_edge_image_empty_prompt() {
-    # Image generation with an empty prompt returns 400
-    if liter_llm chat >/dev/null 2>&1; then
-        echo 'FAIL [error]: expected command to fail but it succeeded' >&2
-        return 1
-    fi
+  # Image generation with an empty prompt returns 400
+  if liter_llm chat >/dev/null 2>&1; then
+    echo 'FAIL [error]: expected command to fail but it succeeded' >&2
+    return 1
+  fi
 }
 
 test_error_image_auth_401() {
-    # 401 Unauthorized when generating images with invalid API key
-    if liter_llm chat >/dev/null 2>&1; then
-        echo 'FAIL [error]: expected command to fail but it succeeded' >&2
-        return 1
-    fi
+  # 401 Unauthorized when generating images with invalid API key
+  if liter_llm chat >/dev/null 2>&1; then
+    echo 'FAIL [error]: expected command to fail but it succeeded' >&2
+    return 1
+  fi
 }
 
 test_error_image_bad_request() {
-    # 400 Bad Request when image generation parameters are invalid
-    if liter_llm chat >/dev/null 2>&1; then
-        echo 'FAIL [error]: expected command to fail but it succeeded' >&2
-        return 1
-    fi
+  # 400 Bad Request when image generation parameters are invalid
+  if liter_llm chat >/dev/null 2>&1; then
+    echo 'FAIL [error]: expected command to fail but it succeeded' >&2
+    return 1
+  fi
 }
 
 test_error_image_rate_limit() {
-    # 429 Rate limit exceeded for image generation
-    if liter_llm chat >/dev/null 2>&1; then
-        echo 'FAIL [error]: expected command to fail but it succeeded' >&2
-        return 1
-    fi
+  # 429 Rate limit exceeded for image generation
+  if liter_llm chat >/dev/null 2>&1; then
+    echo 'FAIL [error]: expected command to fail but it succeeded' >&2
+    return 1
+  fi
 }
 
 test_smoke_image_basic() {
-    # Basic image generation with a text prompt
-    local output
-    output=$(liter_llm chat)
+  # Basic image generation with a text prompt
+  local output
+  output=$(liter_llm chat)
 
-    # TODO: unsupported assertion type: count_equals
-    local val_data_0__url
-    val_data_0__url=$(echo "$output" | jq -r '.data[0].url')
-    assert_not_empty "$val_data_0__url" 'data[0].url'
+  # TODO: unsupported assertion type: count_equals
+  local val_data_0__url
+  val_data_0__url=$(echo "$output" | jq -r '.data[0].url')
+  assert_not_empty "$val_data_0__url" 'data[0].url'
 }
 
 test_smoke_image_multiple() {
-    # Image generation requesting multiple images
-    local output
-    output=$(liter_llm chat)
+  # Image generation requesting multiple images
+  local output
+  output=$(liter_llm chat)
 
-    # TODO: unsupported assertion type: count_equals
-    local val_data_0__url
-    val_data_0__url=$(echo "$output" | jq -r '.data[0].url')
-    assert_not_empty "$val_data_0__url" 'data[0].url'
+  # TODO: unsupported assertion type: count_equals
+  local val_data_0__url
+  val_data_0__url=$(echo "$output" | jq -r '.data[0].url')
+  assert_not_empty "$val_data_0__url" 'data[0].url'
 }
 
 test_smoke_image_with_size() {
-    # Image generation with explicit size parameter
-    local output
-    output=$(liter_llm chat)
+  # Image generation with explicit size parameter
+  local output
+  output=$(liter_llm chat)
 
-    # TODO: unsupported assertion type: count_equals
-    local val_data_0__url
-    val_data_0__url=$(echo "$output" | jq -r '.data[0].url')
-    assert_not_empty "$val_data_0__url" 'data[0].url'
+  # TODO: unsupported assertion type: count_equals
+  local val_data_0__url
+  val_data_0__url=$(echo "$output" | jq -r '.data[0].url')
+  assert_not_empty "$val_data_0__url" 'data[0].url'
 }
 
 run_tests_image_generate() {
-    run_test test_edge_image_b64_response
-    run_test test_edge_image_empty_prompt
-    run_test test_error_image_auth_401
-    run_test test_error_image_bad_request
-    run_test test_error_image_rate_limit
-    run_test test_smoke_image_basic
-    run_test test_smoke_image_multiple
-    run_test test_smoke_image_with_size
+  run_test test_edge_image_b64_response
+  run_test test_edge_image_empty_prompt
+  run_test test_error_image_auth_401
+  run_test test_error_image_bad_request
+  run_test test_error_image_rate_limit
+  run_test test_smoke_image_basic
+  run_test test_smoke_image_multiple
+  run_test test_smoke_image_with_size
 }

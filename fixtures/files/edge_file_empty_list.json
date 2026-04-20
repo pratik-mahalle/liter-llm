@@ -2,10 +2,7 @@
 	"id": "edge_file_empty_list",
 	"description": "List files when no files have been uploaded",
 	"category": "files",
-	"tags": [
-		"edge-case",
-		"files"
-	],
+	"tags": ["edge-case", "files"],
 	"call": "list_files",
 	"input": {},
 	"mock_response": {

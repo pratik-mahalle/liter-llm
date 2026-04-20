@@ -2,18 +2,12 @@
 	"id": "edge_rerank_empty_query",
 	"description": "Reranking with an empty query string",
 	"category": "rerank",
-	"tags": [
-		"edge-case",
-		"rerank"
-	],
+	"tags": ["edge-case", "rerank"],
 	"call": "rerank",
 	"input": {
 		"model": "rerank-v3.5",
 		"query": "",
-		"documents": [
-			"Some document",
-			"Another document"
-		]
+		"documents": ["Some document", "Another document"]
 	},
 	"mock_response": {
 		"status": 200,

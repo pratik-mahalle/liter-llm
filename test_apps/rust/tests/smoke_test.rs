@@ -294,4 +294,3 @@ async fn test_vertex_embed() {
     // TODO: unsupported assertion type: count_equals
     // TODO: unsupported assertion type: count_equals
 }
-

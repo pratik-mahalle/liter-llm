@@ -6,7 +6,7 @@ declare(strict_types=1);
 namespace Kreuzberg\E2e;
 
 use PHPUnit\Framework\TestCase;
-use LiterLlm\LiterLlm;
+use Liter\Llm\LiterLlm;
 
 /** E2e tests for category: batches. */
 final class BatchesTest extends TestCase

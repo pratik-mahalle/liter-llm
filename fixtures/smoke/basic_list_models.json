@@ -2,9 +2,7 @@
 	"id": "basic_list_models",
 	"description": "List available models from the API",
 	"category": "smoke",
-	"tags": [
-		"smoke"
-	],
+	"tags": ["smoke"],
 	"call": "list_models",
 	"input": {},
 	"mock_response": {

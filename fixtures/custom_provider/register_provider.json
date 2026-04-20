@@ -2,9 +2,7 @@
 	"id": "register_provider",
 	"description": "Tests that a custom provider can be registered and routes requests",
 	"category": "custom_provider",
-	"tags": [
-		"custom_provider"
-	],
+	"tags": ["custom_provider"],
 	"call": "chat",
 	"input": {
 		"model": "my-model-v1",

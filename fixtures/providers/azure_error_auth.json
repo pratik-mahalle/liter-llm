@@ -2,10 +2,7 @@
 	"id": "azure_error_auth",
 	"description": "Azure OpenAI returns a 401 Unauthorized error when the API key is missing or invalid — uses Azure's error envelope shape with code AccessDenied",
 	"category": "error-handling",
-	"tags": [
-		"error-handling",
-		"azure"
-	],
+	"tags": ["error-handling", "azure"],
 	"call": "chat",
 	"input": {
 		"model": "azure/gpt-4",

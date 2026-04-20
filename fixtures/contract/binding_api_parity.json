@@ -2,10 +2,7 @@
 	"id": "binding_api_parity",
 	"description": "Verify all bindings expose the full API surface — constructor accepts all config options and every method exists",
 	"category": "contract",
-	"tags": [
-		"contract",
-		"parity"
-	],
+	"tags": ["contract", "parity"],
 	"call": "chat",
 	"input": {
 		"model": "openai/gpt-4o",

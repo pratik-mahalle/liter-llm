@@ -2,11 +2,7 @@
 	"id": "local_provider_vllm",
 	"description": "vLLM local provider routes requests via vllm/ model prefix with no auth",
 	"category": "configuration",
-	"tags": [
-		"configuration",
-		"local",
-		"vllm"
-	],
+	"tags": ["configuration", "local", "vllm"],
 	"call": "chat",
 	"input": {
 		"model": "vllm/meta-llama/Llama-3.2-1B",

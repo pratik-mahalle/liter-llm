@@ -91,4 +91,3 @@ async fn test_smoke_transcribe_with_language() {
     let result = chat(request).await.expect("should succeed");
     assert!(format!("{:?}", result.text).contains(r#"Hallo, dies ist ein Testtranskription."#), "expected to contain: {}", r#"Hallo, dies ist ein Testtranskription."#);
 }
-

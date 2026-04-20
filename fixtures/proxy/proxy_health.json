@@ -2,10 +2,7 @@
 	"id": "proxy_health",
 	"description": "Health check verifying proxy connectivity via list models",
 	"category": "proxy",
-	"tags": [
-		"proxy",
-		"health"
-	],
+	"tags": ["proxy", "health"],
 	"call": "list_models",
 	"input": {},
 	"mock_response": {

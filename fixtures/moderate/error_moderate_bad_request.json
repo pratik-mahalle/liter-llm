@@ -2,10 +2,7 @@
 	"id": "error_moderate_bad_request",
 	"description": "400 Bad Request for moderation with invalid model",
 	"category": "moderate",
-	"tags": [
-		"error-handling",
-		"moderate"
-	],
+	"tags": ["error-handling", "moderate"],
 	"call": "moderate",
 	"input": {
 		"model": "nonexistent-moderation",

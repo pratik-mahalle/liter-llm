@@ -18,11 +18,13 @@
 {% include 'partials/napi_implementation.md' %}
 
 {% endif %}
+
 ## Features
 
 {% include 'partials/features.md' %}
 
 {% if features.provider_routing %}
+
 ## Provider Routing
 
 Route to 143+ providers using the `provider/model` prefix convention:

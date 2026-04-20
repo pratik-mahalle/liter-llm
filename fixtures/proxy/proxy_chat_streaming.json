@@ -2,10 +2,7 @@
 	"id": "proxy_chat_streaming",
 	"description": "Streaming chat completion routed through the proxy",
 	"category": "proxy",
-	"tags": [
-		"proxy",
-		"streaming"
-	],
+	"tags": ["proxy", "streaming"],
 	"call": "chat_stream",
 	"input": {
 		"model": "openai/gpt-4o",

@@ -2,10 +2,7 @@
 	"id": "proxy_image_generate",
 	"description": "Image generation request routed through the proxy",
 	"category": "proxy",
-	"tags": [
-		"proxy",
-		"image"
-	],
+	"tags": ["proxy", "image"],
 	"call": "image_generate",
 	"input": {
 		"model": "dall-e-3",

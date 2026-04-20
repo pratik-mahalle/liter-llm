@@ -13,19 +13,25 @@ pip install {{ package_name }}
 Install via your preferred package manager:
 
 {% if "npm" in package_manager %}
+
 ```bash
 npm install {{ package_name }}
 ```
+
 {% endif %}
 {% if "pnpm" in package_manager %}
+
 ```bash
 pnpm add {{ package_name }}
 ```
+
 {% endif %}
 {% if "yarn" in package_manager %}
+
 ```bash
 yarn add {{ package_name }}
 ```
+
 {% endif %}
 
 {% elif pm == "go get" %}
@@ -208,6 +214,7 @@ dotnet add package {{ package_name }}
 ### System Requirements
 
 {% if language == "python" %}
+
 - **Python 3.10+** required
 - API keys via environment variables (e.g. `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`)
 {% elif language == "typescript" %}
@@ -223,6 +230,7 @@ Pre-built binaries available for:
 - Windows (x64)
 
 {% elif language == "go" %}
+
 - **Go 1.21+** required
 - API keys via environment variables (e.g. `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`)
 {% elif language == "java" %}

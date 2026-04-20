@@ -182,4 +182,3 @@ async fn test_smoke_retrieve_batch() {
     assert!(!result.id.is_empty(), "expected non-empty value");
     assert_eq!(result.status.trim(), r#"in_progress"#, "equals assertion failed");
 }
-

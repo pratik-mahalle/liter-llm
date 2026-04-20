@@ -2,10 +2,7 @@
 	"id": "anthropic_chat",
 	"description": "Basic chat completion via the Anthropic provider (claude-3-5-sonnet-20241022) with system and user messages",
 	"category": "smoke",
-	"tags": [
-		"smoke",
-		"anthropic"
-	],
+	"tags": ["smoke", "anthropic"],
 	"call": "chat",
 	"input": {
 		"model": "anthropic/claude-3-5-sonnet-20241022",

@@ -2,9 +2,7 @@
 	"id": "response_format_json_object",
 	"description": "Chat request with response_format json_object that returns valid JSON content",
 	"category": "chat",
-	"tags": [
-		"chat"
-	],
+	"tags": ["chat"],
 	"call": "chat",
 	"input": {
 		"model": "gpt-4",

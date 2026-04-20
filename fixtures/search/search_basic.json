@@ -2,10 +2,7 @@
 	"id": "search_basic",
 	"description": "Basic web search request with a simple query",
 	"category": "search",
-	"tags": [
-		"search",
-		"smoke"
-	],
+	"tags": ["search", "smoke"],
 	"call": "search",
 	"input": {
 		"model": "brave/web-search",

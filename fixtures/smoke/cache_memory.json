@@ -2,11 +2,7 @@
 	"id": "smoke_cache_memory",
 	"description": "Test in-memory caching by sending identical requests twice",
 	"category": "smoke",
-	"tags": [
-		"smoke",
-		"openai",
-		"cache"
-	],
+	"tags": ["smoke", "openai", "cache"],
 	"call": "chat",
 	"input": {
 		"model": "openai/gpt-4o-mini",

@@ -57,4 +57,3 @@ async fn test_contract_search() {
     let request = serde_json::from_value(request_json).unwrap();
     let _ = chat(request).await.expect("should succeed");
 }
-

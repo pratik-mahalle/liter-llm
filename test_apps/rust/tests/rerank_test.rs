@@ -130,4 +130,3 @@ async fn test_smoke_rerank_with_top_n() {
     // TODO: unsupported assertion type: count_equals
     assert!(result.results.get("0").map(|s| s.as_str()).relevance_score > 0.9_f64, "expected > 0.9_f64");
 }
-

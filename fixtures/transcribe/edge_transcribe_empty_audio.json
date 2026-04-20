@@ -2,10 +2,7 @@
 	"id": "edge_transcribe_empty_audio",
 	"description": "Transcription of a silent or empty audio file returns empty text",
 	"category": "transcribe",
-	"tags": [
-		"edge-case",
-		"transcribe"
-	],
+	"tags": ["edge-case", "transcribe"],
 	"call": "transcribe",
 	"input": {
 		"model": "whisper-1",

@@ -2,10 +2,7 @@
 	"id": "multimodal_content",
 	"description": "User message with mixed text and image_url content parts to verify multimodal serialization",
 	"category": "types",
-	"tags": [
-		"types",
-		"multimodal"
-	],
+	"tags": ["types", "multimodal"],
 	"call": "chat",
 	"input": {
 		"model": "gpt-4o",

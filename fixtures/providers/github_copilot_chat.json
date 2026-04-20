@@ -2,10 +2,7 @@
 	"id": "github_copilot_chat",
 	"description": "Basic chat completion via the GitHub Copilot provider (gpt-4o) with a single user message",
 	"category": "smoke",
-	"tags": [
-		"smoke",
-		"github_copilot"
-	],
+	"tags": ["smoke", "github_copilot"],
 	"call": "chat",
 	"input": {
 		"model": "github_copilot/gpt-4o",

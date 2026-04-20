@@ -2,9 +2,7 @@
 	"id": "basic_chat",
 	"description": "Basic chat completion with a single user message",
 	"category": "smoke",
-	"tags": [
-		"smoke"
-	],
+	"tags": ["smoke"],
 	"call": "chat",
 	"input": {
 		"model": "gpt-4",

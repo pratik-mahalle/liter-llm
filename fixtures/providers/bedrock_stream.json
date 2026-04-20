@@ -2,10 +2,7 @@
 	"id": "bedrock_stream",
 	"description": "Streaming chat completion via the AWS Bedrock provider using the bedrock/ prefix — verifies SSE chunks are yielded and assembled correctly from the Converse streaming API",
 	"category": "streaming",
-	"tags": [
-		"streaming",
-		"bedrock"
-	],
+	"tags": ["streaming", "bedrock"],
 	"call": "chat_stream",
 	"input": {
 		"model": "bedrock/anthropic.claude-3-sonnet-20240229-v1:0",

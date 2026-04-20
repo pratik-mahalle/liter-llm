@@ -2,10 +2,7 @@
 	"id": "azure_stream",
 	"description": "Streaming chat completion via Azure OpenAI — verifies the azure/ prefix routes correctly and SSE chunks are delivered in the standard OpenAI chat.completion.chunk shape",
 	"category": "streaming",
-	"tags": [
-		"streaming",
-		"azure"
-	],
+	"tags": ["streaming", "azure"],
 	"call": "chat_stream",
 	"input": {
 		"model": "azure/gpt-4",

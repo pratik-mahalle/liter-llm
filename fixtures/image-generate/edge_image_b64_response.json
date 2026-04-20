@@ -2,10 +2,7 @@
 	"id": "edge_image_b64_response",
 	"description": "Image generation returning base64-encoded data instead of URL",
 	"category": "image-generate",
-	"tags": [
-		"edge-case",
-		"image"
-	],
+	"tags": ["edge-case", "image"],
 	"call": "image_generate",
 	"input": {
 		"model": "dall-e-3",

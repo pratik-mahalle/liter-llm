@@ -83,6 +83,7 @@ CGO_LDFLAGS="-L$HOME/liter-llm/lib -lliter_llm_ffi" go build
 ## Quickstart
 
 {% raw %}
+
 ```go
 package main
 
@@ -110,6 +111,7 @@ func main() {
 	fmt.Println(resp.Content)
 }
 ```
+
 {% endraw %}
 
 Build and run:
@@ -124,6 +126,7 @@ CGO_LDFLAGS="-L$HOME/liter-llm/lib -lliter_llm_ffi" go build
 ### Streaming Responses
 
 {% raw %}
+
 ```go
 stream, err := client.ChatStream(ctx, literllm.ChatRequest{
 	Model:    "openai/gpt-4o",
@@ -138,11 +141,13 @@ for chunk := range stream.Chunks() {
 	fmt.Print(chunk.Delta)
 }
 ```
+
 {% endraw %}
 
 ### Multiple Providers
 
 {% raw %}
+
 ```go
 // OpenAI
 resp, _ := client.Chat(ctx, literllm.ChatRequest{Model: "openai/gpt-4o", Messages: msgs})
@@ -153,11 +158,13 @@ resp, _ = client.Chat(ctx, literllm.ChatRequest{Model: "anthropic/claude-3-5-son
 // Groq
 resp, _ = client.Chat(ctx, literllm.ChatRequest{Model: "groq/llama-3.1-70b-versatile", Messages: msgs})
 ```
+
 {% endraw %}
 
 ### Context-Aware Requests
 
 {% raw %}
+
 ```go
 ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 defer cancel()
@@ -171,6 +178,7 @@ if err != nil {
 }
 fmt.Println(resp.Content)
 ```
+
 {% endraw %}
 
 {% include 'partials/proxy_server.md' %}
@@ -178,7 +186,7 @@ fmt.Println(resp.Content)
 ## API Reference
 
 - **[Documentation](https://docs.liter-llm.kreuzberg.dev)** -- Full docs and API reference
-- **GoDoc**: [pkg.go.dev/{{ package_name }}](https://pkg.go.dev/{{ package_name }})
+- **GoDoc**: [pkg.go.dev/{{ package_name }}](<https://pkg.go.dev/{{> package_name }})
 - **Provider Registry**: [schemas/providers.json](https://github.com/kreuzberg-dev/liter-llm/blob/main/schemas/providers.json)
 - **GitHub Repository**: [github.com/kreuzberg-dev/liter-llm](https://github.com/kreuzberg-dev/liter-llm)
 

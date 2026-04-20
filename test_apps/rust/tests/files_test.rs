@@ -178,4 +178,3 @@ async fn test_smoke_retrieve_file() {
     let result = chat(request).await.expect("should succeed");
     assert!(!result.id.is_empty(), "expected non-empty value");
 }
-

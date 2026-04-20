@@ -2,12 +2,7 @@
 	"id": "smoke_provider_routing",
 	"description": "Test provider routing by sending requests to OpenAI and Anthropic",
 	"category": "smoke",
-	"tags": [
-		"smoke",
-		"openai",
-		"anthropic",
-		"routing"
-	],
+	"tags": ["smoke", "openai", "anthropic", "routing"],
 	"call": "chat",
 	"input": {
 		"model": "openai/gpt-4o-mini",

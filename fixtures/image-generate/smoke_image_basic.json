@@ -2,10 +2,7 @@
 	"id": "smoke_image_basic",
 	"description": "Basic image generation with a text prompt",
 	"category": "image-generate",
-	"tags": [
-		"smoke",
-		"image"
-	],
+	"tags": ["smoke", "image"],
 	"call": "image_generate",
 	"input": {
 		"model": "dall-e-3",

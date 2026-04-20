@@ -2,10 +2,7 @@
 	"id": "proxy_chat_basic",
 	"description": "Basic chat completion request routed through the proxy",
 	"category": "proxy",
-	"tags": [
-		"proxy",
-		"chat"
-	],
+	"tags": ["proxy", "chat"],
 	"call": "chat",
 	"input": {
 		"model": "openai/gpt-4o",

@@ -2,10 +2,7 @@
 	"id": "proxy_moderation",
 	"description": "Content moderation request routed through the proxy",
 	"category": "proxy",
-	"tags": [
-		"proxy",
-		"moderate"
-	],
+	"tags": ["proxy", "moderate"],
 	"call": "moderate",
 	"input": {
 		"model": "omni-moderation-latest",

@@ -148,4 +148,3 @@ async fn test_smoke_image_with_size() {
     // TODO: unsupported assertion type: count_equals
     assert!(!result.data.get("0").map(|s| s.as_str()).url.is_empty(), "expected non-empty value");
 }
-

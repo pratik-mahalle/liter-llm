@@ -2,10 +2,7 @@
 	"id": "edge_moderate_empty_input",
 	"description": "Moderation with empty string input",
 	"category": "moderate",
-	"tags": [
-		"edge-case",
-		"moderate"
-	],
+	"tags": ["edge-case", "moderate"],
 	"call": "moderate",
 	"input": {
 		"model": "omni-moderation-latest",

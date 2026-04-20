@@ -2,10 +2,7 @@
 	"id": "smoke_speech_basic",
 	"description": "Basic text-to-speech generation",
 	"category": "speech",
-	"tags": [
-		"smoke",
-		"speech"
-	],
+	"tags": ["smoke", "speech"],
 	"call": "speech",
 	"input": {
 		"model": "tts-1",

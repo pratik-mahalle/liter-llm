@@ -2,9 +2,7 @@
 	"id": "cache_hit",
 	"description": "Tests that identical chat requests return cached response",
 	"category": "cache",
-	"tags": [
-		"cache"
-	],
+	"tags": ["cache"],
 	"call": "chat",
 	"input": {
 		"model": "gpt-4",

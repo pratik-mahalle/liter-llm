@@ -225,4 +225,3 @@ async fn test_proxy_upstream_500() {
     assert!(result.is_err(), "expected call to fail");
     assert!(result.as_ref().unwrap_err().to_string().contains("ServerError"), "error message mismatch");
 }
-

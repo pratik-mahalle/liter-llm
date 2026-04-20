@@ -4,12 +4,12 @@
 set -euo pipefail
 
 test_ocr_url_document() {
-    # OCR request with a document URL input
-    local output
-    output=$(liter_llm chat)
+  # OCR request with a document URL input
+  local output
+  output=$(liter_llm chat)
 
 }
 
 run_tests_ocr() {
-    run_test test_ocr_url_document
+  run_test test_ocr_url_document
 }

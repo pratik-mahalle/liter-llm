@@ -2,10 +2,7 @@
 	"id": "smoke_cancel_response",
 	"description": "Cancel an in-progress response",
 	"category": "responses",
-	"tags": [
-		"smoke",
-		"responses"
-	],
+	"tags": ["smoke", "responses"],
 	"call": "cancel_response",
 	"input": {
 		"response_id": "resp-def456"

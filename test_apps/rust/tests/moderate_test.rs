@@ -130,4 +130,3 @@ async fn test_smoke_moderate_single() {
     // TODO: unsupported assertion type: count_equals
     assert!(!result.results.get("0").map(|s| s.as_str()).flagged, "equals assertion failed");
 }
-

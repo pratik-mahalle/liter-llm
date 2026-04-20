@@ -2,10 +2,7 @@
 	"id": "error_image_rate_limit",
 	"description": "429 Rate limit exceeded for image generation",
 	"category": "image-generate",
-	"tags": [
-		"error-handling",
-		"image"
-	],
+	"tags": ["error-handling", "image"],
 	"call": "image_generate",
 	"input": {
 		"model": "dall-e-3",

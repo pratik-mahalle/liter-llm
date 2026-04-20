@@ -2,10 +2,7 @@
 	"id": "proxy_models_list",
 	"description": "List models request routed through the proxy",
 	"category": "proxy",
-	"tags": [
-		"proxy",
-		"list-models"
-	],
+	"tags": ["proxy", "list-models"],
 	"call": "list_models",
 	"input": {},
 	"mock_response": {

@@ -2,10 +2,7 @@
 	"id": "error_response_not_found",
 	"description": "404 Not Found when retrieving a nonexistent response",
 	"category": "responses",
-	"tags": [
-		"error-handling",
-		"responses"
-	],
+	"tags": ["error-handling", "responses"],
 	"call": "retrieve_response",
 	"input": {
 		"response_id": "resp-nonexistent"

@@ -2,10 +2,7 @@
 	"id": "error_batch_not_found",
 	"description": "404 Not Found when retrieving a nonexistent batch",
 	"category": "batches",
-	"tags": [
-		"error-handling",
-		"batches"
-	],
+	"tags": ["error-handling", "batches"],
 	"call": "retrieve_batch",
 	"input": {
 		"batch_id": "batch-nonexistent"

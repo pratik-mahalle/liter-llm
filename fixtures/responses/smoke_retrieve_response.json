@@ -2,10 +2,7 @@
 	"id": "smoke_retrieve_response",
 	"description": "Retrieve a previously created response",
 	"category": "responses",
-	"tags": [
-		"smoke",
-		"responses"
-	],
+	"tags": ["smoke", "responses"],
 	"call": "retrieve_response",
 	"input": {
 		"response_id": "resp-abc123"

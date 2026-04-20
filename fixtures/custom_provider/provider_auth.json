@@ -2,9 +2,7 @@
 	"id": "provider_auth",
 	"description": "Tests custom provider with custom auth header",
 	"category": "custom_provider",
-	"tags": [
-		"custom_provider"
-	],
+	"tags": ["custom_provider"],
 	"call": "chat",
 	"input": {
 		"model": "my-auth-model-v1",

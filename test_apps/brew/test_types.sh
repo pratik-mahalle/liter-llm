@@ -4,28 +4,28 @@
 set -euo pipefail
 
 test_all_message_types() {
-    # Request with all message role types (system, user, assistant, tool) to verify round-trip serialization
-    local output
-    output=$(liter_llm chat)
+  # Request with all message role types (system, user, assistant, tool) to verify round-trip serialization
+  local output
+  output=$(liter_llm chat)
 
-    # TODO: unsupported assertion type: count_equals
-    local val_choices_0__finish_reason
-    val_choices_0__finish_reason=$(echo "$output" | jq -r '.choices[0].finish_reason')
-    assert_equals "$val_choices_0__finish_reason" 'stop' 'choices[0].finish_reason'
+  # TODO: unsupported assertion type: count_equals
+  local val_choices_0__finish_reason
+  val_choices_0__finish_reason=$(echo "$output" | jq -r '.choices[0].finish_reason')
+  assert_equals "$val_choices_0__finish_reason" 'stop' 'choices[0].finish_reason'
 }
 
 test_multimodal_content() {
-    # User message with mixed text and image_url content parts to verify multimodal serialization
-    local output
-    output=$(liter_llm chat)
+  # User message with mixed text and image_url content parts to verify multimodal serialization
+  local output
+  output=$(liter_llm chat)
 
-    # TODO: unsupported assertion type: count_equals
-    local val_choices_0__finish_reason
-    val_choices_0__finish_reason=$(echo "$output" | jq -r '.choices[0].finish_reason')
-    assert_equals "$val_choices_0__finish_reason" 'stop' 'choices[0].finish_reason'
+  # TODO: unsupported assertion type: count_equals
+  local val_choices_0__finish_reason
+  val_choices_0__finish_reason=$(echo "$output" | jq -r '.choices[0].finish_reason')
+  assert_equals "$val_choices_0__finish_reason" 'stop' 'choices[0].finish_reason'
 }
 
 run_tests_types() {
-    run_test test_all_message_types
-    run_test test_multimodal_content
+  run_test test_all_message_types
+  run_test test_multimodal_content
 }

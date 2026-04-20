@@ -2,9 +2,7 @@
 	"id": "cache_stream_bypass",
 	"description": "Tests that streaming requests bypass cache entirely",
 	"category": "cache",
-	"tags": [
-		"cache"
-	],
+	"tags": ["cache"],
 	"call": "chat_stream",
 	"input": {
 		"model": "gpt-4",

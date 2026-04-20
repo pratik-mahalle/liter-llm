@@ -2,11 +2,7 @@
 	"id": "smoke_chat_gemini",
 	"description": "Basic chat completion against real Google Gemini API",
 	"category": "smoke",
-	"tags": [
-		"smoke",
-		"gemini",
-		"chat"
-	],
+	"tags": ["smoke", "gemini", "chat"],
 	"call": "chat",
 	"input": {
 		"model": "gemini/gemini-2.5-flash-lite",

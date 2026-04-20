@@ -2,17 +2,11 @@
 	"id": "smoke_moderate_batch",
 	"description": "Moderate multiple inputs in a single request",
 	"category": "moderate",
-	"tags": [
-		"smoke",
-		"moderate"
-	],
+	"tags": ["smoke", "moderate"],
 	"call": "moderate",
 	"input": {
 		"model": "omni-moderation-latest",
-		"input": [
-			"Hello world",
-			"Nice weather today"
-		]
+		"input": ["Hello world", "Nice weather today"]
 	},
 	"mock_response": {
 		"status": 200,

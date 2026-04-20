@@ -72,4 +72,3 @@ async fn test_cache_stream_bypass() {
     let result = chat(request).await.expect("should succeed");
     // TODO: unsupported assertion type: is_true
 }
-

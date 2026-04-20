@@ -2,9 +2,7 @@
 	"id": "basic_stream",
 	"description": "Streaming chat completion that produces content across multiple SSE chunks",
 	"category": "streaming",
-	"tags": [
-		"streaming"
-	],
+	"tags": ["streaming"],
 	"call": "chat_stream",
 	"input": {
 		"model": "gpt-4",

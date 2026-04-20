@@ -2,11 +2,7 @@
 	"id": "smoke_chat_openai",
 	"description": "Basic chat completion against real OpenAI API",
 	"category": "smoke",
-	"tags": [
-		"smoke",
-		"openai",
-		"chat"
-	],
+	"tags": ["smoke", "openai", "chat"],
 	"call": "chat",
 	"input": {
 		"model": "openai/gpt-4o-mini",

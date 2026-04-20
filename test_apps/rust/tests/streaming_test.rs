@@ -262,4 +262,3 @@ async fn test_vertex_stream() {
     assert_eq!(result.stream_content.trim(), r#"One Two Three"#, "equals assertion failed");
     // TODO: unsupported assertion type: is_true
 }
-

@@ -2,10 +2,7 @@
 	"id": "error_batch_invalid_file",
 	"description": "400 Bad Request when creating a batch with invalid input file",
 	"category": "batches",
-	"tags": [
-		"error-handling",
-		"batches"
-	],
+	"tags": ["error-handling", "batches"],
 	"call": "create_batch",
 	"input": {
 		"input_file_id": "file-wrong-purpose",

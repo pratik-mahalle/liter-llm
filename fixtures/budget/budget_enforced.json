@@ -2,9 +2,7 @@
 	"id": "budget_enforced",
 	"description": "Tests that a request is rejected when budget is exceeded",
 	"category": "budget",
-	"tags": [
-		"budget"
-	],
+	"tags": ["budget"],
 	"skip": {
 		"languages": []
 	},

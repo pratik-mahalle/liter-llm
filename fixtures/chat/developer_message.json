@@ -2,9 +2,7 @@
 	"id": "developer_message",
 	"description": "Chat request that includes a developer role message alongside user messages",
 	"category": "chat",
-	"tags": [
-		"chat"
-	],
+	"tags": ["chat"],
 	"call": "chat",
 	"input": {
 		"model": "gpt-4",
