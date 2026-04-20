@@ -27,7 +27,7 @@ describe('chat', () => {
   it('finish_reason_length: Chat response truncated due to max_tokens limit with finish_reason of length', async () => {
     const client = await createClient('test-key', process.env.MOCK_SERVER_URL);
     const options = new WasmChatCompletionRequest();
-    options.maxTokens = 5;
+    options.maxTokens = BigInt(5);
     options.messages = [{ content: "Tell me a long story", role: "user" }];
     options.model = "gpt-4";
     const result = await client.chat(options);
@@ -89,7 +89,7 @@ describe('chat', () => {
     const options = new WasmChatCompletionRequest();
     options.messages = [{ content: "Pick a random number", role: "user" }];
     options.model = "gpt-4";
-    options.seed = 42;
+    options.seed = BigInt(42);
     const result = await client.chat(options);
     expect(result.choices.length).toBe(1);
     expect(result.choices.get("0").finishReason.trim()).toBe("stop");

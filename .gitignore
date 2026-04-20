@@ -94,6 +94,7 @@ libpdfium.a
 e2e/rust/target/
 e2e/c/test_*
 !e2e/c/test_*.c
+!e2e/c/test_*.h
 e2e/c/*.o
 e2e/c/*.dSYM/
 e2e/python/.venv/
