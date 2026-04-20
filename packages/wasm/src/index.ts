@@ -15,6 +15,7 @@ export {
 	WasmCreateSpeechRequest,
 	WasmCreateTranscriptionRequest,
 	WasmCustomProviderConfig,
+	WasmDefaultClient,
 	WasmDeveloperMessage,
 	WasmDocumentContent,
 	WasmEmbeddingFormat,
@@ -76,6 +77,8 @@ export {
 	WasmUsage,
 	WasmUserContent,
 	WasmUserMessage,
+	createClient,
+	createClientFromJson,
 	registerCustomProvider,
 	unregisterCustomProvider,
 } from "./wasm";

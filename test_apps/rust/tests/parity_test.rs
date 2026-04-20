@@ -20,4 +20,3 @@ async fn test_api_surface_parity() {
     let request = serde_json::from_value(request_json).unwrap();
     let _ = chat(request).await;
 }
-

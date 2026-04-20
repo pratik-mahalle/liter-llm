@@ -175,11 +175,6 @@ output = "packages/ruby/sig/"
 [elixir]
 app_name = "liter_llm"
 
-[wasm]
-# DefaultClient requires native-http which WASM doesn't have
-exclude_types = ["DefaultClient"]
-exclude_functions = ["create_client", "create_client_from_json"]
-
 # Streaming adapter for chat_stream
 [[adapters]]
 name = "chat_stream"

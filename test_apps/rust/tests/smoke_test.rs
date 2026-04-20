@@ -294,4 +294,3 @@ async fn test_vertex_embed() {
     assert_eq!(result.data.len(), 1, "expected exactly 1 elements, got {}", result.data.len());
     assert_eq!(result.data.get("0").map(|s| s.as_str()).embedding.len(), 160, "expected exactly 160 elements, got {}", result.data.get("0").map(|s| s.as_str()).embedding.len());
 }
-

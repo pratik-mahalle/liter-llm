@@ -148,4 +148,3 @@ async fn test_smoke_image_with_size() {
     assert_eq!(result.data.len(), 1, "expected exactly 1 elements, got {}", result.data.len());
     assert!(!result.data.get("0").map(|s| s.as_str()).url.is_empty(), "expected non-empty value");
 }
-

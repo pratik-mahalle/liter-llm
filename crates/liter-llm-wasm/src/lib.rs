@@ -3513,6 +3513,120 @@ impl WasmModelObject {
     }
 }
 
+#[derive(Clone)]
+#[wasm_bindgen]
+pub struct WasmDefaultClient {
+    inner: Arc<liter_llm::client::DefaultClient>,
+}
+
+#[wasm_bindgen]
+impl WasmDefaultClient {
+    #[allow(clippy::missing_errors_doc)]
+    #[wasm_bindgen]
+    pub async fn chat(&self, req: WasmChatCompletionRequest) -> Result<WasmChatCompletionResponse, JsValue> {
+        let result = self
+            .inner
+            .chat(req.into())
+            .await
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        Ok(result.into())
+    }
+
+    #[allow(clippy::missing_errors_doc)]
+    #[wasm_bindgen(js_name = "chatStream")]
+    pub async fn chat_stream(&self, _req: WasmChatCompletionRequest) -> Result<String, JsValue> {
+        Err(JsValue::from_str("Not implemented: chat_stream"))
+    }
+
+    #[allow(clippy::missing_errors_doc)]
+    #[wasm_bindgen]
+    pub async fn embed(&self, req: WasmEmbeddingRequest) -> Result<WasmEmbeddingResponse, JsValue> {
+        let result = self
+            .inner
+            .embed(req.into())
+            .await
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        Ok(result.into())
+    }
+
+    #[allow(clippy::missing_errors_doc)]
+    #[wasm_bindgen(js_name = "listModels")]
+    pub async fn list_models(&self) -> Result<WasmModelsListResponse, JsValue> {
+        let result = self
+            .inner
+            .list_models()
+            .await
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        Ok(result.into())
+    }
+
+    #[allow(clippy::missing_errors_doc)]
+    #[wasm_bindgen(js_name = "imageGenerate")]
+    pub async fn image_generate(&self, req: WasmCreateImageRequest) -> Result<WasmImagesResponse, JsValue> {
+        let result = self
+            .inner
+            .image_generate(req.into())
+            .await
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        Ok(result.into())
+    }
+
+    #[allow(clippy::missing_errors_doc)]
+    #[wasm_bindgen]
+    pub async fn transcribe(&self, req: WasmCreateTranscriptionRequest) -> Result<WasmTranscriptionResponse, JsValue> {
+        let result = self
+            .inner
+            .transcribe(req.into())
+            .await
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        Ok(result.into())
+    }
+
+    #[allow(clippy::missing_errors_doc)]
+    #[wasm_bindgen]
+    pub async fn moderate(&self, req: WasmModerationRequest) -> Result<WasmModerationResponse, JsValue> {
+        let result = self
+            .inner
+            .moderate(req.into())
+            .await
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        Ok(result.into())
+    }
+
+    #[allow(clippy::missing_errors_doc)]
+    #[wasm_bindgen]
+    pub async fn rerank(&self, req: WasmRerankRequest) -> Result<WasmRerankResponse, JsValue> {
+        let result = self
+            .inner
+            .rerank(req.into())
+            .await
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        Ok(result.into())
+    }
+
+    #[allow(clippy::missing_errors_doc)]
+    #[wasm_bindgen]
+    pub async fn search(&self, req: WasmSearchRequest) -> Result<WasmSearchResponse, JsValue> {
+        let result = self
+            .inner
+            .search(req.into())
+            .await
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        Ok(result.into())
+    }
+
+    #[allow(clippy::missing_errors_doc)]
+    #[wasm_bindgen]
+    pub async fn ocr(&self, req: WasmOcrRequest) -> Result<WasmOcrResponse, JsValue> {
+        let result = self
+            .inner
+            .ocr(req.into())
+            .await
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        Ok(result.into())
+    }
+}
+
 #[derive(Clone, Default)]
 #[wasm_bindgen]
 pub struct WasmCustomProviderConfig {
@@ -3830,6 +3944,31 @@ impl Default for WasmAuthHeaderFormat {
     fn default() -> Self {
         Self::Bearer
     }
+}
+
+#[allow(clippy::missing_errors_doc)]
+#[wasm_bindgen(js_name = "createClient")]
+pub fn create_client(
+    api_key: String,
+    base_url: Option<String>,
+    timeout_secs: Option<u64>,
+    max_retries: Option<u32>,
+    model_hint: Option<String>,
+) -> Result<WasmDefaultClient, JsValue> {
+    let result = liter_llm::bindings::create_client(api_key, base_url, timeout_secs, max_retries, model_hint)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+    Ok(WasmDefaultClient {
+        inner: Arc::new(result),
+    })
+}
+
+#[allow(clippy::missing_errors_doc)]
+#[wasm_bindgen(js_name = "createClientFromJson")]
+pub fn create_client_from_json(json: String) -> Result<WasmDefaultClient, JsValue> {
+    let result = liter_llm::bindings::create_client_from_json(&json).map_err(|e| JsValue::from_str(&e.to_string()))?;
+    Ok(WasmDefaultClient {
+        inner: Arc::new(result),
+    })
 }
 
 #[allow(clippy::missing_errors_doc)]

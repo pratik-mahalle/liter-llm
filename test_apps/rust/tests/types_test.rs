@@ -40,4 +40,3 @@ async fn test_multimodal_content() {
     assert_eq!(result.choices.len(), 1, "expected exactly 1 elements, got {}", result.choices.len());
     assert_eq!(result.choices.get("0").map(|s| s.as_str()).finish_reason.trim(), r#"stop"#, "equals assertion failed");
 }
-

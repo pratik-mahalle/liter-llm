@@ -213,4 +213,3 @@ async fn test_tool_choice_specific() {
     assert_eq!(result.choices.get("0").map(|s| s.as_str()).message.tool_calls.get("0").map(|s| s.as_str()).function.name.trim(), r#"get_weather"#, "equals assertion failed");
     assert_eq!(result.choices.get("0").map(|s| s.as_str()).finish_reason.trim(), r#"tool_calls"#, "equals assertion failed");
 }
-

@@ -91,4 +91,3 @@ async fn test_smoke_speech_mp3_format() {
     let result = chat(request).await.expect("should succeed");
     assert!(!result.audio.is_empty(), "expected non-empty value");
 }
-

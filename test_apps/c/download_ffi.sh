@@ -12,15 +12,21 @@ OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
 ARCH="$(uname -m)"
 
 case "$ARCH" in
-    x86_64|amd64) ARCH="x86_64" ;;
-    arm64|aarch64) ARCH="aarch64" ;;
-    *) echo "Unsupported architecture: $ARCH" >&2; exit 1 ;;
+x86_64 | amd64) ARCH="x86_64" ;;
+arm64 | aarch64) ARCH="aarch64" ;;
+*)
+  echo "Unsupported architecture: $ARCH" >&2
+  exit 1
+  ;;
 esac
 
 case "$OS" in
-    linux)  TRIPLE="${ARCH}-unknown-linux-gnu" ;;
-    darwin) TRIPLE="${ARCH}-apple-darwin" ;;
-    *)      echo "Unsupported OS: $OS" >&2; exit 1 ;;
+linux) TRIPLE="${ARCH}-unknown-linux-gnu" ;;
+darwin) TRIPLE="${ARCH}-apple-darwin" ;;
+*)
+  echo "Unsupported OS: $OS" >&2
+  exit 1
+  ;;
 esac
 
 ARCHIVE="${FFI_PKG_NAME}-${TRIPLE}.tar.gz"

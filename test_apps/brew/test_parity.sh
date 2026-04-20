@@ -4,11 +4,11 @@
 set -euo pipefail
 
 test_api_surface_parity() {
-    # Canonical API surface definition for cross-binding parity verification
-    liter_llm chat >/dev/null
+  # Canonical API surface definition for cross-binding parity verification
+  liter_llm chat >/dev/null
 
 }
 
 run_tests_parity() {
-    run_test test_api_surface_parity
+  run_test test_api_surface_parity
 }

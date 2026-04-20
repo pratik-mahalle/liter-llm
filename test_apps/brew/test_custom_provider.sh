@@ -4,20 +4,20 @@
 set -euo pipefail
 
 test_provider_auth() {
-    # Tests custom provider with custom auth header
-    local output
-    output=$(liter_llm chat)
+  # Tests custom provider with custom auth header
+  local output
+  output=$(liter_llm chat)
 
 }
 
 test_register_provider() {
-    # Tests that a custom provider can be registered and routes requests
-    local output
-    output=$(liter_llm chat)
+  # Tests that a custom provider can be registered and routes requests
+  local output
+  output=$(liter_llm chat)
 
 }
 
 run_tests_custom_provider() {
-    run_test test_provider_auth
-    run_test test_register_provider
+  run_test test_provider_auth
+  run_test test_register_provider
 }

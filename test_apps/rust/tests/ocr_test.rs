@@ -20,4 +20,3 @@ async fn test_ocr_url_document() {
     let request = serde_json::from_value(request_json).unwrap();
     let _ = chat(request).await.expect("should succeed");
 }
-

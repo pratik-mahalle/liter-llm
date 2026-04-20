@@ -94,4 +94,3 @@ async fn test_local_embed_ollama() {
     assert_eq!(result.data.len(), 1, "expected exactly 1 elements, got {}", result.data.len());
     assert_eq!(result.data.get("0").map(|s| s.as_str()).embedding.len(), 32, "expected exactly 32 elements, got {}", result.data.get("0").map(|s| s.as_str()).embedding.len());
 }
-

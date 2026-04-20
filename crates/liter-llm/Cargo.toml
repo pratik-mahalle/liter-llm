@@ -67,13 +67,13 @@ default = ["native-http"]
 
 [dependencies]
 aws-credential-types = { version = "1", optional = true }
-gloo-timers = { version = "0.3", features = ["futures"], optional = true }
 aws-sigv4 = { version = "1", features = ["sign-http", "http1"], optional = true }
 base64 = { workspace = true, optional = true }
 bytes = { workspace = true }
 dashmap = { workspace = true, optional = true }
 futures-core = { workspace = true }
 futures-util = { workspace = true, optional = true }
+gloo-timers = { version = "0.3", features = ["futures"], optional = true }
 jsonwebtoken = { workspace = true, optional = true }
 memchr = { workspace = true, optional = true }
 opendal = { workspace = true, optional = true }

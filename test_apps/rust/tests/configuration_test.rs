@@ -102,4 +102,3 @@ async fn test_local_provider_vllm() {
     assert_eq!(result.choices.get("0").map(|s| s.as_str()).finish_reason.trim(), r#"stop"#, "equals assertion failed");
     assert_eq!(result.model.trim(), r#"meta-llama/Llama-3.2-1B"#, "equals assertion failed");
 }
-

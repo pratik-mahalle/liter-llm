@@ -4,12 +4,12 @@
 set -euo pipefail
 
 test_search_basic() {
-    # Basic web search request with a simple query
-    local output
-    output=$(liter_llm chat)
+  # Basic web search request with a simple query
+  local output
+  output=$(liter_llm chat)
 
 }
 
 run_tests_search() {
-    run_test test_search_basic
+  run_test test_search_basic
 }

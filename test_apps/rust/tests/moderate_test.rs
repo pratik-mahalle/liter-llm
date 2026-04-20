@@ -130,4 +130,3 @@ async fn test_smoke_moderate_single() {
     assert_eq!(result.results.len(), 1, "expected exactly 1 elements, got {}", result.results.len());
     assert!(!result.results.get("0").map(|s| s.as_str()).flagged, "equals assertion failed");
 }
-
