@@ -465,6 +465,9 @@ name = "request"
 field = "input"
 type = "json_object"
 
+[e2e.call.overrides.php]
+php_client_factory = "createClient"
+
 # Named call configs for each API method
 [e2e.calls.chat]
 function = "chat"
