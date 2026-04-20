@@ -1762,7 +1762,7 @@ impl DefaultClient {
         let req_core: liter_llm::ChatCompletionRequest = req.into();
         let inner = self.inner.clone();
         let stream = pyo3_async_runtimes::tokio::get_runtime()
-            .block_on(inner.chat_stream(req.into()))
+            .block_on(inner.chat_stream(req_core))
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
         let iter = ChatStreamIterator {
             inner: Arc::new(tokio::sync::Mutex::new(stream)),
