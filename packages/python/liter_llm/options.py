@@ -17,7 +17,7 @@ class ImageDetail(str, Enum):
 
 
 class ToolType(str, Enum):
-    """The type discriminator for tool/tool-call objects. Per the OpenAI spec this"""
+    """The type discriminator for tool/tool-call objects."""
 
     FUNCTION = "function"
 

@@ -73,7 +73,7 @@ bytes = { workspace = true }
 dashmap = { workspace = true, optional = true }
 futures-core = { workspace = true }
 futures-util = { workspace = true, optional = true }
-gloo-timers = { version = "0.3", features = ["futures"], optional = true }
+gloo-timers = { version = "0.4", features = ["futures"], optional = true }
 jsonwebtoken = { workspace = true, optional = true }
 memchr = { workspace = true, optional = true }
 opendal = { workspace = true, optional = true }

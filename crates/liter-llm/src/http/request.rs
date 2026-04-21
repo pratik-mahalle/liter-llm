@@ -48,9 +48,9 @@ where
 
         if let Some(delay) = retry::should_retry(status, attempt, max_retries, server_retry_after) {
             attempt += 1;
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(feature = "native-http")]
             tokio::time::sleep(delay).await;
-            #[cfg(target_arch = "wasm32")]
+            #[cfg(feature = "wasm-http")]
             gloo_timers::future::sleep(std::time::Duration::from_millis(delay.as_millis() as u64)).await;
             continue;
         }

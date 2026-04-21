@@ -6,9 +6,11 @@ using System.Text.Json.Serialization;
 namespace LiterLlm;
 
 /// <summary>
-/// The type discriminator for tool/tool-call objects. Per the OpenAI spec this
-/// is always `"function"`. Using an enum enforces that constraint at the type
-/// level and rejects any other value on deserialization.
+/// The type discriminator for tool/tool-call objects.
+///
+/// Per the OpenAI spec this is always `"function"`. Using an enum enforces
+/// that constraint at the type level and rejects any other value on
+/// deserialization.
 /// </summary>
 public enum ToolType
 {

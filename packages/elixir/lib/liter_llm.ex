@@ -15,19 +15,34 @@ defmodule LiterLlm do
   end
 
   @doc "Create a new LLM client with simple scalar configuration."
-  @spec create_client(String.t(), String.t() | nil, non_neg_integer() | nil) :: {:ok, reference()} | {:error, String.t()}
+  @spec create_client(
+          String.t(),
+          String.t() | nil,
+          non_neg_integer() | nil
+        ) :: {:ok, reference()} | {:error, String.t()}
   def create_client(api_key, base_url, timeout_secs) do
     LiterLlm.Native.create_client(api_key, base_url, timeout_secs, nil, nil)
   end
 
   @doc "Create a new LLM client with simple scalar configuration."
-  @spec create_client(String.t(), String.t() | nil, non_neg_integer() | nil, non_neg_integer() | nil) :: {:ok, reference()} | {:error, String.t()}
+  @spec create_client(
+          String.t(),
+          String.t() | nil,
+          non_neg_integer() | nil,
+          non_neg_integer() | nil
+        ) :: {:ok, reference()} | {:error, String.t()}
   def create_client(api_key, base_url, timeout_secs, max_retries) do
     LiterLlm.Native.create_client(api_key, base_url, timeout_secs, max_retries, nil)
   end
 
   @doc "Create a new LLM client with simple scalar configuration."
-  @spec create_client(String.t(), String.t() | nil, non_neg_integer() | nil, non_neg_integer() | nil, String.t() | nil) :: {:ok, reference()} | {:error, String.t()}
+  @spec create_client(
+          String.t(),
+          String.t() | nil,
+          non_neg_integer() | nil,
+          non_neg_integer() | nil,
+          String.t() | nil
+        ) :: {:ok, reference()} | {:error, String.t()}
   def create_client(api_key, base_url, timeout_secs, max_retries, model_hint) do
     LiterLlm.Native.create_client(api_key, base_url, timeout_secs, max_retries, model_hint)
   end
@@ -51,13 +66,19 @@ defmodule LiterLlm do
   end
 
   @doc "Method"
-  @spec defaultclient_chat_async(map(), String.t() | nil) :: {:ok, String.t() | nil} | {:error, String.t()}
+  @spec defaultclient_chat_async(
+          map(),
+          String.t() | nil
+        ) :: {:ok, String.t() | nil} | {:error, String.t()}
   def defaultclient_chat_async(obj, req) do
     LiterLlm.Native.defaultclient_chat_async(obj, req)
   end
 
   @doc "Method"
-  @spec defaultclient_chat_stream_async(map(), String.t() | nil) :: {:ok, String.t()} | {:error, String.t()}
+  @spec defaultclient_chat_stream_async(
+          map(),
+          String.t() | nil
+        ) :: {:ok, String.t()} | {:error, String.t()}
   def defaultclient_chat_stream_async(obj, req) do
     LiterLlm.Native.defaultclient_chat_stream_async(obj, req)
   end
@@ -75,13 +96,19 @@ defmodule LiterLlm do
   end
 
   @doc "Method"
-  @spec defaultclient_image_generate_async(map(), String.t() | nil) :: {:ok, String.t() | nil} | {:error, String.t()}
+  @spec defaultclient_image_generate_async(
+          map(),
+          String.t() | nil
+        ) :: {:ok, String.t() | nil} | {:error, String.t()}
   def defaultclient_image_generate_async(obj, req) do
     LiterLlm.Native.defaultclient_image_generate_async(obj, req)
   end
 
   @doc "Method"
-  @spec defaultclient_transcribe_async(map(), String.t() | nil) :: {:ok, String.t() | nil} | {:error, String.t()}
+  @spec defaultclient_transcribe_async(
+          map(),
+          String.t() | nil
+        ) :: {:ok, String.t() | nil} | {:error, String.t()}
   def defaultclient_transcribe_async(obj, req) do
     LiterLlm.Native.defaultclient_transcribe_async(obj, req)
   end

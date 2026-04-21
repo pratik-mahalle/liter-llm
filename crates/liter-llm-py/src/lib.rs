@@ -11,7 +11,8 @@
     clippy::unused_unit,
     clippy::let_unit_value,
     clippy::needless_borrow,
-    clippy::too_many_arguments
+    clippy::too_many_arguments,
+    clippy::map_identity
 )]
 
 use liter_llm::client::LlmClient;

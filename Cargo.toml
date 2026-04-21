@@ -11,7 +11,10 @@ members = [
     "packages/elixir/native/liter_llm_rustler",
     "tools/snippet-runner",
 ]
-exclude = ["packages/ruby/ext/liter_llm_rb/native"]
+exclude = [
+    "packages/elixir/native/liter_llm_nif",
+    "packages/ruby/ext/liter_llm_rb/native",
+]
 resolver = "2"
 
 [workspace.package]

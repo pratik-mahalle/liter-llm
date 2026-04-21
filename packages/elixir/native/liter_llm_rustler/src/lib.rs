@@ -6,7 +6,8 @@
     clippy::let_unit_value,
     clippy::needless_borrow,
     clippy::map_identity,
-    clippy::just_underscores_and_digits
+    clippy::just_underscores_and_digits,
+    clippy::unused_unit
 )]
 
 use liter_llm::client::LlmClient;

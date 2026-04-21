@@ -22,7 +22,7 @@ public final class LiterLlm {
     }
 
     public static DefaultClient createClient(String apiKey) throws LiterLlmRsException {
-        return createClient(apiKey, null, null, null, null);
+        return LiterLlmRs.createClient(apiKey, null, null, null, null);
     }
 
     /**

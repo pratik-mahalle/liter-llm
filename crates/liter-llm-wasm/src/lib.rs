@@ -3798,9 +3798,11 @@ impl Default for WasmImageDetail {
     }
 }
 
-/// The type discriminator for tool/tool-call objects. Per the OpenAI spec this
-/// is always `"function"`. Using an enum enforces that constraint at the type
-/// level and rejects any other value on deserialization.
+/// The type discriminator for tool/tool-call objects.
+///
+/// Per the OpenAI spec this is always `"function"`. Using an enum enforces
+/// that constraint at the type level and rejects any other value on
+/// deserialization.
 #[wasm_bindgen]
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum WasmToolType {

@@ -84,9 +84,11 @@ const (
 	ImageDetailAuto ImageDetail = "auto"
 )
 
-// The type discriminator for tool/tool-call objects. Per the OpenAI spec this
-// is always `"function"`. Using an enum enforces that constraint at the type
-// level and rejects any other value on deserialization.
+// The type discriminator for tool/tool-call objects.
+//
+// Per the OpenAI spec this is always `"function"`. Using an enum enforces
+// that constraint at the type level and rejects any other value on
+// deserialization.
 type ToolType string
 
 const (
@@ -621,7 +623,7 @@ func NewJsonSchemaFormat(opts ...JsonSchemaFormatOption) *JsonSchemaFormat {
 	c := &JsonSchemaFormat{
 		Name:        "",
 		Description: nil,
-		Schema:      map[string]interface{}{},
+		Schema:      json.RawMessage(nil),
 		Strict:      nil,
 	}
 	for _, opt := range opts {

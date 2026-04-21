@@ -28,6 +28,9 @@ exclude = [
     # Docs site self-references (404 until deployed)
     "docs\\.liter-llm\\.kreuzberg\\.dev",
 
+    # Placeholder provider URL used in docs examples
+    "api\\.my-provider\\.com",
+
     # PyPI project pages (rate-limited)
     "pypi\\.org/project/",
 
