@@ -1750,7 +1750,6 @@ impl DefaultClient {
     #[allow(clippy::missing_errors_doc)]
     #[pyo3(signature = (req))]
     pub fn chat<'py>(&self, py: Python<'py>, req: ChatCompletionRequest) -> PyResult<Bound<'py, PyAny>> {
-        let req_core: liter_llm::ChatCompletionRequest = req.into();
         let _ = req;
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "Not implemented: DefaultClient.chat",
@@ -1760,21 +1759,15 @@ impl DefaultClient {
     #[allow(clippy::missing_errors_doc)]
     #[pyo3(signature = (req))]
     pub fn chat_stream<'py>(&self, py: Python<'py>, req: ChatCompletionRequest) -> PyResult<Bound<'py, PyAny>> {
-        let req_core: liter_llm::ChatCompletionRequest = req.into();
-        let inner = self.inner.clone();
-        let stream = pyo3_async_runtimes::tokio::get_runtime()
-            .block_on(inner.chat_stream(req_core))
-            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
-        let iter = ChatStreamIterator {
-            inner: Arc::new(tokio::sync::Mutex::new(stream)),
-        };
-        Ok(Bound::new(py, iter)?.into_any())
+        let _ = req;
+        Err(pyo3::exceptions::PyNotImplementedError::new_err(
+            "Not implemented: DefaultClient.chat_stream",
+        ))
     }
 
     #[allow(clippy::missing_errors_doc)]
     #[pyo3(signature = (req))]
     pub fn embed<'py>(&self, py: Python<'py>, req: EmbeddingRequest) -> PyResult<Bound<'py, PyAny>> {
-        let req_core: liter_llm::EmbeddingRequest = req.into();
         let _ = req;
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "Not implemented: DefaultClient.embed",
@@ -1792,7 +1785,6 @@ impl DefaultClient {
     #[allow(clippy::missing_errors_doc)]
     #[pyo3(signature = (req))]
     pub fn image_generate<'py>(&self, py: Python<'py>, req: CreateImageRequest) -> PyResult<Bound<'py, PyAny>> {
-        let req_core: liter_llm::CreateImageRequest = req.into();
         let _ = req;
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "Not implemented: DefaultClient.image_generate",
@@ -1802,7 +1794,6 @@ impl DefaultClient {
     #[allow(clippy::missing_errors_doc)]
     #[pyo3(signature = (req))]
     pub fn transcribe<'py>(&self, py: Python<'py>, req: CreateTranscriptionRequest) -> PyResult<Bound<'py, PyAny>> {
-        let req_core: liter_llm::CreateTranscriptionRequest = req.into();
         let _ = req;
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "Not implemented: DefaultClient.transcribe",
@@ -1812,7 +1803,6 @@ impl DefaultClient {
     #[allow(clippy::missing_errors_doc)]
     #[pyo3(signature = (req))]
     pub fn moderate<'py>(&self, py: Python<'py>, req: ModerationRequest) -> PyResult<Bound<'py, PyAny>> {
-        let req_core: liter_llm::ModerationRequest = req.into();
         let _ = req;
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "Not implemented: DefaultClient.moderate",
@@ -1822,7 +1812,6 @@ impl DefaultClient {
     #[allow(clippy::missing_errors_doc)]
     #[pyo3(signature = (req))]
     pub fn rerank<'py>(&self, py: Python<'py>, req: RerankRequest) -> PyResult<Bound<'py, PyAny>> {
-        let req_core: liter_llm::RerankRequest = req.into();
         let _ = req;
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "Not implemented: DefaultClient.rerank",
@@ -1832,7 +1821,6 @@ impl DefaultClient {
     #[allow(clippy::missing_errors_doc)]
     #[pyo3(signature = (req))]
     pub fn search<'py>(&self, py: Python<'py>, req: SearchRequest) -> PyResult<Bound<'py, PyAny>> {
-        let req_core: liter_llm::SearchRequest = req.into();
         let _ = req;
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "Not implemented: DefaultClient.search",
@@ -1842,7 +1830,6 @@ impl DefaultClient {
     #[allow(clippy::missing_errors_doc)]
     #[pyo3(signature = (req))]
     pub fn ocr<'py>(&self, py: Python<'py>, req: OcrRequest) -> PyResult<Bound<'py, PyAny>> {
-        let req_core: liter_llm::OcrRequest = req.into();
         let _ = req;
         Err(pyo3::exceptions::PyNotImplementedError::new_err(
             "Not implemented: DefaultClient.ocr",
@@ -2493,27 +2480,27 @@ pyo3::create_exception!(_internal_bindings, HookRejectedError, pyo3::exceptions:
 pyo3::create_exception!(_internal_bindings, InternalError, pyo3::exceptions::PyException);
 pyo3::create_exception!(_internal_bindings, LiterLlmError, pyo3::exceptions::PyException);
 
-/// Convert a `liter_llm::error::LiterLlmError` error to a Python exception.
-fn liter_llm_error_to_py_err(e: liter_llm::error::LiterLlmError) -> pyo3::PyErr {
+/// Convert a `liter_llm::LiterLlmError` error to a Python exception.
+fn liter_llm_error_to_py_err(e: liter_llm::LiterLlmError) -> pyo3::PyErr {
     let msg = e.to_string();
     #[allow(unreachable_patterns)]
     match &e {
-        liter_llm::error::LiterLlmError::Authentication { .. } => AuthenticationError::new_err(msg),
-        liter_llm::error::LiterLlmError::RateLimited { .. } => RateLimitedError::new_err(msg),
-        liter_llm::error::LiterLlmError::BadRequest { .. } => BadRequestError::new_err(msg),
-        liter_llm::error::LiterLlmError::ContextWindowExceeded { .. } => ContextWindowExceededError::new_err(msg),
-        liter_llm::error::LiterLlmError::ContentPolicy { .. } => ContentPolicyError::new_err(msg),
-        liter_llm::error::LiterLlmError::NotFound { .. } => NotFoundError::new_err(msg),
-        liter_llm::error::LiterLlmError::ServerError { .. } => ServerError::new_err(msg),
-        liter_llm::error::LiterLlmError::ServiceUnavailable { .. } => ServiceUnavailableError::new_err(msg),
-        liter_llm::error::LiterLlmError::Timeout => LiterLlmTimeoutError::new_err(msg),
-        liter_llm::error::LiterLlmError::Streaming { .. } => StreamingError::new_err(msg),
-        liter_llm::error::LiterLlmError::EndpointNotSupported { .. } => EndpointNotSupportedError::new_err(msg),
-        liter_llm::error::LiterLlmError::InvalidHeader { .. } => InvalidHeaderError::new_err(msg),
-        liter_llm::error::LiterLlmError::Serialization(..) => SerializationError::new_err(msg),
-        liter_llm::error::LiterLlmError::BudgetExceeded { .. } => BudgetExceededError::new_err(msg),
-        liter_llm::error::LiterLlmError::HookRejected { .. } => HookRejectedError::new_err(msg),
-        liter_llm::error::LiterLlmError::InternalError { .. } => InternalError::new_err(msg),
+        liter_llm::LiterLlmError::Authentication { .. } => AuthenticationError::new_err(msg),
+        liter_llm::LiterLlmError::RateLimited { .. } => RateLimitedError::new_err(msg),
+        liter_llm::LiterLlmError::BadRequest { .. } => BadRequestError::new_err(msg),
+        liter_llm::LiterLlmError::ContextWindowExceeded { .. } => ContextWindowExceededError::new_err(msg),
+        liter_llm::LiterLlmError::ContentPolicy { .. } => ContentPolicyError::new_err(msg),
+        liter_llm::LiterLlmError::NotFound { .. } => NotFoundError::new_err(msg),
+        liter_llm::LiterLlmError::ServerError { .. } => ServerError::new_err(msg),
+        liter_llm::LiterLlmError::ServiceUnavailable { .. } => ServiceUnavailableError::new_err(msg),
+        liter_llm::LiterLlmError::Timeout => LiterLlmTimeoutError::new_err(msg),
+        liter_llm::LiterLlmError::Streaming { .. } => StreamingError::new_err(msg),
+        liter_llm::LiterLlmError::EndpointNotSupported { .. } => EndpointNotSupportedError::new_err(msg),
+        liter_llm::LiterLlmError::InvalidHeader { .. } => InvalidHeaderError::new_err(msg),
+        liter_llm::LiterLlmError::Serialization(..) => SerializationError::new_err(msg),
+        liter_llm::LiterLlmError::BudgetExceeded { .. } => BudgetExceededError::new_err(msg),
+        liter_llm::LiterLlmError::HookRejected { .. } => HookRejectedError::new_err(msg),
+        liter_llm::LiterLlmError::InternalError { .. } => InternalError::new_err(msg),
         _ => LiterLlmError::new_err(msg),
     }
 }
