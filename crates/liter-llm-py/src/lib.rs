@@ -72,7 +72,7 @@ impl SystemMessage {
     }
 }
 
-#[derive(Clone, Default, serde::Serialize, serde::Deserialize)]
+#[derive(Clone)]
 #[pyclass(frozen, from_py_object)]
 pub struct UserMessage {
     #[pyo3(get)]
@@ -464,7 +464,7 @@ impl Usage {
     }
 }
 
-#[derive(Clone, Default, serde::Serialize, serde::Deserialize)]
+#[derive(Clone)]
 #[pyclass(frozen, from_py_object)]
 pub struct ChatCompletionRequest {
     #[pyo3(get)]
@@ -830,7 +830,7 @@ impl StreamFunctionCall {
     }
 }
 
-#[derive(Clone, Default, serde::Serialize, serde::Deserialize)]
+#[derive(Clone)]
 #[pyclass(frozen, from_py_object)]
 pub struct EmbeddingRequest {
     #[pyo3(get)]
@@ -1161,7 +1161,7 @@ impl TranscriptionSegment {
     }
 }
 
-#[derive(Clone, Default, serde::Serialize, serde::Deserialize)]
+#[derive(Clone)]
 #[pyclass(frozen, from_py_object)]
 pub struct ModerationRequest {
     #[pyo3(get)]
@@ -1350,7 +1350,7 @@ impl ModerationCategoryScores {
     }
 }
 
-#[derive(Clone, Default, serde::Serialize, serde::Deserialize)]
+#[derive(Clone)]
 #[pyclass(frozen, from_py_object)]
 pub struct RerankRequest {
     #[pyo3(get)]
@@ -1545,7 +1545,7 @@ impl SearchResult {
     }
 }
 
-#[derive(Clone, Default, serde::Serialize, serde::Deserialize)]
+#[derive(Clone)]
 #[pyclass(frozen, from_py_object)]
 pub struct OcrRequest {
     /// The model/provider to use (e.g. `"mistral/mistral-ocr-latest"`).
@@ -1750,94 +1750,130 @@ impl DefaultClient {
     #[allow(clippy::missing_errors_doc)]
     #[pyo3(signature = (req))]
     pub fn chat<'py>(&self, py: Python<'py>, req: ChatCompletionRequest) -> PyResult<Bound<'py, PyAny>> {
-        let _ = req;
-        Err(pyo3::exceptions::PyNotImplementedError::new_err(
-            "Not implemented: DefaultClient.chat",
-        ))
+        let inner = self.inner.clone();
+        let core_req: liter_llm::ChatCompletionRequest = req.into();
+        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+            let result = inner
+                .chat(core_req)
+                .await
+                .map_err(|e| PyErr::new::<PyRuntimeError, _>(e.to_string()))?;
+            Ok(ChatCompletionResponse::from(result))
+        })
     }
 
     #[allow(clippy::missing_errors_doc)]
     #[pyo3(signature = (req))]
     pub fn chat_stream<'py>(&self, py: Python<'py>, req: ChatCompletionRequest) -> PyResult<Bound<'py, PyAny>> {
-        let _ = req;
-        Err(pyo3::exceptions::PyNotImplementedError::new_err(
-            "Not implemented: DefaultClient.chat_stream",
-        ))
+        let inner = self.inner.clone();
+        let core_req: liter_llm::ChatCompletionRequest = req.into();
+        let stream = pyo3_async_runtimes::tokio::get_runtime()
+            .block_on(inner.chat_stream(core_req))
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        let iter = ChatStreamIterator {
+            inner: Arc::new(tokio::sync::Mutex::new(stream)),
+        };
+        Ok(Bound::new(py, iter)?.into_any())
     }
 
     #[allow(clippy::missing_errors_doc)]
     #[pyo3(signature = (req))]
     pub fn embed<'py>(&self, py: Python<'py>, req: EmbeddingRequest) -> PyResult<Bound<'py, PyAny>> {
-        let _ = req;
-        Err(pyo3::exceptions::PyNotImplementedError::new_err(
-            "Not implemented: DefaultClient.embed",
-        ))
+        let inner = self.inner.clone();
+        let core_req: liter_llm::EmbeddingRequest = req.into();
+        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+            let result = inner
+                .embed(core_req)
+                .await
+                .map_err(|e| PyErr::new::<PyRuntimeError, _>(e.to_string()))?;
+            Ok(EmbeddingResponse::from(result))
+        })
     }
 
     #[allow(clippy::missing_errors_doc)]
     #[pyo3(signature = ())]
     pub fn list_models<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        Err(pyo3::exceptions::PyNotImplementedError::new_err(
-            "Not implemented: DefaultClient.list_models",
-        ))
+        let inner = self.inner.clone();
+        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+            let result = inner
+                .list_models()
+                .await
+                .map_err(|e| PyErr::new::<PyRuntimeError, _>(e.to_string()))?;
+            Ok(ModelsListResponse::from(result))
+        })
     }
 
     #[allow(clippy::missing_errors_doc)]
     #[pyo3(signature = (req))]
     pub fn image_generate<'py>(&self, py: Python<'py>, req: CreateImageRequest) -> PyResult<Bound<'py, PyAny>> {
-        let _ = req;
-        Err(pyo3::exceptions::PyNotImplementedError::new_err(
-            "Not implemented: DefaultClient.image_generate",
-        ))
+        let inner = self.inner.clone();
+        let core_req: liter_llm::CreateImageRequest = req.into();
+        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+            let result = inner
+                .image_generate(core_req)
+                .await
+                .map_err(|e| PyErr::new::<PyRuntimeError, _>(e.to_string()))?;
+            Ok(ImagesResponse::from(result))
+        })
     }
 
     #[allow(clippy::missing_errors_doc)]
     #[pyo3(signature = (req))]
     pub fn transcribe<'py>(&self, py: Python<'py>, req: CreateTranscriptionRequest) -> PyResult<Bound<'py, PyAny>> {
-        let _ = req;
-        Err(pyo3::exceptions::PyNotImplementedError::new_err(
-            "Not implemented: DefaultClient.transcribe",
-        ))
+        let inner = self.inner.clone();
+        let core_req: liter_llm::CreateTranscriptionRequest = req.into();
+        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+            let result = inner
+                .transcribe(core_req)
+                .await
+                .map_err(|e| PyErr::new::<PyRuntimeError, _>(e.to_string()))?;
+            Ok(TranscriptionResponse::from(result))
+        })
     }
 
     #[allow(clippy::missing_errors_doc)]
     #[pyo3(signature = (req))]
     pub fn moderate<'py>(&self, py: Python<'py>, req: ModerationRequest) -> PyResult<Bound<'py, PyAny>> {
-        let _ = req;
-        Err(pyo3::exceptions::PyNotImplementedError::new_err(
-            "Not implemented: DefaultClient.moderate",
-        ))
+        let inner = self.inner.clone();
+        let core_req: liter_llm::ModerationRequest = req.into();
+        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+            let result = inner
+                .moderate(core_req)
+                .await
+                .map_err(|e| PyErr::new::<PyRuntimeError, _>(e.to_string()))?;
+            Ok(ModerationResponse::from(result))
+        })
     }
 
     #[allow(clippy::missing_errors_doc)]
     #[pyo3(signature = (req))]
     pub fn rerank<'py>(&self, py: Python<'py>, req: RerankRequest) -> PyResult<Bound<'py, PyAny>> {
-        let _ = req;
-        Err(pyo3::exceptions::PyNotImplementedError::new_err(
-            "Not implemented: DefaultClient.rerank",
-        ))
+        let inner = self.inner.clone();
+        let core_req: liter_llm::RerankRequest = req.into();
+        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+            let result = inner
+                .rerank(core_req)
+                .await
+                .map_err(|e| PyErr::new::<PyRuntimeError, _>(e.to_string()))?;
+            Ok(RerankResponse::from(result))
+        })
     }
 
     #[allow(clippy::missing_errors_doc)]
     #[pyo3(signature = (req))]
     pub fn search<'py>(&self, py: Python<'py>, req: SearchRequest) -> PyResult<Bound<'py, PyAny>> {
-        let _ = req;
-        Err(pyo3::exceptions::PyNotImplementedError::new_err(
-            "Not implemented: DefaultClient.search",
-        ))
-    }
-
-    #[allow(clippy::missing_errors_doc)]
-    #[pyo3(signature = (req))]
-    pub fn ocr<'py>(&self, py: Python<'py>, req: OcrRequest) -> PyResult<Bound<'py, PyAny>> {
-        let _ = req;
-        Err(pyo3::exceptions::PyNotImplementedError::new_err(
-            "Not implemented: DefaultClient.ocr",
-        ))
+        let inner = self.inner.clone();
+        let core_req: liter_llm::SearchRequest = req.into();
+        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+            let result = inner
+                .search(core_req)
+                .await
+                .map_err(|e| PyErr::new::<PyRuntimeError, _>(e.to_string()))?;
+            Ok(SearchResponse::from(result))
+        })
     }
 }
 
-#[derive(Clone, Default, serde::Serialize, serde::Deserialize)]
+#[derive(Clone)]
 #[pyclass(frozen, from_py_object)]
 pub struct CustomProviderConfig {
     /// Unique name for this provider (e.g., "my-provider").
@@ -3488,17 +3524,6 @@ impl From<liter_llm::types::SearchResult> for SearchResult {
     }
 }
 
-impl From<OcrRequest> for liter_llm::types::OcrRequest {
-    fn from(val: OcrRequest) -> Self {
-        Self {
-            model: val.model,
-            document: val.document.into(),
-            pages: val.pages,
-            include_image_base64: val.include_image_base64,
-        }
-    }
-}
-
 impl From<liter_llm::types::OcrRequest> for OcrRequest {
     fn from(val: liter_llm::types::OcrRequest) -> Self {
         Self {
@@ -3510,33 +3535,12 @@ impl From<liter_llm::types::OcrRequest> for OcrRequest {
     }
 }
 
-impl From<OcrResponse> for liter_llm::types::OcrResponse {
-    fn from(val: OcrResponse) -> Self {
-        Self {
-            pages: val.pages.into_iter().map(Into::into).collect(),
-            model: val.model,
-            usage: val.usage.map(Into::into),
-        }
-    }
-}
-
 impl From<liter_llm::types::OcrResponse> for OcrResponse {
     fn from(val: liter_llm::types::OcrResponse) -> Self {
         Self {
             pages: val.pages.into_iter().map(Into::into).collect(),
             model: val.model,
             usage: val.usage.map(Into::into),
-        }
-    }
-}
-
-impl From<OcrPage> for liter_llm::types::OcrPage {
-    fn from(val: OcrPage) -> Self {
-        Self {
-            index: val.index,
-            markdown: val.markdown,
-            images: val.images.map(|v| v.into_iter().map(Into::into).collect()),
-            dimensions: val.dimensions.map(Into::into),
         }
     }
 }
@@ -3552,29 +3556,11 @@ impl From<liter_llm::types::OcrPage> for OcrPage {
     }
 }
 
-impl From<OcrImage> for liter_llm::types::OcrImage {
-    fn from(val: OcrImage) -> Self {
-        Self {
-            id: val.id,
-            image_base64: val.image_base64,
-        }
-    }
-}
-
 impl From<liter_llm::types::OcrImage> for OcrImage {
     fn from(val: liter_llm::types::OcrImage) -> Self {
         Self {
             id: val.id,
             image_base64: val.image_base64,
-        }
-    }
-}
-
-impl From<PageDimensions> for liter_llm::types::PageDimensions {
-    fn from(val: PageDimensions) -> Self {
-        Self {
-            width: val.width,
-            height: val.height,
         }
     }
 }

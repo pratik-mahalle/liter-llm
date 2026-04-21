@@ -130,10 +130,4 @@ defmodule LiterLlm do
   def defaultclient_search_async(obj, req) do
     LiterLlm.Native.defaultclient_search_async(obj, req)
   end
-
-  @doc "Method"
-  @spec defaultclient_ocr_async(map(), map()) :: {:ok, map()} | {:error, String.t()}
-  def defaultclient_ocr_async(obj, req) do
-    LiterLlm.Native.defaultclient_ocr_async(obj, req)
-  end
 end

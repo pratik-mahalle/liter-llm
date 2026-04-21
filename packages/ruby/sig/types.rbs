@@ -570,7 +570,6 @@ module LiterLlm
     def moderate: (ModerationRequest req) -> ModerationResponse
     def rerank: (RerankRequest req) -> RerankResponse
     def search: (SearchRequest req) -> SearchResponse
-    def ocr: (OcrRequest req) -> OcrResponse
   end
 
   class CustomProviderConfig

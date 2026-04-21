@@ -135,20 +135,6 @@ func UnregisterCustomProvider(name string) (bool, error)
 
 ### Types
 
-#### ApiError
-
-Inner error object.
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `Message` | `string` | — | Message |
-| `ErrorType` | `string` | — | Error type |
-| `Param` | `*string` | `nil` | Param |
-| `Code` | `*string` | `nil` | Code |
-
-
----
-
 #### AssistantMessage
 
 | Field | Type | Default | Description |
@@ -168,55 +154,6 @@ Inner error object.
 |-------|------|---------|-------------|
 | `Data` | `string` | — | Base64-encoded audio data. |
 | `Format` | `string` | — | Audio format (e.g., "wav", "mp3", "ogg"). |
-
-
----
-
-#### BatchClient
-
-Batch processing operations (create, list, retrieve, cancel).
-
-##### Methods
-
-###### CreateBatch()
-
-Create a new batch job.
-
-**Signature:**
-
-```go
-func (o *BatchClient) CreateBatch(req CreateBatchRequest) (BatchObject, error)
-```
-
-###### RetrieveBatch()
-
-Retrieve a batch by ID.
-
-**Signature:**
-
-```go
-func (o *BatchClient) RetrieveBatch(batchId string) (BatchObject, error)
-```
-
-###### ListBatches()
-
-List batches, optionally filtered by query parameters.
-
-**Signature:**
-
-```go
-func (o *BatchClient) ListBatches(query BatchListQuery) (BatchListResponse, error)
-```
-
-###### CancelBatch()
-
-Cancel an in-progress batch.
-
-**Signature:**
-
-```go
-func (o *BatchClient) CancelBatch(batchId string) (BatchObject, error)
-```
 
 
 ---
@@ -278,23 +215,6 @@ func (o *BatchClient) CancelBatch(batchId string) (BatchObject, error)
 | `SystemFingerprint` | `*string` | `nil` | System fingerprint |
 | `ServiceTier` | `*string` | `nil` | Service tier |
 
-##### Methods
-
-###### EstimatedCost()
-
-Estimate the cost of this response based on embedded pricing data.
-
-Returns `nil` if:
-
-- the `model` field is not present in the embedded pricing registry, or
-- the `usage` field is absent from the response.
-
-**Signature:**
-
-```go
-func (o *ChatCompletionResponse) EstimatedCost() *float64
-```
-
 
 ---
 
@@ -315,259 +235,6 @@ func (o *ChatCompletionResponse) EstimatedCost() *float64
 | `Index` | `uint32` | — | Index |
 | `Message` | `AssistantMessage` | — | Message (assistant message) |
 | `FinishReason` | `*FinishReason` | `nil` | Finish reason (finish reason) |
-
-
----
-
-#### ClientConfig
-
-Configuration for an LLM client.
-
-`api_key` is stored as a `SecretString` so it is zeroed on drop and never
-printed accidentally. Access it via `secrecy.ExposeSecret`.
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `ApiKey` | `string` | — | API key for authentication (stored as a secret). |
-| `BaseUrl` | `*string` | `nil` | Override base URL.  When set, all requests go here regardless of model name, and provider auto-detection is skipped. |
-| `Timeout` | `time.Duration` | — | Request timeout. |
-| `MaxRetries` | `uint32` | — | Maximum number of retries on 429 / 5xx responses. |
-| `CredentialProvider` | `*CredentialProvider` | `nil` | Optional dynamic credential provider for token-based auth (Azure AD, Vertex OAuth2) or refreshable credentials (AWS STS). When set, the client calls `resolve()` before each request to obtain a fresh credential.  When `None`, the static `api_key` is used. |
-
-##### Methods
-
-###### Headers()
-
-Return the extra headers as an ordered slice of `(name, value)` pairs.
-
-**Signature:**
-
-```go
-func (o *ClientConfig) Headers() [](string, string)
-```
-
-###### Fmt()
-
-**Signature:**
-
-```go
-func (o *ClientConfig) Fmt(f Formatter) Unknown
-```
-
-
----
-
-#### ClientConfigBuilder
-
-Builder for `ClientConfig`.
-
-Construct with `ClientConfigBuilder.new` and call builder methods to
-customise the configuration, then call `ClientConfigBuilder.build` to
-obtain a `ClientConfig`.
-
-##### Methods
-
-###### BaseUrl()
-
-Override the provider base URL for all requests.
-
-**Signature:**
-
-```go
-func (o *ClientConfigBuilder) BaseUrl(url string) ClientConfigBuilder
-```
-
-###### Timeout()
-
-Set the per-request timeout (default: 60 s).
-
-**Signature:**
-
-```go
-func (o *ClientConfigBuilder) Timeout(timeout time.Duration) ClientConfigBuilder
-```
-
-###### MaxRetries()
-
-Set the maximum number of retries on 429 / 5xx responses (default: 3).
-
-**Signature:**
-
-```go
-func (o *ClientConfigBuilder) MaxRetries(retries uint32) ClientConfigBuilder
-```
-
-###### CredentialProvider()
-
-Set a dynamic credential provider for token-based or refreshable auth.
-
-When configured, the client calls `resolve()` before each request
-instead of using the static `api_key` for authentication.
-
-**Signature:**
-
-```go
-func (o *ClientConfigBuilder) CredentialProvider(provider CredentialProvider) ClientConfigBuilder
-```
-
-###### Header()
-
-Add a custom header sent on every request.
-
-Returns an error if either `key` or `value` is not a valid HTTP header
-name / value.
-
-This method is only available when the `native-http` feature is enabled
-because header validation relies on `reqwest`'s header types.
-
-**Signature:**
-
-```go
-func (o *ClientConfigBuilder) Header(key string, value string) (ClientConfigBuilder, error)
-```
-
-###### Cache()
-
-Set the response cache configuration for the Tower middleware stack.
-
-When set, bindings and advanced Rust users can read this from the
-built `ClientConfig` to construct a
-`CacheLayer`.
-
-**Signature:**
-
-```go
-func (o *ClientConfigBuilder) Cache(config CacheConfig) ClientConfigBuilder
-```
-
-###### CacheStore()
-
-Set a custom cache store backend for the Tower cache middleware.
-
-When set alongside `cache`, the cache layer will use
-this store instead of the default in-memory LRU.
-
-**Signature:**
-
-```go
-func (o *ClientConfigBuilder) CacheStore(store CacheStore) ClientConfigBuilder
-```
-
-###### Budget()
-
-Set the budget enforcement configuration for the Tower middleware stack.
-
-When set, bindings and advanced Rust users can read this from the
-built `ClientConfig` to construct a
-`BudgetLayer`.
-
-**Signature:**
-
-```go
-func (o *ClientConfigBuilder) Budget(config BudgetConfig) ClientConfigBuilder
-```
-
-###### Hook()
-
-Add a single hook to the Tower hooks middleware stack.
-
-Hooks are invoked sequentially in registration order at request
-lifecycle points (pre-request, post-response, on-error).
-
-**Signature:**
-
-```go
-func (o *ClientConfigBuilder) Hook(hook LlmHook) ClientConfigBuilder
-```
-
-###### Hooks()
-
-Set the full list of hooks for the Tower hooks middleware stack,
-replacing any previously registered hooks.
-
-Hooks are invoked sequentially in registration order.
-
-**Signature:**
-
-```go
-func (o *ClientConfigBuilder) Hooks(hooks []LlmHook) ClientConfigBuilder
-```
-
-###### Cooldown()
-
-Set the cooldown duration after transient errors.
-
-When set, the client rejects requests with `ServiceUnavailable` for
-the given duration after a transient error (rate limit, timeout,
-server error).
-
-**Signature:**
-
-```go
-func (o *ClientConfigBuilder) Cooldown(duration time.Duration) ClientConfigBuilder
-```
-
-###### RateLimit()
-
-Set per-model rate limiting configuration.
-
-When set, requests exceeding the configured RPM or TPM limits are
-rejected with `LiterLlmError.RateLimited`.
-
-**Signature:**
-
-```go
-func (o *ClientConfigBuilder) RateLimit(config RateLimitConfig) ClientConfigBuilder
-```
-
-###### HealthCheck()
-
-Set the background health check interval.
-
-When set, the client periodically probes the provider and rejects
-requests when the provider is unhealthy.
-
-**Signature:**
-
-```go
-func (o *ClientConfigBuilder) HealthCheck(interval time.Duration) ClientConfigBuilder
-```
-
-###### CostTracking()
-
-Enable or disable per-request cost tracking.
-
-When enabled, estimated USD cost is recorded on the current tracing
-span as `gen_ai.usage.cost`.
-
-**Signature:**
-
-```go
-func (o *ClientConfigBuilder) CostTracking(enabled bool) ClientConfigBuilder
-```
-
-###### Tracing()
-
-Enable or disable OpenTelemetry-compatible tracing spans.
-
-When enabled, every request is wrapped in a `gen_ai` tracing span
-with semantic convention attributes.
-
-**Signature:**
-
-```go
-func (o *ClientConfigBuilder) Tracing(enabled bool) ClientConfigBuilder
-```
-
-###### Build()
-
-Consume the builder and return the completed `ClientConfig`.
-
-**Signature:**
-
-```go
-func (o *ClientConfigBuilder) Build() ClientConfig
-```
 
 
 ---
@@ -653,27 +320,6 @@ async closures and streaming tasks that must be `'static`.
 
 ##### Methods
 
-###### New()
-
-Build a client.
-
-`model_hint` guides provider auto-detection when no explicit
-`base_url` override is present in the config. For example, passing
-`Some("groq/llama3-70b")` selects the Groq provider. Pass `nil` to
-default to OpenAI.
-
-**Errors:**
-
-Returns a wrapped `reqwest.Error` if the underlying HTTP client
-cannot be constructed. Header names and values are pre-validated by
-`ClientConfigBuilder.header`, so they are inserted directly here.
-
-**Signature:**
-
-```go
-func (o *DefaultClient) New(config ClientConfig, modelHint string) (DefaultClient, error)
-```
-
 ###### Chat()
 
 **Signature:**
@@ -687,7 +333,7 @@ func (o *DefaultClient) Chat(req ChatCompletionRequest) (ChatCompletionResponse,
 **Signature:**
 
 ```go
-func (o *DefaultClient) ChatStream(req ChatCompletionRequest) (BoxStream, error)
+func (o *DefaultClient) ChatStream(req ChatCompletionRequest) (string, error)
 ```
 
 ###### Embed()
@@ -712,14 +358,6 @@ func (o *DefaultClient) ListModels() (ModelsListResponse, error)
 
 ```go
 func (o *DefaultClient) ImageGenerate(req CreateImageRequest) (ImagesResponse, error)
-```
-
-###### Speech()
-
-**Signature:**
-
-```go
-func (o *DefaultClient) Speech(req CreateSpeechRequest) ([]byte, error)
 ```
 
 ###### Transcribe()
@@ -752,182 +390,6 @@ func (o *DefaultClient) Rerank(req RerankRequest) (RerankResponse, error)
 
 ```go
 func (o *DefaultClient) Search(req SearchRequest) (SearchResponse, error)
-```
-
-###### Ocr()
-
-**Signature:**
-
-```go
-func (o *DefaultClient) Ocr(req OcrRequest) (OcrResponse, error)
-```
-
-###### ChatRaw()
-
-**Signature:**
-
-```go
-func (o *DefaultClient) ChatRaw(req ChatCompletionRequest) (RawExchange, error)
-```
-
-###### ChatStreamRaw()
-
-**Signature:**
-
-```go
-func (o *DefaultClient) ChatStreamRaw(req ChatCompletionRequest) (RawStreamExchange, error)
-```
-
-###### EmbedRaw()
-
-**Signature:**
-
-```go
-func (o *DefaultClient) EmbedRaw(req EmbeddingRequest) (RawExchange, error)
-```
-
-###### ImageGenerateRaw()
-
-**Signature:**
-
-```go
-func (o *DefaultClient) ImageGenerateRaw(req CreateImageRequest) (RawExchange, error)
-```
-
-###### TranscribeRaw()
-
-**Signature:**
-
-```go
-func (o *DefaultClient) TranscribeRaw(req CreateTranscriptionRequest) (RawExchange, error)
-```
-
-###### ModerateRaw()
-
-**Signature:**
-
-```go
-func (o *DefaultClient) ModerateRaw(req ModerationRequest) (RawExchange, error)
-```
-
-###### RerankRaw()
-
-**Signature:**
-
-```go
-func (o *DefaultClient) RerankRaw(req RerankRequest) (RawExchange, error)
-```
-
-###### SearchRaw()
-
-**Signature:**
-
-```go
-func (o *DefaultClient) SearchRaw(req SearchRequest) (RawExchange, error)
-```
-
-###### OcrRaw()
-
-**Signature:**
-
-```go
-func (o *DefaultClient) OcrRaw(req OcrRequest) (RawExchange, error)
-```
-
-###### CreateFile()
-
-**Signature:**
-
-```go
-func (o *DefaultClient) CreateFile(req CreateFileRequest) (FileObject, error)
-```
-
-###### RetrieveFile()
-
-**Signature:**
-
-```go
-func (o *DefaultClient) RetrieveFile(fileId string) (FileObject, error)
-```
-
-###### DeleteFile()
-
-**Signature:**
-
-```go
-func (o *DefaultClient) DeleteFile(fileId string) (DeleteResponse, error)
-```
-
-###### ListFiles()
-
-**Signature:**
-
-```go
-func (o *DefaultClient) ListFiles(query FileListQuery) (FileListResponse, error)
-```
-
-###### FileContent()
-
-**Signature:**
-
-```go
-func (o *DefaultClient) FileContent(fileId string) ([]byte, error)
-```
-
-###### CreateBatch()
-
-**Signature:**
-
-```go
-func (o *DefaultClient) CreateBatch(req CreateBatchRequest) (BatchObject, error)
-```
-
-###### RetrieveBatch()
-
-**Signature:**
-
-```go
-func (o *DefaultClient) RetrieveBatch(batchId string) (BatchObject, error)
-```
-
-###### ListBatches()
-
-**Signature:**
-
-```go
-func (o *DefaultClient) ListBatches(query BatchListQuery) (BatchListResponse, error)
-```
-
-###### CancelBatch()
-
-**Signature:**
-
-```go
-func (o *DefaultClient) CancelBatch(batchId string) (BatchObject, error)
-```
-
-###### CreateResponse()
-
-**Signature:**
-
-```go
-func (o *DefaultClient) CreateResponse(req CreateResponseRequest) (ResponseObject, error)
-```
-
-###### RetrieveResponse()
-
-**Signature:**
-
-```go
-func (o *DefaultClient) RetrieveResponse(id string) (ResponseObject, error)
-```
-
-###### CancelResponse()
-
-**Signature:**
-
-```go
-func (o *DefaultClient) CancelResponse(id string) (ResponseObject, error)
 ```
 
 
@@ -986,252 +448,10 @@ func (o *DefaultClient) CancelResponse(id string) (ResponseObject, error)
 | `Model` | `string` | — | Model |
 | `Usage` | `*Usage` | `nil` | Usage (usage) |
 
-##### Methods
-
-###### EstimatedCost()
-
-Estimate the cost of this embedding request based on embedded pricing data.
-
-Returns `nil` if:
-
-- the `model` field is not present in the embedded pricing registry, or
-- the `usage` field is absent from the response.
-
-Embedding models only charge for input tokens; output cost is zero.
-
-**Signature:**
-
-```go
-func (o *EmbeddingResponse) EstimatedCost() *float64
-```
-
 
 ---
 
-#### ErrorResponse
-
-Error response from an OpenAI-compatible API.
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `Error` | `ApiError` | — | Error (api error) |
-
-
----
-
-#### FileBudgetConfig
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `GlobalLimit` | `*float64` | `nil` | Global limit |
-| `ModelLimits` | `*map[string]float64` | `nil` | Model limits |
-| `Enforcement` | `*string` | `nil` | Enforcement |
-
-
----
-
-#### FileCacheConfig
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `MaxEntries` | `*int` | `nil` | Maximum entries |
-| `TtlSeconds` | `*uint64` | `nil` | Ttl seconds |
-| `Backend` | `*string` | `nil` | Backend |
-| `BackendConfig` | `*map[string]string` | `nil` | Backend config |
-
-
----
-
-#### FileClient
-
-File management operations (upload, list, retrieve, delete).
-
-##### Methods
-
-###### CreateFile()
-
-Upload a file.
-
-**Signature:**
-
-```go
-func (o *FileClient) CreateFile(req CreateFileRequest) (FileObject, error)
-```
-
-###### RetrieveFile()
-
-Retrieve metadata for a file.
-
-**Signature:**
-
-```go
-func (o *FileClient) RetrieveFile(fileId string) (FileObject, error)
-```
-
-###### DeleteFile()
-
-Delete a file.
-
-**Signature:**
-
-```go
-func (o *FileClient) DeleteFile(fileId string) (DeleteResponse, error)
-```
-
-###### ListFiles()
-
-List files, optionally filtered by query parameters.
-
-**Signature:**
-
-```go
-func (o *FileClient) ListFiles(query FileListQuery) (FileListResponse, error)
-```
-
-###### FileContent()
-
-Retrieve the raw content of a file.
-
-**Signature:**
-
-```go
-func (o *FileClient) FileContent(fileId string) ([]byte, error)
-```
-
-
----
-
-#### FileConfig
-
-TOML file representation of client configuration.
-
-All fields are optional — missing fields use defaults from `ClientConfigBuilder`.
-Convert to a builder via `FileConfig.into_builder`.
-
-## Example `liter-llm.toml`
-
-```toml
-api_key = "sk-..."
-base_url = "<https://api.openai.com/v1">
-timeout_secs = 120
-max_retries = 5
-
-[cache]
-max_entries = 512
-ttl_seconds = 600
-backend = "memory"
-
-[budget]
-global_limit = 50.0
-enforcement = "hard"
-
-[[providers]]
-name = "my-provider"
-base_url = "<https://my-llm.example.com/v1">
-model_prefixes = ["my-provider/"]
-```
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `ApiKey` | `*string` | `nil` | Api key |
-| `BaseUrl` | `*string` | `nil` | Base url |
-| `ModelHint` | `*string` | `nil` | Model hint |
-| `TimeoutSecs` | `*uint64` | `nil` | Timeout secs |
-| `MaxRetries` | `*uint32` | `nil` | Maximum retries |
-| `ExtraHeaders` | `*map[string]string` | `nil` | Extra headers |
-| `Cache` | `*FileCacheConfig` | `nil` | Cache (file cache config) |
-| `Budget` | `*FileBudgetConfig` | `nil` | Budget (file budget config) |
-| `CooldownSecs` | `*uint64` | `nil` | Cooldown secs |
-| `RateLimit` | `*FileRateLimitConfig` | `nil` | Rate limit (file rate limit config) |
-| `HealthCheckSecs` | `*uint64` | `nil` | Health check secs |
-| `CostTracking` | `*bool` | `nil` | Cost tracking |
-| `Tracing` | `*bool` | `nil` | Tracing |
-| `Providers` | `*[]FileProviderConfig` | `nil` | Providers |
-
-### Methods
-
-#### FromTomlFile()
-
-Load from a TOML file path.
-
-**Signature:**
-
-```go
-func (o *FileConfig) FromTomlFile(path Path) (FileConfig, error)
-```
-
-##### FromTomlStr()
-
-Parse from a TOML string.
-
-**Signature:**
-
-```go
-func (o *FileConfig) FromTomlStr(s string) (FileConfig, error)
-```
-
-###### Discover()
-
-Discover `liter-llm.toml` by walking from current directory to filesystem root.
-
-Returns `Ok(None)` if no config file is found.
-
-**Signature:**
-
-```go
-func (o *FileConfig) Discover() (*FileConfig, error)
-```
-
-###### IntoBuilder()
-
-Convert into a `ClientConfigBuilder`,
-applying all fields that are set.
-
-Fields not present in the TOML file use the builder's defaults.
-
-**Signature:**
-
-```go
-func (o *FileConfig) IntoBuilder() ClientConfigBuilder
-```
-
-###### Providers()
-
-Get the custom provider configurations from this file config.
-
-**Signature:**
-
-```go
-func (o *FileConfig) Providers() []FileProviderConfig
-```
-
-
----
-
-##### FileProviderConfig
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `Name` | `string` | — | The name |
-| `BaseUrl` | `string` | — | Base url |
-| `AuthHeader` | `*string` | `nil` | Auth header |
-| `ModelPrefixes` | `[]string` | — | Model prefixes |
-
-
----
-
-##### FileRateLimitConfig
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `Rpm` | `*uint32` | `nil` | Rpm |
-| `Tpm` | `*uint64` | `nil` | Tpm |
-| `WindowSeconds` | `*uint64` | `nil` | Window seconds |
-
-
----
-
-##### FunctionCall
+#### FunctionCall
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -1241,7 +461,7 @@ func (o *FileConfig) Providers() []FileProviderConfig
 
 ---
 
-##### FunctionDefinition
+#### FunctionDefinition
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -1253,7 +473,7 @@ func (o *FileConfig) Providers() []FileProviderConfig
 
 ---
 
-##### FunctionMessage
+#### FunctionMessage
 
 Deprecated legacy function-role message body.
 
@@ -1265,7 +485,7 @@ Deprecated legacy function-role message body.
 
 ---
 
-##### Image
+#### Image
 
 A single generated image, returned as either a URL or base64 data.
 
@@ -1278,7 +498,7 @@ A single generated image, returned as either a URL or base64 data.
 
 ---
 
-##### ImageUrl
+#### ImageUrl
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -1288,7 +508,7 @@ A single generated image, returned as either a URL or base64 data.
 
 ---
 
-##### ImagesResponse
+#### ImagesResponse
 
 Response containing generated images.
 
@@ -1300,7 +520,7 @@ Response containing generated images.
 
 ---
 
-##### JsonSchemaFormat
+#### JsonSchemaFormat
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -1312,548 +532,12 @@ Response containing generated images.
 
 ---
 
-##### LiterLlmError
-
-###### Methods
-
-###### IsTransient()
-
-Returns `true` for errors that are worth retrying on a different service
-or deployment (transient failures).
-
-Used by `crate.tower.fallback.FallbackService` and
-`crate.tower.router.Router` to decide whether to route to an
-alternative endpoint.
-
-**Signature:**
-
-```go
-func (o *LiterLlmError) IsTransient() bool
-```
-
-###### ErrorType()
-
-Return the OpenTelemetry `error.type` string for this error variant.
-
-Used by the tracing middleware to record the `error.type` span attribute
-on failed requests per the GenAI semantic conventions.
-
-**Signature:**
-
-```go
-func (o *LiterLlmError) ErrorType() string
-```
-
-###### FromStatus()
-
-Create from an HTTP status code, an API error response body, and an
-optional `Retry-After` duration already parsed from the response header.
-
-The `retry_after` value is forwarded into `LiterLlmError.RateLimited`
-so callers can honour the server-requested delay without re-parsing the
-header.
-
-**Signature:**
-
-```go
-func (o *LiterLlmError) FromStatus(status uint16, body string, retryAfter time.Duration) LiterLlmError
-```
+#### LiterLlmError
 
 
 ---
 
-##### LlmClient
-
-Core LLM client trait.
-
-###### Methods
-
-###### Chat()
-
-Send a chat completion request.
-
-**Signature:**
-
-```go
-func (o *LlmClient) Chat(req ChatCompletionRequest) (ChatCompletionResponse, error)
-```
-
-###### ChatStream()
-
-Send a streaming chat completion request.
-
-**Signature:**
-
-```go
-func (o *LlmClient) ChatStream(req ChatCompletionRequest) (BoxStream, error)
-```
-
-###### Embed()
-
-Send an embedding request.
-
-**Signature:**
-
-```go
-func (o *LlmClient) Embed(req EmbeddingRequest) (EmbeddingResponse, error)
-```
-
-###### ListModels()
-
-List available models.
-
-**Signature:**
-
-```go
-func (o *LlmClient) ListModels() (ModelsListResponse, error)
-```
-
-###### ImageGenerate()
-
-Generate an image.
-
-**Signature:**
-
-```go
-func (o *LlmClient) ImageGenerate(req CreateImageRequest) (ImagesResponse, error)
-```
-
-###### Speech()
-
-Generate speech audio from text.
-
-**Signature:**
-
-```go
-func (o *LlmClient) Speech(req CreateSpeechRequest) ([]byte, error)
-```
-
-###### Transcribe()
-
-Transcribe audio to text.
-
-**Signature:**
-
-```go
-func (o *LlmClient) Transcribe(req CreateTranscriptionRequest) (TranscriptionResponse, error)
-```
-
-###### Moderate()
-
-Check content against moderation policies.
-
-**Signature:**
-
-```go
-func (o *LlmClient) Moderate(req ModerationRequest) (ModerationResponse, error)
-```
-
-###### Rerank()
-
-Rerank documents by relevance to a query.
-
-**Signature:**
-
-```go
-func (o *LlmClient) Rerank(req RerankRequest) (RerankResponse, error)
-```
-
-###### Search()
-
-Perform a web/document search.
-
-**Signature:**
-
-```go
-func (o *LlmClient) Search(req SearchRequest) (SearchResponse, error)
-```
-
-###### Ocr()
-
-Extract text from a document via OCR.
-
-**Signature:**
-
-```go
-func (o *LlmClient) Ocr(req OcrRequest) (OcrResponse, error)
-```
-
-
----
-
-##### LlmClientRaw
-
-Extension of `LlmClient` that returns raw request/response data
-alongside the typed response.
-
-Every `_raw` method mirrors its counterpart on `LlmClient` but wraps the
-result in a `RawExchange` that exposes the final request body (after
-`transform_request`) and the raw provider response (before
-`transform_response`). This is useful for debugging provider-specific
-transformations, capturing wire-level data, or implementing custom parsing.
-
-###### Methods
-
-###### ChatRaw()
-
-Send a chat completion request and return the raw exchange.
-
-The `raw_request` field contains the final JSON body sent to the
-provider; `raw_response` contains the provider JSON before
-normalization.
-
-**Signature:**
-
-```go
-func (o *LlmClientRaw) ChatRaw(req ChatCompletionRequest) (RawExchange, error)
-```
-
-###### ChatStreamRaw()
-
-Send a streaming chat completion request and return the raw exchange.
-
-Only `raw_request` is available upfront — the stream itself is
-returned in `stream` and consumed incrementally.
-
-**Signature:**
-
-```go
-func (o *LlmClientRaw) ChatStreamRaw(req ChatCompletionRequest) (RawStreamExchange, error)
-```
-
-###### EmbedRaw()
-
-Send an embedding request and return the raw exchange.
-
-**Signature:**
-
-```go
-func (o *LlmClientRaw) EmbedRaw(req EmbeddingRequest) (RawExchange, error)
-```
-
-###### ImageGenerateRaw()
-
-Generate an image and return the raw exchange.
-
-**Signature:**
-
-```go
-func (o *LlmClientRaw) ImageGenerateRaw(req CreateImageRequest) (RawExchange, error)
-```
-
-###### TranscribeRaw()
-
-Transcribe audio to text and return the raw exchange.
-
-**Signature:**
-
-```go
-func (o *LlmClientRaw) TranscribeRaw(req CreateTranscriptionRequest) (RawExchange, error)
-```
-
-###### ModerateRaw()
-
-Check content against moderation policies and return the raw exchange.
-
-**Signature:**
-
-```go
-func (o *LlmClientRaw) ModerateRaw(req ModerationRequest) (RawExchange, error)
-```
-
-###### RerankRaw()
-
-Rerank documents by relevance to a query and return the raw exchange.
-
-**Signature:**
-
-```go
-func (o *LlmClientRaw) RerankRaw(req RerankRequest) (RawExchange, error)
-```
-
-###### SearchRaw()
-
-Perform a web/document search and return the raw exchange.
-
-**Signature:**
-
-```go
-func (o *LlmClientRaw) SearchRaw(req SearchRequest) (RawExchange, error)
-```
-
-###### OcrRaw()
-
-Extract text from a document via OCR and return the raw exchange.
-
-**Signature:**
-
-```go
-func (o *LlmClientRaw) OcrRaw(req OcrRequest) (RawExchange, error)
-```
-
-
----
-
-##### ManagedClient
-
-A managed LLM client that wraps `DefaultClient` with optional Tower
-middleware (cache, cooldown, rate limiting, health checks, cost tracking,
-budget, hooks, tracing).
-
-Construct via `ManagedClient.new`. If the provided `ClientConfig`
-contains any middleware configuration the corresponding Tower layers are
-composed into a service stack. Otherwise requests pass straight through
-to the inner `DefaultClient`.
-
-`ManagedClient` implements `LlmClient` and can be used everywhere a
-`DefaultClient` is expected.
-
-###### Methods
-
-###### New()
-
-Build a managed client.
-
-`model_hint` guides provider auto-detection — see
-`DefaultClient.new` for details.
-
-If the config contains any middleware settings (cache, budget, hooks,
-cooldown, rate limit, health check, cost tracking, tracing) the
-corresponding Tower layers are composed into a service stack.
-Otherwise requests pass straight through to the inner client.
-
-**Errors:**
-
-Returns an error if the underlying `DefaultClient` cannot be
-constructed (e.g. invalid headers or HTTP client build failure).
-
-**Signature:**
-
-```go
-func (o *ManagedClient) New(config ClientConfig, modelHint string) (ManagedClient, error)
-```
-
-###### Inner()
-
-Return a reference to the underlying `DefaultClient`.
-
-**Signature:**
-
-```go
-func (o *ManagedClient) Inner() DefaultClient
-```
-
-###### BudgetState()
-
-Return the budget state handle, if budget middleware is configured.
-
-Use this to query accumulated spend at runtime.
-
-**Signature:**
-
-```go
-func (o *ManagedClient) BudgetState() *BudgetState
-```
-
-###### HasMiddleware()
-
-Return `true` when middleware is active (requests go through the Tower
-service stack).
-
-**Signature:**
-
-```go
-func (o *ManagedClient) HasMiddleware() bool
-```
-
-###### Chat()
-
-**Signature:**
-
-```go
-func (o *ManagedClient) Chat(req ChatCompletionRequest) (ChatCompletionResponse, error)
-```
-
-###### ChatStream()
-
-**Signature:**
-
-```go
-func (o *ManagedClient) ChatStream(req ChatCompletionRequest) (BoxStream, error)
-```
-
-###### Embed()
-
-**Signature:**
-
-```go
-func (o *ManagedClient) Embed(req EmbeddingRequest) (EmbeddingResponse, error)
-```
-
-###### ListModels()
-
-**Signature:**
-
-```go
-func (o *ManagedClient) ListModels() (ModelsListResponse, error)
-```
-
-###### ImageGenerate()
-
-**Signature:**
-
-```go
-func (o *ManagedClient) ImageGenerate(req CreateImageRequest) (ImagesResponse, error)
-```
-
-###### Speech()
-
-**Signature:**
-
-```go
-func (o *ManagedClient) Speech(req CreateSpeechRequest) ([]byte, error)
-```
-
-###### Transcribe()
-
-**Signature:**
-
-```go
-func (o *ManagedClient) Transcribe(req CreateTranscriptionRequest) (TranscriptionResponse, error)
-```
-
-###### Moderate()
-
-**Signature:**
-
-```go
-func (o *ManagedClient) Moderate(req ModerationRequest) (ModerationResponse, error)
-```
-
-###### Rerank()
-
-**Signature:**
-
-```go
-func (o *ManagedClient) Rerank(req RerankRequest) (RerankResponse, error)
-```
-
-###### Search()
-
-**Signature:**
-
-```go
-func (o *ManagedClient) Search(req SearchRequest) (SearchResponse, error)
-```
-
-###### Ocr()
-
-**Signature:**
-
-```go
-func (o *ManagedClient) Ocr(req OcrRequest) (OcrResponse, error)
-```
-
-###### CreateFile()
-
-**Signature:**
-
-```go
-func (o *ManagedClient) CreateFile(req CreateFileRequest) (FileObject, error)
-```
-
-###### RetrieveFile()
-
-**Signature:**
-
-```go
-func (o *ManagedClient) RetrieveFile(fileId string) (FileObject, error)
-```
-
-###### DeleteFile()
-
-**Signature:**
-
-```go
-func (o *ManagedClient) DeleteFile(fileId string) (DeleteResponse, error)
-```
-
-###### ListFiles()
-
-**Signature:**
-
-```go
-func (o *ManagedClient) ListFiles(query FileListQuery) (FileListResponse, error)
-```
-
-###### FileContent()
-
-**Signature:**
-
-```go
-func (o *ManagedClient) FileContent(fileId string) ([]byte, error)
-```
-
-###### CreateBatch()
-
-**Signature:**
-
-```go
-func (o *ManagedClient) CreateBatch(req CreateBatchRequest) (BatchObject, error)
-```
-
-###### RetrieveBatch()
-
-**Signature:**
-
-```go
-func (o *ManagedClient) RetrieveBatch(batchId string) (BatchObject, error)
-```
-
-###### ListBatches()
-
-**Signature:**
-
-```go
-func (o *ManagedClient) ListBatches(query BatchListQuery) (BatchListResponse, error)
-```
-
-###### CancelBatch()
-
-**Signature:**
-
-```go
-func (o *ManagedClient) CancelBatch(batchId string) (BatchObject, error)
-```
-
-###### CreateResponse()
-
-**Signature:**
-
-```go
-func (o *ManagedClient) CreateResponse(req CreateResponseRequest) (ResponseObject, error)
-```
-
-###### RetrieveResponse()
-
-**Signature:**
-
-```go
-func (o *ManagedClient) RetrieveResponse(id string) (ResponseObject, error)
-```
-
-###### CancelResponse()
-
-**Signature:**
-
-```go
-func (o *ManagedClient) CancelResponse(id string) (ResponseObject, error)
-```
-
-
----
-
-##### ModelObject
+#### ModelObject
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -1865,7 +549,7 @@ func (o *ManagedClient) CancelResponse(id string) (ResponseObject, error)
 
 ---
 
-##### ModelsListResponse
+#### ModelsListResponse
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -1875,7 +559,7 @@ func (o *ManagedClient) CancelResponse(id string) (ResponseObject, error)
 
 ---
 
-##### ModerationCategories
+#### ModerationCategories
 
 Boolean flags for each moderation category.
 
@@ -1896,7 +580,7 @@ Boolean flags for each moderation category.
 
 ---
 
-##### ModerationCategoryScores
+#### ModerationCategoryScores
 
 Confidence scores for each moderation category.
 
@@ -1917,7 +601,7 @@ Confidence scores for each moderation category.
 
 ---
 
-##### ModerationRequest
+#### ModerationRequest
 
 Request to classify content for policy violations.
 
@@ -1929,7 +613,7 @@ Request to classify content for policy violations.
 
 ---
 
-##### ModerationResponse
+#### ModerationResponse
 
 Response from the moderation endpoint.
 
@@ -1942,7 +626,7 @@ Response from the moderation endpoint.
 
 ---
 
-##### ModerationResult
+#### ModerationResult
 
 A single moderation classification result.
 
@@ -1955,7 +639,7 @@ A single moderation classification result.
 
 ---
 
-##### OcrImage
+#### OcrImage
 
 An image extracted from an OCR page.
 
@@ -1967,7 +651,7 @@ An image extracted from an OCR page.
 
 ---
 
-##### OcrPage
+#### OcrPage
 
 A single page of OCR output.
 
@@ -1981,7 +665,7 @@ A single page of OCR output.
 
 ---
 
-##### OcrRequest
+#### OcrRequest
 
 An OCR request.
 
@@ -1989,13 +673,13 @@ An OCR request.
 |-------|------|---------|-------------|
 | `Model` | `string` | — | The model/provider to use (e.g. `"mistral/mistral-ocr-latest"`). |
 | `Document` | `OcrDocument` | — | The document to process. |
-| `Pages` | `*[]uint32` | `nil` | Specific pages to process (1-indexed). `None` means all pages. |
+| `Pages` | `*[]uint32` | `nil` | Specific pages to process (1-indexed). `nil` means all pages. |
 | `IncludeImageBase64` | `*bool` | `nil` | Whether to include base64-encoded images of each page. |
 
 
 ---
 
-##### OcrResponse
+#### OcrResponse
 
 An OCR response.
 
@@ -2008,7 +692,7 @@ An OCR response.
 
 ---
 
-##### PageDimensions
+#### PageDimensions
 
 Page dimensions in pixels.
 
@@ -2020,7 +704,7 @@ Page dimensions in pixels.
 
 ---
 
-##### RerankRequest
+#### RerankRequest
 
 Request to rerank documents by relevance to a query.
 
@@ -2035,7 +719,7 @@ Request to rerank documents by relevance to a query.
 
 ---
 
-##### RerankResponse
+#### RerankResponse
 
 Response from the rerank endpoint.
 
@@ -2048,7 +732,7 @@ Response from the rerank endpoint.
 
 ---
 
-##### RerankResult
+#### RerankResult
 
 A single reranked document with its relevance score.
 
@@ -2061,7 +745,7 @@ A single reranked document with its relevance score.
 
 ---
 
-##### RerankResultDocument
+#### RerankResultDocument
 
 The text content of a reranked document, returned when `return_documents` is true.
 
@@ -2072,46 +756,7 @@ The text content of a reranked document, returned when `return_documents` is tru
 
 ---
 
-##### ResponseClient
-
-Responses API operations (create, retrieve, cancel).
-
-###### Methods
-
-###### CreateResponse()
-
-Create a new response.
-
-**Signature:**
-
-```go
-func (o *ResponseClient) CreateResponse(req CreateResponseRequest) (ResponseObject, error)
-```
-
-###### RetrieveResponse()
-
-Retrieve a response by ID.
-
-**Signature:**
-
-```go
-func (o *ResponseClient) RetrieveResponse(id string) (ResponseObject, error)
-```
-
-###### CancelResponse()
-
-Cancel an in-progress response.
-
-**Signature:**
-
-```go
-func (o *ResponseClient) CancelResponse(id string) (ResponseObject, error)
-```
-
-
----
-
-##### SearchRequest
+#### SearchRequest
 
 A search request.
 
@@ -2126,7 +771,7 @@ A search request.
 
 ---
 
-##### SearchResponse
+#### SearchResponse
 
 A search response.
 
@@ -2138,7 +783,7 @@ A search response.
 
 ---
 
-##### SearchResult
+#### SearchResult
 
 An individual search result.
 
@@ -2152,7 +797,7 @@ An individual search result.
 
 ---
 
-##### SpecificFunction
+#### SpecificFunction
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2161,7 +806,7 @@ An individual search result.
 
 ---
 
-##### SpecificToolChoice
+#### SpecificToolChoice
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2171,7 +816,7 @@ An individual search result.
 
 ---
 
-##### StreamChoice
+#### StreamChoice
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2182,7 +827,7 @@ An individual search result.
 
 ---
 
-##### StreamDelta
+#### StreamDelta
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2195,7 +840,7 @@ An individual search result.
 
 ---
 
-##### StreamFunctionCall
+#### StreamFunctionCall
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2205,7 +850,7 @@ An individual search result.
 
 ---
 
-##### StreamOptions
+#### StreamOptions
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2214,7 +859,7 @@ An individual search result.
 
 ---
 
-##### StreamToolCall
+#### StreamToolCall
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2226,7 +871,7 @@ An individual search result.
 
 ---
 
-##### SystemMessage
+#### SystemMessage
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2236,7 +881,7 @@ An individual search result.
 
 ---
 
-##### ToolCall
+#### ToolCall
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2247,7 +892,7 @@ An individual search result.
 
 ---
 
-##### ToolMessage
+#### ToolMessage
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2258,7 +903,7 @@ An individual search result.
 
 ---
 
-##### TranscriptionResponse
+#### TranscriptionResponse
 
 Response from a transcription request.
 
@@ -2272,7 +917,7 @@ Response from a transcription request.
 
 ---
 
-##### TranscriptionSegment
+#### TranscriptionSegment
 
 A segment of transcribed audio with timing information.
 
@@ -2286,7 +931,7 @@ A segment of transcribed audio with timing information.
 
 ---
 
-##### Usage
+#### Usage
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2297,7 +942,7 @@ A segment of transcribed audio with timing information.
 
 ---
 
-##### UserMessage
+#### UserMessage
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2307,9 +952,9 @@ A segment of transcribed audio with timing information.
 
 ---
 
-#### Enums
+### Enums
 
-##### Message
+#### Message
 
 A chat message in a conversation.
 
@@ -2325,7 +970,7 @@ A chat message in a conversation.
 
 ---
 
-##### UserContent
+#### UserContent
 
 | Value | Description |
 |-------|-------------|
@@ -2335,7 +980,7 @@ A chat message in a conversation.
 
 ---
 
-##### ContentPart
+#### ContentPart
 
 | Value | Description |
 |-------|-------------|
@@ -2347,7 +992,7 @@ A chat message in a conversation.
 
 ---
 
-##### ImageDetail
+#### ImageDetail
 
 | Value | Description |
 |-------|-------------|
@@ -2358,11 +1003,13 @@ A chat message in a conversation.
 
 ---
 
-##### ToolType
+#### ToolType
 
-The type discriminator for tool/tool-call objects. Per the OpenAI spec this
-is always `"function"`. Using an enum enforces that constraint at the type
-level and rejects any other value on deserialization.
+The type discriminator for tool/tool-call objects.
+
+Per the OpenAI spec this is always `"function"`. Using an enum enforces
+that constraint at the type level and rejects any other value on
+deserialization.
 
 | Value | Description |
 |-------|-------------|
@@ -2371,7 +1018,7 @@ level and rejects any other value on deserialization.
 
 ---
 
-##### ToolChoice
+#### ToolChoice
 
 | Value | Description |
 |-------|-------------|
@@ -2381,7 +1028,7 @@ level and rejects any other value on deserialization.
 
 ---
 
-##### ToolChoiceMode
+#### ToolChoiceMode
 
 | Value | Description |
 |-------|-------------|
@@ -2392,7 +1039,7 @@ level and rejects any other value on deserialization.
 
 ---
 
-##### ResponseFormat
+#### ResponseFormat
 
 | Value | Description |
 |-------|-------------|
@@ -2403,7 +1050,7 @@ level and rejects any other value on deserialization.
 
 ---
 
-##### StopSequence
+#### StopSequence
 
 | Value | Description |
 |-------|-------------|
@@ -2413,7 +1060,7 @@ level and rejects any other value on deserialization.
 
 ---
 
-##### FinishReason
+#### FinishReason
 
 Why a choice stopped generating tokens.
 
@@ -2429,7 +1076,7 @@ Why a choice stopped generating tokens.
 
 ---
 
-##### ReasoningEffort
+#### ReasoningEffort
 
 Controls how much reasoning effort the model should use.
 
@@ -2442,7 +1089,7 @@ Controls how much reasoning effort the model should use.
 
 ---
 
-##### EmbeddingFormat
+#### EmbeddingFormat
 
 The format in which the embedding vectors are returned.
 
@@ -2454,7 +1101,7 @@ The format in which the embedding vectors are returned.
 
 ---
 
-##### EmbeddingInput
+#### EmbeddingInput
 
 | Value | Description |
 |-------|-------------|
@@ -2464,7 +1111,7 @@ The format in which the embedding vectors are returned.
 
 ---
 
-##### ModerationInput
+#### ModerationInput
 
 Input to the moderation endpoint — a single string or multiple strings.
 
@@ -2476,7 +1123,7 @@ Input to the moderation endpoint — a single string or multiple strings.
 
 ---
 
-##### RerankDocument
+#### RerankDocument
 
 A document to be reranked — either a plain string or an object with a text field.
 
@@ -2488,7 +1135,7 @@ A document to be reranked — either a plain string or an object with a text fie
 
 ---
 
-##### OcrDocument
+#### OcrDocument
 
 Document input for OCR — either a URL or inline base64 data.
 
@@ -2500,7 +1147,7 @@ Document input for OCR — either a URL or inline base64 data.
 
 ---
 
-##### AuthHeaderFormat
+#### AuthHeaderFormat
 
 How the API key is sent in the HTTP request.
 
@@ -2513,9 +1160,9 @@ How the API key is sent in the HTTP request.
 
 ---
 
-#### Errors
+### Errors
 
-##### LiterLlmError
+#### LiterLlmError
 
 All errors that can occur when using `liter-llm`.
 

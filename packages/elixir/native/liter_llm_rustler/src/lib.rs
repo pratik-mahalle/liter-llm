@@ -1241,15 +1241,6 @@ pub fn defaultclient_search_async(
     Ok(result.into())
 }
 
-#[rustler::nif(schedule = "DirtyCpu")]
-pub fn defaultclient_ocr_async(resource: ResourceArc<DefaultClient>, req: OcrRequest) -> Result<OcrResponse, String> {
-    let rt = tokio::runtime::Runtime::new().map_err(|e| e.to_string())?;
-    let result = rt
-        .block_on(async { resource.inner.as_ref().clone().ocr(req.into()).await })
-        .map_err(|e| e.to_string())?;
-    Ok(result.into())
-}
-
 impl From<SystemMessage> for liter_llm::types::SystemMessage {
     fn from(val: SystemMessage) -> Self {
         Self {
@@ -2233,17 +2224,6 @@ impl From<liter_llm::types::SearchResult> for SearchResult {
     }
 }
 
-impl From<OcrRequest> for liter_llm::types::OcrRequest {
-    fn from(val: OcrRequest) -> Self {
-        Self {
-            model: val.model,
-            document: val.document.into(),
-            pages: val.pages,
-            include_image_base64: val.include_image_base64,
-        }
-    }
-}
-
 impl From<liter_llm::types::OcrRequest> for OcrRequest {
     fn from(val: liter_llm::types::OcrRequest) -> Self {
         Self {
@@ -2255,33 +2235,12 @@ impl From<liter_llm::types::OcrRequest> for OcrRequest {
     }
 }
 
-impl From<OcrResponse> for liter_llm::types::OcrResponse {
-    fn from(val: OcrResponse) -> Self {
-        Self {
-            pages: val.pages.into_iter().map(Into::into).collect(),
-            model: val.model,
-            usage: val.usage.map(Into::into),
-        }
-    }
-}
-
 impl From<liter_llm::types::OcrResponse> for OcrResponse {
     fn from(val: liter_llm::types::OcrResponse) -> Self {
         Self {
             pages: val.pages.into_iter().map(Into::into).collect(),
             model: val.model,
             usage: val.usage.map(Into::into),
-        }
-    }
-}
-
-impl From<OcrPage> for liter_llm::types::OcrPage {
-    fn from(val: OcrPage) -> Self {
-        Self {
-            index: val.index,
-            markdown: val.markdown,
-            images: val.images.map(|v| v.into_iter().map(Into::into).collect()),
-            dimensions: val.dimensions.map(Into::into),
         }
     }
 }
@@ -2297,29 +2256,11 @@ impl From<liter_llm::types::OcrPage> for OcrPage {
     }
 }
 
-impl From<OcrImage> for liter_llm::types::OcrImage {
-    fn from(val: OcrImage) -> Self {
-        Self {
-            id: val.id,
-            image_base64: val.image_base64,
-        }
-    }
-}
-
 impl From<liter_llm::types::OcrImage> for OcrImage {
     fn from(val: liter_llm::types::OcrImage) -> Self {
         Self {
             id: val.id,
             image_base64: val.image_base64,
-        }
-    }
-}
-
-impl From<PageDimensions> for liter_llm::types::PageDimensions {
-    fn from(val: PageDimensions) -> Self {
-        Self {
-            width: val.width,
-            height: val.height,
         }
     }
 }
@@ -2699,20 +2640,6 @@ impl From<liter_llm::types::RerankDocument> for RerankDocument {
         match val {
             liter_llm::types::RerankDocument::Text(..) => Self::Text,
             liter_llm::types::RerankDocument::Object { .. } => Self::Object,
-        }
-    }
-}
-
-impl From<OcrDocument> for liter_llm::types::OcrDocument {
-    fn from(val: OcrDocument) -> Self {
-        match val {
-            OcrDocument::Url => Self::Url {
-                url: Default::default(),
-            },
-            OcrDocument::Base64 => Self::Base64 {
-                data: Default::default(),
-                media_type: Default::default(),
-            },
         }
     }
 }

@@ -3653,17 +3653,6 @@ impl WasmDefaultClient {
             .map_err(|e| JsValue::from_str(&e.to_string()))?;
         Ok(result.into())
     }
-
-    #[allow(clippy::missing_errors_doc)]
-    #[wasm_bindgen]
-    pub async fn ocr(&self, req: WasmOcrRequest) -> Result<WasmOcrResponse, JsValue> {
-        let result = self
-            .inner
-            .ocr(req.into())
-            .await
-            .map_err(|e| JsValue::from_str(&e.to_string()))?;
-        Ok(result.into())
-    }
 }
 
 /// Configuration for registering a custom LLM provider at runtime.
@@ -5080,17 +5069,6 @@ impl From<liter_llm::types::SearchResult> for WasmSearchResult {
     }
 }
 
-impl From<WasmOcrRequest> for liter_llm::types::OcrRequest {
-    fn from(val: WasmOcrRequest) -> Self {
-        Self {
-            model: val.model,
-            document: val.document.into(),
-            pages: val.pages,
-            include_image_base64: val.include_image_base64,
-        }
-    }
-}
-
 impl From<liter_llm::types::OcrRequest> for WasmOcrRequest {
     fn from(val: liter_llm::types::OcrRequest) -> Self {
         Self {
@@ -5102,33 +5080,12 @@ impl From<liter_llm::types::OcrRequest> for WasmOcrRequest {
     }
 }
 
-impl From<WasmOcrResponse> for liter_llm::types::OcrResponse {
-    fn from(val: WasmOcrResponse) -> Self {
-        Self {
-            pages: val.pages.into_iter().map(Into::into).collect(),
-            model: val.model,
-            usage: val.usage.map(Into::into),
-        }
-    }
-}
-
 impl From<liter_llm::types::OcrResponse> for WasmOcrResponse {
     fn from(val: liter_llm::types::OcrResponse) -> Self {
         Self {
             pages: val.pages.into_iter().map(Into::into).collect(),
             model: val.model,
             usage: val.usage.map(Into::into),
-        }
-    }
-}
-
-impl From<WasmOcrPage> for liter_llm::types::OcrPage {
-    fn from(val: WasmOcrPage) -> Self {
-        Self {
-            index: val.index,
-            markdown: val.markdown,
-            images: val.images.map(|v| v.into_iter().map(Into::into).collect()),
-            dimensions: val.dimensions.map(Into::into),
         }
     }
 }
@@ -5144,29 +5101,11 @@ impl From<liter_llm::types::OcrPage> for WasmOcrPage {
     }
 }
 
-impl From<WasmOcrImage> for liter_llm::types::OcrImage {
-    fn from(val: WasmOcrImage) -> Self {
-        Self {
-            id: val.id,
-            image_base64: val.image_base64,
-        }
-    }
-}
-
 impl From<liter_llm::types::OcrImage> for WasmOcrImage {
     fn from(val: liter_llm::types::OcrImage) -> Self {
         Self {
             id: val.id,
             image_base64: val.image_base64,
-        }
-    }
-}
-
-impl From<WasmPageDimensions> for liter_llm::types::PageDimensions {
-    fn from(val: WasmPageDimensions) -> Self {
-        Self {
-            width: val.width,
-            height: val.height,
         }
     }
 }
@@ -5546,20 +5485,6 @@ impl From<liter_llm::types::RerankDocument> for WasmRerankDocument {
         match val {
             liter_llm::types::RerankDocument::Text(..) => Self::Text,
             liter_llm::types::RerankDocument::Object { .. } => Self::Object,
-        }
-    }
-}
-
-impl From<WasmOcrDocument> for liter_llm::types::OcrDocument {
-    fn from(val: WasmOcrDocument) -> Self {
-        match val {
-            WasmOcrDocument::Url => Self::Url {
-                url: Default::default(),
-            },
-            WasmOcrDocument::Base64 => Self::Base64 {
-                data: Default::default(),
-                media_type: Default::default(),
-            },
         }
     }
 }

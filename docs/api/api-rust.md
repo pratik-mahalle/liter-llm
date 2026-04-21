@@ -135,20 +135,6 @@ pub fn unregister_custom_provider(name: &str) -> Result<bool, Error>
 
 ### Types
 
-#### ApiError
-
-Inner error object.
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `message` | `String` | — | Message |
-| `error_type` | `String` | — | Error type |
-| `param` | `Option<String>` | `None` | Param |
-| `code` | `Option<String>` | `None` | Code |
-
-
----
-
 #### AssistantMessage
 
 | Field | Type | Default | Description |
@@ -168,55 +154,6 @@ Inner error object.
 |-------|------|---------|-------------|
 | `data` | `String` | — | Base64-encoded audio data. |
 | `format` | `String` | — | Audio format (e.g., "wav", "mp3", "ogg"). |
-
-
----
-
-#### BatchClient
-
-Batch processing operations (create, list, retrieve, cancel).
-
-##### Methods
-
-###### create_batch()
-
-Create a new batch job.
-
-**Signature:**
-
-```rust
-pub fn create_batch(&self, req: CreateBatchRequest) -> BatchObject
-```
-
-###### retrieve_batch()
-
-Retrieve a batch by ID.
-
-**Signature:**
-
-```rust
-pub fn retrieve_batch(&self, batch_id: String) -> BatchObject
-```
-
-###### list_batches()
-
-List batches, optionally filtered by query parameters.
-
-**Signature:**
-
-```rust
-pub fn list_batches(&self, query: Option<BatchListQuery>) -> BatchListResponse
-```
-
-###### cancel_batch()
-
-Cancel an in-progress batch.
-
-**Signature:**
-
-```rust
-pub fn cancel_batch(&self, batch_id: String) -> BatchObject
-```
 
 
 ---
@@ -278,23 +215,6 @@ pub fn cancel_batch(&self, batch_id: String) -> BatchObject
 | `system_fingerprint` | `Option<String>` | `Default::default()` | System fingerprint |
 | `service_tier` | `Option<String>` | `Default::default()` | Service tier |
 
-##### Methods
-
-###### estimated_cost()
-
-Estimate the cost of this response based on embedded pricing data.
-
-Returns `None` if:
-
-- the `model` field is not present in the embedded pricing registry, or
-- the `usage` field is absent from the response.
-
-**Signature:**
-
-```rust
-pub fn estimated_cost(&self) -> Option<f64>
-```
-
 
 ---
 
@@ -315,259 +235,6 @@ pub fn estimated_cost(&self) -> Option<f64>
 | `index` | `u32` | — | Index |
 | `message` | `AssistantMessage` | — | Message (assistant message) |
 | `finish_reason` | `Option<FinishReason>` | `Default::default()` | Finish reason (finish reason) |
-
-
----
-
-#### ClientConfig
-
-Configuration for an LLM client.
-
-`api_key` is stored as a `SecretString` so it is zeroed on drop and never
-printed accidentally. Access it via `secrecy.ExposeSecret`.
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `api_key` | `String` | — | API key for authentication (stored as a secret). |
-| `base_url` | `Option<String>` | `None` | Override base URL.  When set, all requests go here regardless of model name, and provider auto-detection is skipped. |
-| `timeout` | `std::time::Duration` | — | Request timeout. |
-| `max_retries` | `u32` | — | Maximum number of retries on 429 / 5xx responses. |
-| `credential_provider` | `Option<CredentialProvider>` | `None` | Optional dynamic credential provider for token-based auth (Azure AD, Vertex OAuth2) or refreshable credentials (AWS STS). When set, the client calls `resolve()` before each request to obtain a fresh credential.  When `None`, the static `api_key` is used. |
-
-##### Methods
-
-###### headers()
-
-Return the extra headers as an ordered slice of `(name, value)` pairs.
-
-**Signature:**
-
-```rust
-pub fn headers(&self) -> Vec<(String, String)>
-```
-
-###### fmt()
-
-**Signature:**
-
-```rust
-pub fn fmt(&self, f: Formatter) -> Unknown
-```
-
-
----
-
-#### ClientConfigBuilder
-
-Builder for `ClientConfig`.
-
-Construct with `ClientConfigBuilder.new` and call builder methods to
-customise the configuration, then call `ClientConfigBuilder.build` to
-obtain a `ClientConfig`.
-
-##### Methods
-
-###### base_url()
-
-Override the provider base URL for all requests.
-
-**Signature:**
-
-```rust
-pub fn base_url(&self, url: String) -> ClientConfigBuilder
-```
-
-###### timeout()
-
-Set the per-request timeout (default: 60 s).
-
-**Signature:**
-
-```rust
-pub fn timeout(&self, timeout: std::time::Duration) -> ClientConfigBuilder
-```
-
-###### max_retries()
-
-Set the maximum number of retries on 429 / 5xx responses (default: 3).
-
-**Signature:**
-
-```rust
-pub fn max_retries(&self, retries: u32) -> ClientConfigBuilder
-```
-
-###### credential_provider()
-
-Set a dynamic credential provider for token-based or refreshable auth.
-
-When configured, the client calls `resolve()` before each request
-instead of using the static `api_key` for authentication.
-
-**Signature:**
-
-```rust
-pub fn credential_provider(&self, provider: CredentialProvider) -> ClientConfigBuilder
-```
-
-###### header()
-
-Add a custom header sent on every request.
-
-Returns an error if either `key` or `value` is not a valid HTTP header
-name / value.
-
-This method is only available when the `native-http` feature is enabled
-because header validation relies on `reqwest`'s header types.
-
-**Signature:**
-
-```rust
-pub fn header(&self, key: String, value: String) -> ClientConfigBuilder
-```
-
-###### cache()
-
-Set the response cache configuration for the Tower middleware stack.
-
-When set, bindings and advanced Rust users can read this from the
-built `ClientConfig` to construct a
-`CacheLayer`.
-
-**Signature:**
-
-```rust
-pub fn cache(&self, config: CacheConfig) -> ClientConfigBuilder
-```
-
-###### cache_store()
-
-Set a custom cache store backend for the Tower cache middleware.
-
-When set alongside `cache`, the cache layer will use
-this store instead of the default in-memory LRU.
-
-**Signature:**
-
-```rust
-pub fn cache_store(&self, store: CacheStore) -> ClientConfigBuilder
-```
-
-###### budget()
-
-Set the budget enforcement configuration for the Tower middleware stack.
-
-When set, bindings and advanced Rust users can read this from the
-built `ClientConfig` to construct a
-`BudgetLayer`.
-
-**Signature:**
-
-```rust
-pub fn budget(&self, config: BudgetConfig) -> ClientConfigBuilder
-```
-
-###### hook()
-
-Add a single hook to the Tower hooks middleware stack.
-
-Hooks are invoked sequentially in registration order at request
-lifecycle points (pre-request, post-response, on-error).
-
-**Signature:**
-
-```rust
-pub fn hook(&self, hook: LlmHook) -> ClientConfigBuilder
-```
-
-###### hooks()
-
-Set the full list of hooks for the Tower hooks middleware stack,
-replacing any previously registered hooks.
-
-Hooks are invoked sequentially in registration order.
-
-**Signature:**
-
-```rust
-pub fn hooks(&self, hooks: Vec<LlmHook>) -> ClientConfigBuilder
-```
-
-###### cooldown()
-
-Set the cooldown duration after transient errors.
-
-When set, the client rejects requests with `ServiceUnavailable` for
-the given duration after a transient error (rate limit, timeout,
-server error).
-
-**Signature:**
-
-```rust
-pub fn cooldown(&self, duration: std::time::Duration) -> ClientConfigBuilder
-```
-
-###### rate_limit()
-
-Set per-model rate limiting configuration.
-
-When set, requests exceeding the configured RPM or TPM limits are
-rejected with `LiterLlmError.RateLimited`.
-
-**Signature:**
-
-```rust
-pub fn rate_limit(&self, config: RateLimitConfig) -> ClientConfigBuilder
-```
-
-###### health_check()
-
-Set the background health check interval.
-
-When set, the client periodically probes the provider and rejects
-requests when the provider is unhealthy.
-
-**Signature:**
-
-```rust
-pub fn health_check(&self, interval: std::time::Duration) -> ClientConfigBuilder
-```
-
-###### cost_tracking()
-
-Enable or disable per-request cost tracking.
-
-When enabled, estimated USD cost is recorded on the current tracing
-span as `gen_ai.usage.cost`.
-
-**Signature:**
-
-```rust
-pub fn cost_tracking(&self, enabled: bool) -> ClientConfigBuilder
-```
-
-###### tracing()
-
-Enable or disable OpenTelemetry-compatible tracing spans.
-
-When enabled, every request is wrapped in a `gen_ai` tracing span
-with semantic convention attributes.
-
-**Signature:**
-
-```rust
-pub fn tracing(&self, enabled: bool) -> ClientConfigBuilder
-```
-
-###### build()
-
-Consume the builder and return the completed `ClientConfig`.
-
-**Signature:**
-
-```rust
-pub fn build(&self) -> ClientConfig
-```
 
 
 ---
@@ -653,27 +320,6 @@ async closures and streaming tasks that must be `'static`.
 
 ##### Methods
 
-###### new()
-
-Build a client.
-
-`model_hint` guides provider auto-detection when no explicit
-`base_url` override is present in the config. For example, passing
-`Some("groq/llama3-70b")` selects the Groq provider. Pass `None` to
-default to OpenAI.
-
-**Errors:**
-
-Returns a wrapped `reqwest.Error` if the underlying HTTP client
-cannot be constructed. Header names and values are pre-validated by
-`ClientConfigBuilder.header`, so they are inserted directly here.
-
-**Signature:**
-
-```rust
-pub fn new(config: ClientConfig, model_hint: Option<String>) -> DefaultClient
-```
-
 ###### chat()
 
 **Signature:**
@@ -687,7 +333,7 @@ pub fn chat(&self, req: ChatCompletionRequest) -> ChatCompletionResponse
 **Signature:**
 
 ```rust
-pub fn chat_stream(&self, req: ChatCompletionRequest) -> BoxStream
+pub fn chat_stream(&self, req: ChatCompletionRequest) -> String
 ```
 
 ###### embed()
@@ -712,14 +358,6 @@ pub fn list_models(&self) -> ModelsListResponse
 
 ```rust
 pub fn image_generate(&self, req: CreateImageRequest) -> ImagesResponse
-```
-
-###### speech()
-
-**Signature:**
-
-```rust
-pub fn speech(&self, req: CreateSpeechRequest) -> Vec<u8>
 ```
 
 ###### transcribe()
@@ -752,182 +390,6 @@ pub fn rerank(&self, req: RerankRequest) -> RerankResponse
 
 ```rust
 pub fn search(&self, req: SearchRequest) -> SearchResponse
-```
-
-###### ocr()
-
-**Signature:**
-
-```rust
-pub fn ocr(&self, req: OcrRequest) -> OcrResponse
-```
-
-###### chat_raw()
-
-**Signature:**
-
-```rust
-pub fn chat_raw(&self, req: ChatCompletionRequest) -> RawExchange
-```
-
-###### chat_stream_raw()
-
-**Signature:**
-
-```rust
-pub fn chat_stream_raw(&self, req: ChatCompletionRequest) -> RawStreamExchange
-```
-
-###### embed_raw()
-
-**Signature:**
-
-```rust
-pub fn embed_raw(&self, req: EmbeddingRequest) -> RawExchange
-```
-
-###### image_generate_raw()
-
-**Signature:**
-
-```rust
-pub fn image_generate_raw(&self, req: CreateImageRequest) -> RawExchange
-```
-
-###### transcribe_raw()
-
-**Signature:**
-
-```rust
-pub fn transcribe_raw(&self, req: CreateTranscriptionRequest) -> RawExchange
-```
-
-###### moderate_raw()
-
-**Signature:**
-
-```rust
-pub fn moderate_raw(&self, req: ModerationRequest) -> RawExchange
-```
-
-###### rerank_raw()
-
-**Signature:**
-
-```rust
-pub fn rerank_raw(&self, req: RerankRequest) -> RawExchange
-```
-
-###### search_raw()
-
-**Signature:**
-
-```rust
-pub fn search_raw(&self, req: SearchRequest) -> RawExchange
-```
-
-###### ocr_raw()
-
-**Signature:**
-
-```rust
-pub fn ocr_raw(&self, req: OcrRequest) -> RawExchange
-```
-
-###### create_file()
-
-**Signature:**
-
-```rust
-pub fn create_file(&self, req: CreateFileRequest) -> FileObject
-```
-
-###### retrieve_file()
-
-**Signature:**
-
-```rust
-pub fn retrieve_file(&self, file_id: String) -> FileObject
-```
-
-###### delete_file()
-
-**Signature:**
-
-```rust
-pub fn delete_file(&self, file_id: String) -> DeleteResponse
-```
-
-###### list_files()
-
-**Signature:**
-
-```rust
-pub fn list_files(&self, query: Option<FileListQuery>) -> FileListResponse
-```
-
-###### file_content()
-
-**Signature:**
-
-```rust
-pub fn file_content(&self, file_id: String) -> Vec<u8>
-```
-
-###### create_batch()
-
-**Signature:**
-
-```rust
-pub fn create_batch(&self, req: CreateBatchRequest) -> BatchObject
-```
-
-###### retrieve_batch()
-
-**Signature:**
-
-```rust
-pub fn retrieve_batch(&self, batch_id: String) -> BatchObject
-```
-
-###### list_batches()
-
-**Signature:**
-
-```rust
-pub fn list_batches(&self, query: Option<BatchListQuery>) -> BatchListResponse
-```
-
-###### cancel_batch()
-
-**Signature:**
-
-```rust
-pub fn cancel_batch(&self, batch_id: String) -> BatchObject
-```
-
-###### create_response()
-
-**Signature:**
-
-```rust
-pub fn create_response(&self, req: CreateResponseRequest) -> ResponseObject
-```
-
-###### retrieve_response()
-
-**Signature:**
-
-```rust
-pub fn retrieve_response(&self, id: String) -> ResponseObject
-```
-
-###### cancel_response()
-
-**Signature:**
-
-```rust
-pub fn cancel_response(&self, id: String) -> ResponseObject
 ```
 
 
@@ -986,252 +448,10 @@ pub fn cancel_response(&self, id: String) -> ResponseObject
 | `model` | `String` | — | Model |
 | `usage` | `Option<Usage>` | `None` | Usage (usage) |
 
-##### Methods
-
-###### estimated_cost()
-
-Estimate the cost of this embedding request based on embedded pricing data.
-
-Returns `None` if:
-
-- the `model` field is not present in the embedded pricing registry, or
-- the `usage` field is absent from the response.
-
-Embedding models only charge for input tokens; output cost is zero.
-
-**Signature:**
-
-```rust
-pub fn estimated_cost(&self) -> Option<f64>
-```
-
 
 ---
 
-#### ErrorResponse
-
-Error response from an OpenAI-compatible API.
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `error` | `ApiError` | — | Error (api error) |
-
-
----
-
-#### FileBudgetConfig
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `global_limit` | `Option<f64>` | `None` | Global limit |
-| `model_limits` | `Option<HashMap<String, f64>>` | `None` | Model limits |
-| `enforcement` | `Option<String>` | `None` | Enforcement |
-
-
----
-
-#### FileCacheConfig
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `max_entries` | `Option<usize>` | `None` | Maximum entries |
-| `ttl_seconds` | `Option<u64>` | `None` | Ttl seconds |
-| `backend` | `Option<String>` | `None` | Backend |
-| `backend_config` | `Option<HashMap<String, String>>` | `None` | Backend config |
-
-
----
-
-#### FileClient
-
-File management operations (upload, list, retrieve, delete).
-
-##### Methods
-
-###### create_file()
-
-Upload a file.
-
-**Signature:**
-
-```rust
-pub fn create_file(&self, req: CreateFileRequest) -> FileObject
-```
-
-###### retrieve_file()
-
-Retrieve metadata for a file.
-
-**Signature:**
-
-```rust
-pub fn retrieve_file(&self, file_id: String) -> FileObject
-```
-
-###### delete_file()
-
-Delete a file.
-
-**Signature:**
-
-```rust
-pub fn delete_file(&self, file_id: String) -> DeleteResponse
-```
-
-###### list_files()
-
-List files, optionally filtered by query parameters.
-
-**Signature:**
-
-```rust
-pub fn list_files(&self, query: Option<FileListQuery>) -> FileListResponse
-```
-
-###### file_content()
-
-Retrieve the raw content of a file.
-
-**Signature:**
-
-```rust
-pub fn file_content(&self, file_id: String) -> Vec<u8>
-```
-
-
----
-
-#### FileConfig
-
-TOML file representation of client configuration.
-
-All fields are optional — missing fields use defaults from `ClientConfigBuilder`.
-Convert to a builder via `FileConfig.into_builder`.
-
-## Example `liter-llm.toml`
-
-```toml
-api_key = "sk-..."
-base_url = "<https://api.openai.com/v1">
-timeout_secs = 120
-max_retries = 5
-
-[cache]
-max_entries = 512
-ttl_seconds = 600
-backend = "memory"
-
-[budget]
-global_limit = 50.0
-enforcement = "hard"
-
-[[providers]]
-name = "my-provider"
-base_url = "<https://my-llm.example.com/v1">
-model_prefixes = ["my-provider/"]
-```
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `api_key` | `Option<String>` | `None` | Api key |
-| `base_url` | `Option<String>` | `None` | Base url |
-| `model_hint` | `Option<String>` | `None` | Model hint |
-| `timeout_secs` | `Option<u64>` | `None` | Timeout secs |
-| `max_retries` | `Option<u32>` | `None` | Maximum retries |
-| `extra_headers` | `Option<HashMap<String, String>>` | `None` | Extra headers |
-| `cache` | `Option<FileCacheConfig>` | `None` | Cache (file cache config) |
-| `budget` | `Option<FileBudgetConfig>` | `None` | Budget (file budget config) |
-| `cooldown_secs` | `Option<u64>` | `None` | Cooldown secs |
-| `rate_limit` | `Option<FileRateLimitConfig>` | `None` | Rate limit (file rate limit config) |
-| `health_check_secs` | `Option<u64>` | `None` | Health check secs |
-| `cost_tracking` | `Option<bool>` | `None` | Cost tracking |
-| `tracing` | `Option<bool>` | `None` | Tracing |
-| `providers` | `Option<Vec<FileProviderConfig>>` | `None` | Providers |
-
-### Methods
-
-#### from_toml_file()
-
-Load from a TOML file path.
-
-**Signature:**
-
-```rust
-pub fn from_toml_file(path: Path) -> FileConfig
-```
-
-##### from_toml_str()
-
-Parse from a TOML string.
-
-**Signature:**
-
-```rust
-pub fn from_toml_str(s: String) -> FileConfig
-```
-
-###### discover()
-
-Discover `liter-llm.toml` by walking from current directory to filesystem root.
-
-Returns `Ok(None)` if no config file is found.
-
-**Signature:**
-
-```rust
-pub fn discover() -> Option<FileConfig>
-```
-
-###### into_builder()
-
-Convert into a `ClientConfigBuilder`,
-applying all fields that are set.
-
-Fields not present in the TOML file use the builder's defaults.
-
-**Signature:**
-
-```rust
-pub fn into_builder(&self) -> ClientConfigBuilder
-```
-
-###### providers()
-
-Get the custom provider configurations from this file config.
-
-**Signature:**
-
-```rust
-pub fn providers(&self) -> Vec<FileProviderConfig>
-```
-
-
----
-
-##### FileProviderConfig
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `name` | `String` | — | The name |
-| `base_url` | `String` | — | Base url |
-| `auth_header` | `Option<String>` | `None` | Auth header |
-| `model_prefixes` | `Vec<String>` | — | Model prefixes |
-
-
----
-
-##### FileRateLimitConfig
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `rpm` | `Option<u32>` | `None` | Rpm |
-| `tpm` | `Option<u64>` | `None` | Tpm |
-| `window_seconds` | `Option<u64>` | `None` | Window seconds |
-
-
----
-
-##### FunctionCall
+#### FunctionCall
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -1241,7 +461,7 @@ pub fn providers(&self) -> Vec<FileProviderConfig>
 
 ---
 
-##### FunctionDefinition
+#### FunctionDefinition
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -1253,7 +473,7 @@ pub fn providers(&self) -> Vec<FileProviderConfig>
 
 ---
 
-##### FunctionMessage
+#### FunctionMessage
 
 Deprecated legacy function-role message body.
 
@@ -1265,7 +485,7 @@ Deprecated legacy function-role message body.
 
 ---
 
-##### Image
+#### Image
 
 A single generated image, returned as either a URL or base64 data.
 
@@ -1278,7 +498,7 @@ A single generated image, returned as either a URL or base64 data.
 
 ---
 
-##### ImageUrl
+#### ImageUrl
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -1288,7 +508,7 @@ A single generated image, returned as either a URL or base64 data.
 
 ---
 
-##### ImagesResponse
+#### ImagesResponse
 
 Response containing generated images.
 
@@ -1300,7 +520,7 @@ Response containing generated images.
 
 ---
 
-##### JsonSchemaFormat
+#### JsonSchemaFormat
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -1312,548 +532,12 @@ Response containing generated images.
 
 ---
 
-##### LiterLlmError
-
-###### Methods
-
-###### is_transient()
-
-Returns `true` for errors that are worth retrying on a different service
-or deployment (transient failures).
-
-Used by `crate.tower.fallback.FallbackService` and
-`crate.tower.router.Router` to decide whether to route to an
-alternative endpoint.
-
-**Signature:**
-
-```rust
-pub fn is_transient(&self) -> bool
-```
-
-###### error_type()
-
-Return the OpenTelemetry `error.type` string for this error variant.
-
-Used by the tracing middleware to record the `error.type` span attribute
-on failed requests per the GenAI semantic conventions.
-
-**Signature:**
-
-```rust
-pub fn error_type(&self) -> String
-```
-
-###### from_status()
-
-Create from an HTTP status code, an API error response body, and an
-optional `Retry-After` duration already parsed from the response header.
-
-The `retry_after` value is forwarded into `LiterLlmError.RateLimited`
-so callers can honour the server-requested delay without re-parsing the
-header.
-
-**Signature:**
-
-```rust
-pub fn from_status(status: u16, body: String, retry_after: Option<std::time::Duration>) -> LiterLlmError
-```
+#### LiterLlmError
 
 
 ---
 
-##### LlmClient
-
-Core LLM client trait.
-
-###### Methods
-
-###### chat()
-
-Send a chat completion request.
-
-**Signature:**
-
-```rust
-pub fn chat(&self, req: ChatCompletionRequest) -> ChatCompletionResponse
-```
-
-###### chat_stream()
-
-Send a streaming chat completion request.
-
-**Signature:**
-
-```rust
-pub fn chat_stream(&self, req: ChatCompletionRequest) -> BoxStream
-```
-
-###### embed()
-
-Send an embedding request.
-
-**Signature:**
-
-```rust
-pub fn embed(&self, req: EmbeddingRequest) -> EmbeddingResponse
-```
-
-###### list_models()
-
-List available models.
-
-**Signature:**
-
-```rust
-pub fn list_models(&self) -> ModelsListResponse
-```
-
-###### image_generate()
-
-Generate an image.
-
-**Signature:**
-
-```rust
-pub fn image_generate(&self, req: CreateImageRequest) -> ImagesResponse
-```
-
-###### speech()
-
-Generate speech audio from text.
-
-**Signature:**
-
-```rust
-pub fn speech(&self, req: CreateSpeechRequest) -> Vec<u8>
-```
-
-###### transcribe()
-
-Transcribe audio to text.
-
-**Signature:**
-
-```rust
-pub fn transcribe(&self, req: CreateTranscriptionRequest) -> TranscriptionResponse
-```
-
-###### moderate()
-
-Check content against moderation policies.
-
-**Signature:**
-
-```rust
-pub fn moderate(&self, req: ModerationRequest) -> ModerationResponse
-```
-
-###### rerank()
-
-Rerank documents by relevance to a query.
-
-**Signature:**
-
-```rust
-pub fn rerank(&self, req: RerankRequest) -> RerankResponse
-```
-
-###### search()
-
-Perform a web/document search.
-
-**Signature:**
-
-```rust
-pub fn search(&self, req: SearchRequest) -> SearchResponse
-```
-
-###### ocr()
-
-Extract text from a document via OCR.
-
-**Signature:**
-
-```rust
-pub fn ocr(&self, req: OcrRequest) -> OcrResponse
-```
-
-
----
-
-##### LlmClientRaw
-
-Extension of `LlmClient` that returns raw request/response data
-alongside the typed response.
-
-Every `_raw` method mirrors its counterpart on `LlmClient` but wraps the
-result in a `RawExchange` that exposes the final request body (after
-`transform_request`) and the raw provider response (before
-`transform_response`). This is useful for debugging provider-specific
-transformations, capturing wire-level data, or implementing custom parsing.
-
-###### Methods
-
-###### chat_raw()
-
-Send a chat completion request and return the raw exchange.
-
-The `raw_request` field contains the final JSON body sent to the
-provider; `raw_response` contains the provider JSON before
-normalization.
-
-**Signature:**
-
-```rust
-pub fn chat_raw(&self, req: ChatCompletionRequest) -> RawExchange
-```
-
-###### chat_stream_raw()
-
-Send a streaming chat completion request and return the raw exchange.
-
-Only `raw_request` is available upfront — the stream itself is
-returned in `stream` and consumed incrementally.
-
-**Signature:**
-
-```rust
-pub fn chat_stream_raw(&self, req: ChatCompletionRequest) -> RawStreamExchange
-```
-
-###### embed_raw()
-
-Send an embedding request and return the raw exchange.
-
-**Signature:**
-
-```rust
-pub fn embed_raw(&self, req: EmbeddingRequest) -> RawExchange
-```
-
-###### image_generate_raw()
-
-Generate an image and return the raw exchange.
-
-**Signature:**
-
-```rust
-pub fn image_generate_raw(&self, req: CreateImageRequest) -> RawExchange
-```
-
-###### transcribe_raw()
-
-Transcribe audio to text and return the raw exchange.
-
-**Signature:**
-
-```rust
-pub fn transcribe_raw(&self, req: CreateTranscriptionRequest) -> RawExchange
-```
-
-###### moderate_raw()
-
-Check content against moderation policies and return the raw exchange.
-
-**Signature:**
-
-```rust
-pub fn moderate_raw(&self, req: ModerationRequest) -> RawExchange
-```
-
-###### rerank_raw()
-
-Rerank documents by relevance to a query and return the raw exchange.
-
-**Signature:**
-
-```rust
-pub fn rerank_raw(&self, req: RerankRequest) -> RawExchange
-```
-
-###### search_raw()
-
-Perform a web/document search and return the raw exchange.
-
-**Signature:**
-
-```rust
-pub fn search_raw(&self, req: SearchRequest) -> RawExchange
-```
-
-###### ocr_raw()
-
-Extract text from a document via OCR and return the raw exchange.
-
-**Signature:**
-
-```rust
-pub fn ocr_raw(&self, req: OcrRequest) -> RawExchange
-```
-
-
----
-
-##### ManagedClient
-
-A managed LLM client that wraps `DefaultClient` with optional Tower
-middleware (cache, cooldown, rate limiting, health checks, cost tracking,
-budget, hooks, tracing).
-
-Construct via `ManagedClient.new`. If the provided `ClientConfig`
-contains any middleware configuration the corresponding Tower layers are
-composed into a service stack. Otherwise requests pass straight through
-to the inner `DefaultClient`.
-
-`ManagedClient` implements `LlmClient` and can be used everywhere a
-`DefaultClient` is expected.
-
-###### Methods
-
-###### new()
-
-Build a managed client.
-
-`model_hint` guides provider auto-detection — see
-`DefaultClient.new` for details.
-
-If the config contains any middleware settings (cache, budget, hooks,
-cooldown, rate limit, health check, cost tracking, tracing) the
-corresponding Tower layers are composed into a service stack.
-Otherwise requests pass straight through to the inner client.
-
-**Errors:**
-
-Returns an error if the underlying `DefaultClient` cannot be
-constructed (e.g. invalid headers or HTTP client build failure).
-
-**Signature:**
-
-```rust
-pub fn new(config: ClientConfig, model_hint: Option<String>) -> ManagedClient
-```
-
-###### inner()
-
-Return a reference to the underlying `DefaultClient`.
-
-**Signature:**
-
-```rust
-pub fn inner(&self) -> DefaultClient
-```
-
-###### budget_state()
-
-Return the budget state handle, if budget middleware is configured.
-
-Use this to query accumulated spend at runtime.
-
-**Signature:**
-
-```rust
-pub fn budget_state(&self) -> Option<BudgetState>
-```
-
-###### has_middleware()
-
-Return `true` when middleware is active (requests go through the Tower
-service stack).
-
-**Signature:**
-
-```rust
-pub fn has_middleware(&self) -> bool
-```
-
-###### chat()
-
-**Signature:**
-
-```rust
-pub fn chat(&self, req: ChatCompletionRequest) -> ChatCompletionResponse
-```
-
-###### chat_stream()
-
-**Signature:**
-
-```rust
-pub fn chat_stream(&self, req: ChatCompletionRequest) -> BoxStream
-```
-
-###### embed()
-
-**Signature:**
-
-```rust
-pub fn embed(&self, req: EmbeddingRequest) -> EmbeddingResponse
-```
-
-###### list_models()
-
-**Signature:**
-
-```rust
-pub fn list_models(&self) -> ModelsListResponse
-```
-
-###### image_generate()
-
-**Signature:**
-
-```rust
-pub fn image_generate(&self, req: CreateImageRequest) -> ImagesResponse
-```
-
-###### speech()
-
-**Signature:**
-
-```rust
-pub fn speech(&self, req: CreateSpeechRequest) -> Vec<u8>
-```
-
-###### transcribe()
-
-**Signature:**
-
-```rust
-pub fn transcribe(&self, req: CreateTranscriptionRequest) -> TranscriptionResponse
-```
-
-###### moderate()
-
-**Signature:**
-
-```rust
-pub fn moderate(&self, req: ModerationRequest) -> ModerationResponse
-```
-
-###### rerank()
-
-**Signature:**
-
-```rust
-pub fn rerank(&self, req: RerankRequest) -> RerankResponse
-```
-
-###### search()
-
-**Signature:**
-
-```rust
-pub fn search(&self, req: SearchRequest) -> SearchResponse
-```
-
-###### ocr()
-
-**Signature:**
-
-```rust
-pub fn ocr(&self, req: OcrRequest) -> OcrResponse
-```
-
-###### create_file()
-
-**Signature:**
-
-```rust
-pub fn create_file(&self, req: CreateFileRequest) -> FileObject
-```
-
-###### retrieve_file()
-
-**Signature:**
-
-```rust
-pub fn retrieve_file(&self, file_id: String) -> FileObject
-```
-
-###### delete_file()
-
-**Signature:**
-
-```rust
-pub fn delete_file(&self, file_id: String) -> DeleteResponse
-```
-
-###### list_files()
-
-**Signature:**
-
-```rust
-pub fn list_files(&self, query: Option<FileListQuery>) -> FileListResponse
-```
-
-###### file_content()
-
-**Signature:**
-
-```rust
-pub fn file_content(&self, file_id: String) -> Vec<u8>
-```
-
-###### create_batch()
-
-**Signature:**
-
-```rust
-pub fn create_batch(&self, req: CreateBatchRequest) -> BatchObject
-```
-
-###### retrieve_batch()
-
-**Signature:**
-
-```rust
-pub fn retrieve_batch(&self, batch_id: String) -> BatchObject
-```
-
-###### list_batches()
-
-**Signature:**
-
-```rust
-pub fn list_batches(&self, query: Option<BatchListQuery>) -> BatchListResponse
-```
-
-###### cancel_batch()
-
-**Signature:**
-
-```rust
-pub fn cancel_batch(&self, batch_id: String) -> BatchObject
-```
-
-###### create_response()
-
-**Signature:**
-
-```rust
-pub fn create_response(&self, req: CreateResponseRequest) -> ResponseObject
-```
-
-###### retrieve_response()
-
-**Signature:**
-
-```rust
-pub fn retrieve_response(&self, id: String) -> ResponseObject
-```
-
-###### cancel_response()
-
-**Signature:**
-
-```rust
-pub fn cancel_response(&self, id: String) -> ResponseObject
-```
-
-
----
-
-##### ModelObject
+#### ModelObject
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -1865,7 +549,7 @@ pub fn cancel_response(&self, id: String) -> ResponseObject
 
 ---
 
-##### ModelsListResponse
+#### ModelsListResponse
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -1875,7 +559,7 @@ pub fn cancel_response(&self, id: String) -> ResponseObject
 
 ---
 
-##### ModerationCategories
+#### ModerationCategories
 
 Boolean flags for each moderation category.
 
@@ -1896,7 +580,7 @@ Boolean flags for each moderation category.
 
 ---
 
-##### ModerationCategoryScores
+#### ModerationCategoryScores
 
 Confidence scores for each moderation category.
 
@@ -1917,7 +601,7 @@ Confidence scores for each moderation category.
 
 ---
 
-##### ModerationRequest
+#### ModerationRequest
 
 Request to classify content for policy violations.
 
@@ -1929,7 +613,7 @@ Request to classify content for policy violations.
 
 ---
 
-##### ModerationResponse
+#### ModerationResponse
 
 Response from the moderation endpoint.
 
@@ -1942,7 +626,7 @@ Response from the moderation endpoint.
 
 ---
 
-##### ModerationResult
+#### ModerationResult
 
 A single moderation classification result.
 
@@ -1955,7 +639,7 @@ A single moderation classification result.
 
 ---
 
-##### OcrImage
+#### OcrImage
 
 An image extracted from an OCR page.
 
@@ -1967,7 +651,7 @@ An image extracted from an OCR page.
 
 ---
 
-##### OcrPage
+#### OcrPage
 
 A single page of OCR output.
 
@@ -1981,7 +665,7 @@ A single page of OCR output.
 
 ---
 
-##### OcrRequest
+#### OcrRequest
 
 An OCR request.
 
@@ -1995,7 +679,7 @@ An OCR request.
 
 ---
 
-##### OcrResponse
+#### OcrResponse
 
 An OCR response.
 
@@ -2008,7 +692,7 @@ An OCR response.
 
 ---
 
-##### PageDimensions
+#### PageDimensions
 
 Page dimensions in pixels.
 
@@ -2020,7 +704,7 @@ Page dimensions in pixels.
 
 ---
 
-##### RerankRequest
+#### RerankRequest
 
 Request to rerank documents by relevance to a query.
 
@@ -2035,7 +719,7 @@ Request to rerank documents by relevance to a query.
 
 ---
 
-##### RerankResponse
+#### RerankResponse
 
 Response from the rerank endpoint.
 
@@ -2048,7 +732,7 @@ Response from the rerank endpoint.
 
 ---
 
-##### RerankResult
+#### RerankResult
 
 A single reranked document with its relevance score.
 
@@ -2061,7 +745,7 @@ A single reranked document with its relevance score.
 
 ---
 
-##### RerankResultDocument
+#### RerankResultDocument
 
 The text content of a reranked document, returned when `return_documents` is true.
 
@@ -2072,46 +756,7 @@ The text content of a reranked document, returned when `return_documents` is tru
 
 ---
 
-##### ResponseClient
-
-Responses API operations (create, retrieve, cancel).
-
-###### Methods
-
-###### create_response()
-
-Create a new response.
-
-**Signature:**
-
-```rust
-pub fn create_response(&self, req: CreateResponseRequest) -> ResponseObject
-```
-
-###### retrieve_response()
-
-Retrieve a response by ID.
-
-**Signature:**
-
-```rust
-pub fn retrieve_response(&self, id: String) -> ResponseObject
-```
-
-###### cancel_response()
-
-Cancel an in-progress response.
-
-**Signature:**
-
-```rust
-pub fn cancel_response(&self, id: String) -> ResponseObject
-```
-
-
----
-
-##### SearchRequest
+#### SearchRequest
 
 A search request.
 
@@ -2126,7 +771,7 @@ A search request.
 
 ---
 
-##### SearchResponse
+#### SearchResponse
 
 A search response.
 
@@ -2138,7 +783,7 @@ A search response.
 
 ---
 
-##### SearchResult
+#### SearchResult
 
 An individual search result.
 
@@ -2152,7 +797,7 @@ An individual search result.
 
 ---
 
-##### SpecificFunction
+#### SpecificFunction
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2161,7 +806,7 @@ An individual search result.
 
 ---
 
-##### SpecificToolChoice
+#### SpecificToolChoice
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2171,7 +816,7 @@ An individual search result.
 
 ---
 
-##### StreamChoice
+#### StreamChoice
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2182,7 +827,7 @@ An individual search result.
 
 ---
 
-##### StreamDelta
+#### StreamDelta
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2195,7 +840,7 @@ An individual search result.
 
 ---
 
-##### StreamFunctionCall
+#### StreamFunctionCall
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2205,7 +850,7 @@ An individual search result.
 
 ---
 
-##### StreamOptions
+#### StreamOptions
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2214,7 +859,7 @@ An individual search result.
 
 ---
 
-##### StreamToolCall
+#### StreamToolCall
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2226,7 +871,7 @@ An individual search result.
 
 ---
 
-##### SystemMessage
+#### SystemMessage
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2236,7 +881,7 @@ An individual search result.
 
 ---
 
-##### ToolCall
+#### ToolCall
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2247,7 +892,7 @@ An individual search result.
 
 ---
 
-##### ToolMessage
+#### ToolMessage
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2258,7 +903,7 @@ An individual search result.
 
 ---
 
-##### TranscriptionResponse
+#### TranscriptionResponse
 
 Response from a transcription request.
 
@@ -2272,7 +917,7 @@ Response from a transcription request.
 
 ---
 
-##### TranscriptionSegment
+#### TranscriptionSegment
 
 A segment of transcribed audio with timing information.
 
@@ -2286,7 +931,7 @@ A segment of transcribed audio with timing information.
 
 ---
 
-##### Usage
+#### Usage
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2297,7 +942,7 @@ A segment of transcribed audio with timing information.
 
 ---
 
-##### UserMessage
+#### UserMessage
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2307,9 +952,9 @@ A segment of transcribed audio with timing information.
 
 ---
 
-#### Enums
+### Enums
 
-##### Message
+#### Message
 
 A chat message in a conversation.
 
@@ -2325,7 +970,7 @@ A chat message in a conversation.
 
 ---
 
-##### UserContent
+#### UserContent
 
 | Value | Description |
 |-------|-------------|
@@ -2335,7 +980,7 @@ A chat message in a conversation.
 
 ---
 
-##### ContentPart
+#### ContentPart
 
 | Value | Description |
 |-------|-------------|
@@ -2347,7 +992,7 @@ A chat message in a conversation.
 
 ---
 
-##### ImageDetail
+#### ImageDetail
 
 | Value | Description |
 |-------|-------------|
@@ -2358,11 +1003,13 @@ A chat message in a conversation.
 
 ---
 
-##### ToolType
+#### ToolType
 
-The type discriminator for tool/tool-call objects. Per the OpenAI spec this
-is always `"function"`. Using an enum enforces that constraint at the type
-level and rejects any other value on deserialization.
+The type discriminator for tool/tool-call objects.
+
+Per the OpenAI spec this is always `"function"`. Using an enum enforces
+that constraint at the type level and rejects any other value on
+deserialization.
 
 | Value | Description |
 |-------|-------------|
@@ -2371,7 +1018,7 @@ level and rejects any other value on deserialization.
 
 ---
 
-##### ToolChoice
+#### ToolChoice
 
 | Value | Description |
 |-------|-------------|
@@ -2381,7 +1028,7 @@ level and rejects any other value on deserialization.
 
 ---
 
-##### ToolChoiceMode
+#### ToolChoiceMode
 
 | Value | Description |
 |-------|-------------|
@@ -2392,7 +1039,7 @@ level and rejects any other value on deserialization.
 
 ---
 
-##### ResponseFormat
+#### ResponseFormat
 
 | Value | Description |
 |-------|-------------|
@@ -2403,7 +1050,7 @@ level and rejects any other value on deserialization.
 
 ---
 
-##### StopSequence
+#### StopSequence
 
 | Value | Description |
 |-------|-------------|
@@ -2413,7 +1060,7 @@ level and rejects any other value on deserialization.
 
 ---
 
-##### FinishReason
+#### FinishReason
 
 Why a choice stopped generating tokens.
 
@@ -2429,7 +1076,7 @@ Why a choice stopped generating tokens.
 
 ---
 
-##### ReasoningEffort
+#### ReasoningEffort
 
 Controls how much reasoning effort the model should use.
 
@@ -2442,7 +1089,7 @@ Controls how much reasoning effort the model should use.
 
 ---
 
-##### EmbeddingFormat
+#### EmbeddingFormat
 
 The format in which the embedding vectors are returned.
 
@@ -2454,7 +1101,7 @@ The format in which the embedding vectors are returned.
 
 ---
 
-##### EmbeddingInput
+#### EmbeddingInput
 
 | Value | Description |
 |-------|-------------|
@@ -2464,7 +1111,7 @@ The format in which the embedding vectors are returned.
 
 ---
 
-##### ModerationInput
+#### ModerationInput
 
 Input to the moderation endpoint — a single string or multiple strings.
 
@@ -2476,7 +1123,7 @@ Input to the moderation endpoint — a single string or multiple strings.
 
 ---
 
-##### RerankDocument
+#### RerankDocument
 
 A document to be reranked — either a plain string or an object with a text field.
 
@@ -2488,7 +1135,7 @@ A document to be reranked — either a plain string or an object with a text fie
 
 ---
 
-##### OcrDocument
+#### OcrDocument
 
 Document input for OCR — either a URL or inline base64 data.
 
@@ -2500,7 +1147,7 @@ Document input for OCR — either a URL or inline base64 data.
 
 ---
 
-##### AuthHeaderFormat
+#### AuthHeaderFormat
 
 How the API key is sent in the HTTP request.
 
@@ -2513,9 +1160,9 @@ How the API key is sent in the HTTP request.
 
 ---
 
-#### Errors
+### Errors
 
-##### LiterLlmError
+#### LiterLlmError
 
 All errors that can occur when using `liter-llm`.
 

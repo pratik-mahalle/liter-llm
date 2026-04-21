@@ -686,17 +686,6 @@ impl JsDefaultClient {
             .map_err(|e| napi::Error::new(napi::Status::GenericFailure, e.to_string()))?;
         Ok(result.into())
     }
-
-    #[allow(clippy::missing_errors_doc)]
-    #[napi]
-    pub async fn ocr(&self, req: JsOcrRequest) -> Result<JsOcrResponse> {
-        let inner = self.inner.clone();
-        let result = inner
-            .ocr(req.into())
-            .await
-            .map_err(|e| napi::Error::new(napi::Status::GenericFailure, e.to_string()))?;
-        Ok(result.into())
-    }
 }
 
 #[derive(Clone, Default, serde::Serialize, serde::Deserialize)]
@@ -2028,17 +2017,6 @@ impl From<liter_llm::types::SearchResult> for JsSearchResult {
     }
 }
 
-impl From<JsOcrRequest> for liter_llm::types::OcrRequest {
-    fn from(val: JsOcrRequest) -> Self {
-        Self {
-            model: val.model,
-            document: val.document.into(),
-            pages: val.pages,
-            include_image_base64: val.include_image_base64,
-        }
-    }
-}
-
 impl From<liter_llm::types::OcrRequest> for JsOcrRequest {
     fn from(val: liter_llm::types::OcrRequest) -> Self {
         Self {
@@ -2050,33 +2028,12 @@ impl From<liter_llm::types::OcrRequest> for JsOcrRequest {
     }
 }
 
-impl From<JsOcrResponse> for liter_llm::types::OcrResponse {
-    fn from(val: JsOcrResponse) -> Self {
-        Self {
-            pages: val.pages.into_iter().map(Into::into).collect(),
-            model: val.model,
-            usage: val.usage.map(Into::into),
-        }
-    }
-}
-
 impl From<liter_llm::types::OcrResponse> for JsOcrResponse {
     fn from(val: liter_llm::types::OcrResponse) -> Self {
         Self {
             pages: val.pages.into_iter().map(Into::into).collect(),
             model: val.model,
             usage: val.usage.map(Into::into),
-        }
-    }
-}
-
-impl From<JsOcrPage> for liter_llm::types::OcrPage {
-    fn from(val: JsOcrPage) -> Self {
-        Self {
-            index: val.index,
-            markdown: val.markdown,
-            images: val.images.map(|v| v.into_iter().map(Into::into).collect()),
-            dimensions: val.dimensions.map(Into::into),
         }
     }
 }
@@ -2092,29 +2049,11 @@ impl From<liter_llm::types::OcrPage> for JsOcrPage {
     }
 }
 
-impl From<JsOcrImage> for liter_llm::types::OcrImage {
-    fn from(val: JsOcrImage) -> Self {
-        Self {
-            id: val.id,
-            image_base64: val.image_base64,
-        }
-    }
-}
-
 impl From<liter_llm::types::OcrImage> for JsOcrImage {
     fn from(val: liter_llm::types::OcrImage) -> Self {
         Self {
             id: val.id,
             image_base64: val.image_base64,
-        }
-    }
-}
-
-impl From<JsPageDimensions> for liter_llm::types::PageDimensions {
-    fn from(val: JsPageDimensions) -> Self {
-        Self {
-            width: val.width,
-            height: val.height,
         }
     }
 }

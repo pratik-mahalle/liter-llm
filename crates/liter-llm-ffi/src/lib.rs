@@ -7743,36 +7743,6 @@ pub unsafe extern "C" fn literllm_default_client_search(
     }
 }
 
-/// # Safety
-/// Caller must ensure all pointer arguments are valid or null.
-/// Returned pointers must be freed with the appropriate free function.
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn literllm_default_client_ocr(
-    this: *const liter_llm::client::DefaultClient,
-    req: *const liter_llm::types::OcrRequest,
-) -> *mut liter_llm::types::OcrResponse {
-    clear_last_error();
-    if this.is_null() {
-        set_last_error(1, "Null pointer passed for self");
-        return std::ptr::null_mut();
-    }
-    // SAFETY: null check above guarantees this is a valid pointer.
-    let obj = unsafe { &*this };
-    if req.is_null() {
-        set_last_error(1, "Null pointer passed for parameter 'req'");
-        return std::ptr::null_mut();
-    }
-    let req_rs = unsafe { &*req }.clone();
-    let result = get_ffi_runtime().block_on(async { obj.ocr(req_rs).await });
-    match result {
-        Ok(val) => Box::into_raw(Box::new(val)),
-        Err(e) => {
-            set_last_error(2, &e.to_string());
-            std::ptr::null_mut()
-        }
-    }
-}
-
 /// Create a `CustomProviderConfig` from a JSON string. Returns null on failure.
 /// # Safety
 /// JSON string must be valid UTF-8 and null-terminated.

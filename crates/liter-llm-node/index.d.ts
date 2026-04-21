@@ -211,7 +211,6 @@ export declare class JsDefaultClient {
 	moderate(req: JsModerationRequest): Promise<JsModerationResponse>;
 	rerank(req: JsRerankRequest): Promise<JsRerankResponse>;
 	search(req: JsSearchRequest): Promise<JsSearchResponse>;
-	ocr(req: JsOcrRequest): Promise<JsOcrResponse>;
 }
 
 export interface JsDeveloperMessage {

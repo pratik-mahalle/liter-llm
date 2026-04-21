@@ -2974,14 +2974,6 @@ LITERLLMSearchResponse *literllm_default_client_search(const LITERLLMDefaultClie
                                                        const LITERLLMSearchRequest *req);
 
 /**
- * # Safety
- * Caller must ensure all pointer arguments are valid or null.
- * Returned pointers must be freed with the appropriate free function.
- */
-LITERLLMOcrResponse *literllm_default_client_ocr(const LITERLLMDefaultClient *this_,
-                                                 const LITERLLMOcrRequest *req);
-
-/**
  * Create a `CustomProviderConfig` from a JSON string. Returns null on failure.
  * # Safety
  * JSON string must be valid UTF-8 and null-terminated.

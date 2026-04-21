@@ -28,5 +28,4 @@ defmodule LiterLlm.Native do
   def defaultclient_moderate_async(_obj, _req), do: :erlang.nif_error(:nif_not_loaded)
   def defaultclient_rerank_async(_obj, _req), do: :erlang.nif_error(:nif_not_loaded)
   def defaultclient_search_async(_obj, _req), do: :erlang.nif_error(:nif_not_loaded)
-  def defaultclient_ocr_async(_obj, _req), do: :erlang.nif_error(:nif_not_loaded)
 end

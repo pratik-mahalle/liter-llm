@@ -1652,17 +1652,6 @@ impl DefaultClient {
             Ok(result.into())
         })
     }
-
-    pub fn ocr_async(&self, req: &OcrRequest) -> PhpResult<OcrResponse> {
-        let inner = self.inner.clone();
-        WORKER_RUNTIME.block_on(async {
-            let result = inner
-                .ocr(req.clone().into())
-                .await
-                .map_err(|e| ext_php_rs::exception::PhpException::default(e.to_string()))?;
-            Ok(result.into())
-        })
-    }
 }
 
 #[derive(Clone, serde::Serialize, serde::Deserialize, Default)]
@@ -2825,13 +2814,6 @@ impl From<liter_llm::types::SearchResult> for SearchResult {
     }
 }
 
-impl From<OcrRequest> for liter_llm::types::OcrRequest {
-    fn from(val: OcrRequest) -> Self {
-        let json = serde_json::to_string(&val).expect("alef: serialize binding type");
-        serde_json::from_str(&json).expect("alef: deserialize to core type")
-    }
-}
-
 impl From<liter_llm::types::OcrRequest> for OcrRequest {
     fn from(val: liter_llm::types::OcrRequest) -> Self {
         Self {
@@ -2846,33 +2828,12 @@ impl From<liter_llm::types::OcrRequest> for OcrRequest {
     }
 }
 
-impl From<OcrResponse> for liter_llm::types::OcrResponse {
-    fn from(val: OcrResponse) -> Self {
-        Self {
-            pages: val.pages.into_iter().map(Into::into).collect(),
-            model: val.model,
-            usage: val.usage.map(Into::into),
-        }
-    }
-}
-
 impl From<liter_llm::types::OcrResponse> for OcrResponse {
     fn from(val: liter_llm::types::OcrResponse) -> Self {
         Self {
             pages: val.pages.into_iter().map(Into::into).collect(),
             model: val.model,
             usage: val.usage.map(Into::into),
-        }
-    }
-}
-
-impl From<OcrPage> for liter_llm::types::OcrPage {
-    fn from(val: OcrPage) -> Self {
-        Self {
-            index: val.index,
-            markdown: val.markdown,
-            images: val.images.map(|v| v.into_iter().map(Into::into).collect()),
-            dimensions: val.dimensions.map(Into::into),
         }
     }
 }
@@ -2888,29 +2849,11 @@ impl From<liter_llm::types::OcrPage> for OcrPage {
     }
 }
 
-impl From<OcrImage> for liter_llm::types::OcrImage {
-    fn from(val: OcrImage) -> Self {
-        Self {
-            id: val.id,
-            image_base64: val.image_base64,
-        }
-    }
-}
-
 impl From<liter_llm::types::OcrImage> for OcrImage {
     fn from(val: liter_llm::types::OcrImage) -> Self {
         Self {
             id: val.id,
             image_base64: val.image_base64,
-        }
-    }
-}
-
-impl From<PageDimensions> for liter_llm::types::PageDimensions {
-    fn from(val: PageDimensions) -> Self {
-        Self {
-            width: val.width,
-            height: val.height,
         }
     }
 }

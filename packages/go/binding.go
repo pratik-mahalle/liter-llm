@@ -2272,33 +2272,3 @@ func (r *DefaultClient) Search(req SearchRequest) (*SearchResponse, error) {
 		return &result
 	}(), nil
 }
-
-// Ocr is a method.
-func (r *DefaultClient) Ocr(req OcrRequest) (*OcrResponse, error) {
-	jsonBytescReq, err := json.Marshal(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal: %w", err)
-	}
-	tmpStrcReq := C.CString(string(jsonBytescReq))
-	cReq := C.literllm_ocr_request_from_json(tmpStrcReq)
-	C.free(unsafe.Pointer(tmpStrcReq))
-	defer C.literllm_ocr_request_free(cReq)
-
-	ptr := C.literllm_default_client_ocr((*C.LITERLLMDefaultClient)(unsafe.Pointer(r.ptr)), cReq)
-	if err := lastError(); err != nil {
-		return nil, err
-	}
-	defer C.literllm_ocr_response_free(ptr)
-	return func() *OcrResponse {
-		jsonPtr := C.literllm_ocr_response_to_json(ptr)
-		if jsonPtr == nil {
-			return nil
-		}
-		defer C.literllm_free_string(jsonPtr)
-		var result OcrResponse
-		if err := json.Unmarshal([]byte(C.GoString(jsonPtr)), &result); err != nil {
-			return nil
-		}
-		return &result
-	}(), nil
-}

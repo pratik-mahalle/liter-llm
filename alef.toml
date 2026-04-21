@@ -83,6 +83,8 @@ types = [
     "ModelPricing",
 ]
 methods = [
+    # Methods not yet in core (no LlmClient trait method)
+    "DefaultClient.ocr",
     # Raw methods on DefaultClient
     "DefaultClient.chat_raw",
     "DefaultClient.chat_stream_raw",
@@ -175,6 +177,19 @@ output = "packages/ruby/sig/"
 [elixir]
 app_name = "liter_llm"
 
+# Async method adapters for DefaultClient
+[[adapters]]
+name = "chat"
+pattern = "async_method"
+core_path = "chat"
+owner_type = "DefaultClient"
+returns = "ChatCompletionResponse"
+error_type = "LiterLlmError"
+
+[[adapters.params]]
+name = "req"
+type = "ChatCompletionRequest"
+
 # Streaming adapter for chat_stream
 [[adapters]]
 name = "chat_stream"
@@ -187,6 +202,86 @@ error_type = "LiterLlmError"
 [[adapters.params]]
 name = "req"
 type = "ChatCompletionRequest"
+
+[[adapters]]
+name = "embed"
+pattern = "async_method"
+core_path = "embed"
+owner_type = "DefaultClient"
+returns = "EmbeddingResponse"
+error_type = "LiterLlmError"
+
+[[adapters.params]]
+name = "req"
+type = "EmbeddingRequest"
+
+[[adapters]]
+name = "list_models"
+pattern = "async_method"
+core_path = "list_models"
+owner_type = "DefaultClient"
+returns = "ModelsListResponse"
+error_type = "LiterLlmError"
+
+[[adapters]]
+name = "image_generate"
+pattern = "async_method"
+core_path = "image_generate"
+owner_type = "DefaultClient"
+returns = "ImagesResponse"
+error_type = "LiterLlmError"
+
+[[adapters.params]]
+name = "req"
+type = "CreateImageRequest"
+
+[[adapters]]
+name = "transcribe"
+pattern = "async_method"
+core_path = "transcribe"
+owner_type = "DefaultClient"
+returns = "TranscriptionResponse"
+error_type = "LiterLlmError"
+
+[[adapters.params]]
+name = "req"
+type = "CreateTranscriptionRequest"
+
+[[adapters]]
+name = "moderate"
+pattern = "async_method"
+core_path = "moderate"
+owner_type = "DefaultClient"
+returns = "ModerationResponse"
+error_type = "LiterLlmError"
+
+[[adapters.params]]
+name = "req"
+type = "ModerationRequest"
+
+[[adapters]]
+name = "rerank"
+pattern = "async_method"
+core_path = "rerank"
+owner_type = "DefaultClient"
+returns = "RerankResponse"
+error_type = "LiterLlmError"
+
+[[adapters.params]]
+name = "req"
+type = "RerankRequest"
+
+[[adapters]]
+name = "search"
+pattern = "async_method"
+core_path = "search"
+owner_type = "DefaultClient"
+returns = "SearchResponse"
+error_type = "LiterLlmError"
+
+[[adapters.params]]
+name = "req"
+type = "SearchRequest"
 
 [scaffold]
 description = "Universal LLM API client — 142+ providers, streaming, tool calling. Rust-powered with polyglot bindings."

@@ -31,8 +31,8 @@ public static DefaultClient createClient(String apiKey, String baseUrl, long tim
 |------|------|----------|-------------|
 | `apiKey` | `String` | Yes | The api key |
 | `baseUrl` | `Optional<String>` | No | The base url |
-| `timeoutSecs` | `Optional<long>` | No | The timeout secs |
-| `maxRetries` | `Optional<int>` | No | The max retries |
+| `timeoutSecs` | `Optional<Long>` | No | The timeout secs |
+| `maxRetries` | `Optional<Integer>` | No | The max retries |
 | `modelHint` | `Optional<String>` | No | The model hint |
 
 **Returns:** `DefaultClient`
@@ -135,20 +135,6 @@ public static boolean unregisterCustomProvider(String name) throws Error
 
 ### Types
 
-#### ApiError
-
-Inner error object.
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `message` | `String` | — | Message |
-| `errorType` | `String` | — | Error type |
-| `param` | `Optional<String>` | `null` | Param |
-| `code` | `Optional<String>` | `null` | Code |
-
-
----
-
 #### AssistantMessage
 
 | Field | Type | Default | Description |
@@ -168,55 +154,6 @@ Inner error object.
 |-------|------|---------|-------------|
 | `data` | `String` | — | Base64-encoded audio data. |
 | `format` | `String` | — | Audio format (e.g., "wav", "mp3", "ogg"). |
-
-
----
-
-#### BatchClient
-
-Batch processing operations (create, list, retrieve, cancel).
-
-##### Methods
-
-###### createBatch()
-
-Create a new batch job.
-
-**Signature:**
-
-```java
-public BatchObject createBatch(CreateBatchRequest req) throws Error
-```
-
-###### retrieveBatch()
-
-Retrieve a batch by ID.
-
-**Signature:**
-
-```java
-public BatchObject retrieveBatch(String batchId) throws Error
-```
-
-###### listBatches()
-
-List batches, optionally filtered by query parameters.
-
-**Signature:**
-
-```java
-public BatchListResponse listBatches(BatchListQuery query) throws Error
-```
-
-###### cancelBatch()
-
-Cancel an in-progress batch.
-
-**Signature:**
-
-```java
-public BatchObject cancelBatch(String batchId) throws Error
-```
 
 
 ---
@@ -243,22 +180,22 @@ public BatchObject cancelBatch(String batchId) throws Error
 |-------|------|---------|-------------|
 | `model` | `String` | — | Model |
 | `messages` | `List<Message>` | `Collections.emptyList()` | Messages |
-| `temperature` | `Optional<double>` | `null` | Temperature |
-| `topP` | `Optional<double>` | `null` | Top p |
-| `n` | `Optional<int>` | `null` | N |
-| `stream` | `Optional<boolean>` | `null` | Whether to stream the response. Managed by the client layer — do not set directly. |
+| `temperature` | `Optional<Double>` | `null` | Temperature |
+| `topP` | `Optional<Double>` | `null` | Top p |
+| `n` | `Optional<Integer>` | `null` | N |
+| `stream` | `Optional<Boolean>` | `null` | Whether to stream the response. Managed by the client layer — do not set directly. |
 | `stop` | `Optional<StopSequence>` | `null` | Stop (stop sequence) |
-| `maxTokens` | `Optional<long>` | `null` | Maximum tokens |
-| `presencePenalty` | `Optional<double>` | `null` | Presence penalty |
-| `frequencyPenalty` | `Optional<double>` | `null` | Frequency penalty |
+| `maxTokens` | `Optional<Long>` | `null` | Maximum tokens |
+| `presencePenalty` | `Optional<Double>` | `null` | Presence penalty |
+| `frequencyPenalty` | `Optional<Double>` | `null` | Frequency penalty |
 | `logitBias` | `Optional<Map<String, Double>>` | `Collections.emptyMap()` | Token bias map.  Uses `BTreeMap` (sorted keys) for deterministic serialization order — important when hashing or signing requests. |
 | `user` | `Optional<String>` | `null` | User |
 | `tools` | `Optional<List<ChatCompletionTool>>` | `Collections.emptyList()` | Tools |
 | `toolChoice` | `Optional<ToolChoice>` | `null` | Tool choice (tool choice) |
-| `parallelToolCalls` | `Optional<boolean>` | `null` | Parallel tool calls |
+| `parallelToolCalls` | `Optional<Boolean>` | `null` | Parallel tool calls |
 | `responseFormat` | `Optional<ResponseFormat>` | `null` | Response format (response format) |
 | `streamOptions` | `Optional<StreamOptions>` | `null` | Stream options (stream options) |
-| `seed` | `Optional<long>` | `null` | Seed |
+| `seed` | `Optional<Long>` | `null` | Seed |
 | `reasoningEffort` | `Optional<ReasoningEffort>` | `null` | Reasoning effort (reasoning effort) |
 | `extraBody` | `Optional<Object>` | `null` | Provider-specific extra parameters merged into the request body. Use for guardrails, safety settings, grounding config, etc. |
 
@@ -277,23 +214,6 @@ public BatchObject cancelBatch(String batchId) throws Error
 | `usage` | `Optional<Usage>` | `null` | Usage (usage) |
 | `systemFingerprint` | `Optional<String>` | `null` | System fingerprint |
 | `serviceTier` | `Optional<String>` | `null` | Service tier |
-
-##### Methods
-
-###### estimatedCost()
-
-Estimate the cost of this response based on embedded pricing data.
-
-Returns `null` if:
-
-- the `model` field is not present in the embedded pricing registry, or
-- the `usage` field is absent from the response.
-
-**Signature:**
-
-```java
-public Optional<Double> estimatedCost()
-```
 
 
 ---
@@ -319,259 +239,6 @@ public Optional<Double> estimatedCost()
 
 ---
 
-#### ClientConfig
-
-Configuration for an LLM client.
-
-`api_key` is stored as a `SecretString` so it is zeroed on drop and never
-printed accidentally. Access it via `secrecy.ExposeSecret`.
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `apiKey` | `String` | — | API key for authentication (stored as a secret). |
-| `baseUrl` | `Optional<String>` | `null` | Override base URL.  When set, all requests go here regardless of model name, and provider auto-detection is skipped. |
-| `timeout` | `Duration` | — | Request timeout. |
-| `maxRetries` | `int` | — | Maximum number of retries on 429 / 5xx responses. |
-| `credentialProvider` | `Optional<CredentialProvider>` | `null` | Optional dynamic credential provider for token-based auth (Azure AD, Vertex OAuth2) or refreshable credentials (AWS STS). When set, the client calls `resolve()` before each request to obtain a fresh credential.  When `None`, the static `api_key` is used. |
-
-##### Methods
-
-###### headers()
-
-Return the extra headers as an ordered slice of `(name, value)` pairs.
-
-**Signature:**
-
-```java
-public List<Tuple<String, String>> headers()
-```
-
-###### fmt()
-
-**Signature:**
-
-```java
-public Unknown fmt(Formatter f)
-```
-
-
----
-
-#### ClientConfigBuilder
-
-Builder for `ClientConfig`.
-
-Construct with `ClientConfigBuilder.new` and call builder methods to
-customise the configuration, then call `ClientConfigBuilder.build` to
-obtain a `ClientConfig`.
-
-##### Methods
-
-###### baseUrl()
-
-Override the provider base URL for all requests.
-
-**Signature:**
-
-```java
-public ClientConfigBuilder baseUrl(String url)
-```
-
-###### timeout()
-
-Set the per-request timeout (default: 60 s).
-
-**Signature:**
-
-```java
-public ClientConfigBuilder timeout(Duration timeout)
-```
-
-###### maxRetries()
-
-Set the maximum number of retries on 429 / 5xx responses (default: 3).
-
-**Signature:**
-
-```java
-public ClientConfigBuilder maxRetries(int retries)
-```
-
-###### credentialProvider()
-
-Set a dynamic credential provider for token-based or refreshable auth.
-
-When configured, the client calls `resolve()` before each request
-instead of using the static `api_key` for authentication.
-
-**Signature:**
-
-```java
-public ClientConfigBuilder credentialProvider(CredentialProvider provider)
-```
-
-###### header()
-
-Add a custom header sent on every request.
-
-Returns an error if either `key` or `value` is not a valid HTTP header
-name / value.
-
-This method is only available when the `native-http` feature is enabled
-because header validation relies on `reqwest`'s header types.
-
-**Signature:**
-
-```java
-public ClientConfigBuilder header(String key, String value) throws Error
-```
-
-###### cache()
-
-Set the response cache configuration for the Tower middleware stack.
-
-When set, bindings and advanced Rust users can read this from the
-built `ClientConfig` to construct a
-`CacheLayer`.
-
-**Signature:**
-
-```java
-public ClientConfigBuilder cache(CacheConfig config)
-```
-
-###### cacheStore()
-
-Set a custom cache store backend for the Tower cache middleware.
-
-When set alongside `cache`, the cache layer will use
-this store instead of the default in-memory LRU.
-
-**Signature:**
-
-```java
-public ClientConfigBuilder cacheStore(CacheStore store)
-```
-
-###### budget()
-
-Set the budget enforcement configuration for the Tower middleware stack.
-
-When set, bindings and advanced Rust users can read this from the
-built `ClientConfig` to construct a
-`BudgetLayer`.
-
-**Signature:**
-
-```java
-public ClientConfigBuilder budget(BudgetConfig config)
-```
-
-###### hook()
-
-Add a single hook to the Tower hooks middleware stack.
-
-Hooks are invoked sequentially in registration order at request
-lifecycle points (pre-request, post-response, on-error).
-
-**Signature:**
-
-```java
-public ClientConfigBuilder hook(LlmHook hook)
-```
-
-###### hooks()
-
-Set the full list of hooks for the Tower hooks middleware stack,
-replacing any previously registered hooks.
-
-Hooks are invoked sequentially in registration order.
-
-**Signature:**
-
-```java
-public ClientConfigBuilder hooks(List<LlmHook> hooks)
-```
-
-###### cooldown()
-
-Set the cooldown duration after transient errors.
-
-When set, the client rejects requests with `ServiceUnavailable` for
-the given duration after a transient error (rate limit, timeout,
-server error).
-
-**Signature:**
-
-```java
-public ClientConfigBuilder cooldown(Duration duration)
-```
-
-###### rateLimit()
-
-Set per-model rate limiting configuration.
-
-When set, requests exceeding the configured RPM or TPM limits are
-rejected with `LiterLlmError.RateLimited`.
-
-**Signature:**
-
-```java
-public ClientConfigBuilder rateLimit(RateLimitConfig config)
-```
-
-###### healthCheck()
-
-Set the background health check interval.
-
-When set, the client periodically probes the provider and rejects
-requests when the provider is unhealthy.
-
-**Signature:**
-
-```java
-public ClientConfigBuilder healthCheck(Duration interval)
-```
-
-###### costTracking()
-
-Enable or disable per-request cost tracking.
-
-When enabled, estimated USD cost is recorded on the current tracing
-span as `gen_ai.usage.cost`.
-
-**Signature:**
-
-```java
-public ClientConfigBuilder costTracking(boolean enabled)
-```
-
-###### tracing()
-
-Enable or disable OpenTelemetry-compatible tracing spans.
-
-When enabled, every request is wrapped in a `gen_ai` tracing span
-with semantic convention attributes.
-
-**Signature:**
-
-```java
-public ClientConfigBuilder tracing(boolean enabled)
-```
-
-###### build()
-
-Consume the builder and return the completed `ClientConfig`.
-
-**Signature:**
-
-```java
-public ClientConfig build()
-```
-
-
----
-
 #### CreateImageRequest
 
 Request to create images from a text prompt.
@@ -580,7 +247,7 @@ Request to create images from a text prompt.
 |-------|------|---------|-------------|
 | `prompt` | `String` | — | Prompt |
 | `model` | `Optional<String>` | `null` | Model |
-| `n` | `Optional<int>` | `null` | N |
+| `n` | `Optional<Integer>` | `null` | N |
 | `size` | `Optional<String>` | `null` | Size in bytes |
 | `quality` | `Optional<String>` | `null` | Quality |
 | `style` | `Optional<String>` | `null` | Style |
@@ -600,7 +267,7 @@ Request to generate speech audio from text.
 | `input` | `String` | — | Input |
 | `voice` | `String` | — | Voice |
 | `responseFormat` | `Optional<String>` | `null` | Response format |
-| `speed` | `Optional<double>` | `null` | Speed |
+| `speed` | `Optional<Double>` | `null` | Speed |
 
 
 ---
@@ -616,7 +283,7 @@ Request to transcribe audio into text.
 | `language` | `Optional<String>` | `null` | Language |
 | `prompt` | `Optional<String>` | `null` | Prompt |
 | `responseFormat` | `Optional<String>` | `null` | Response format |
-| `temperature` | `Optional<double>` | `null` | Temperature |
+| `temperature` | `Optional<Double>` | `null` | Temperature |
 
 
 ---
@@ -653,27 +320,6 @@ async closures and streaming tasks that must be `'static`.
 
 ##### Methods
 
-###### new()
-
-Build a client.
-
-`model_hint` guides provider auto-detection when no explicit
-`base_url` override is present in the config. For example, passing
-`Some("groq/llama3-70b")` selects the Groq provider. Pass `null` to
-default to OpenAI.
-
-**Errors:**
-
-Returns a wrapped `reqwest.Error` if the underlying HTTP client
-cannot be constructed. Header names and values are pre-validated by
-`ClientConfigBuilder.header`, so they are inserted directly here.
-
-**Signature:**
-
-```java
-public static DefaultClient new(ClientConfig config, String modelHint) throws Error
-```
-
 ###### chat()
 
 **Signature:**
@@ -687,7 +333,7 @@ public ChatCompletionResponse chat(ChatCompletionRequest req) throws Error
 **Signature:**
 
 ```java
-public BoxStream chatStream(ChatCompletionRequest req) throws Error
+public String chatStream(ChatCompletionRequest req) throws Error
 ```
 
 ###### embed()
@@ -712,14 +358,6 @@ public ModelsListResponse listModels() throws Error
 
 ```java
 public ImagesResponse imageGenerate(CreateImageRequest req) throws Error
-```
-
-###### speech()
-
-**Signature:**
-
-```java
-public byte[] speech(CreateSpeechRequest req) throws Error
 ```
 
 ###### transcribe()
@@ -752,182 +390,6 @@ public RerankResponse rerank(RerankRequest req) throws Error
 
 ```java
 public SearchResponse search(SearchRequest req) throws Error
-```
-
-###### ocr()
-
-**Signature:**
-
-```java
-public OcrResponse ocr(OcrRequest req) throws Error
-```
-
-###### chatRaw()
-
-**Signature:**
-
-```java
-public RawExchange chatRaw(ChatCompletionRequest req) throws Error
-```
-
-###### chatStreamRaw()
-
-**Signature:**
-
-```java
-public RawStreamExchange chatStreamRaw(ChatCompletionRequest req) throws Error
-```
-
-###### embedRaw()
-
-**Signature:**
-
-```java
-public RawExchange embedRaw(EmbeddingRequest req) throws Error
-```
-
-###### imageGenerateRaw()
-
-**Signature:**
-
-```java
-public RawExchange imageGenerateRaw(CreateImageRequest req) throws Error
-```
-
-###### transcribeRaw()
-
-**Signature:**
-
-```java
-public RawExchange transcribeRaw(CreateTranscriptionRequest req) throws Error
-```
-
-###### moderateRaw()
-
-**Signature:**
-
-```java
-public RawExchange moderateRaw(ModerationRequest req) throws Error
-```
-
-###### rerankRaw()
-
-**Signature:**
-
-```java
-public RawExchange rerankRaw(RerankRequest req) throws Error
-```
-
-###### searchRaw()
-
-**Signature:**
-
-```java
-public RawExchange searchRaw(SearchRequest req) throws Error
-```
-
-###### ocrRaw()
-
-**Signature:**
-
-```java
-public RawExchange ocrRaw(OcrRequest req) throws Error
-```
-
-###### createFile()
-
-**Signature:**
-
-```java
-public FileObject createFile(CreateFileRequest req) throws Error
-```
-
-###### retrieveFile()
-
-**Signature:**
-
-```java
-public FileObject retrieveFile(String fileId) throws Error
-```
-
-###### deleteFile()
-
-**Signature:**
-
-```java
-public DeleteResponse deleteFile(String fileId) throws Error
-```
-
-###### listFiles()
-
-**Signature:**
-
-```java
-public FileListResponse listFiles(FileListQuery query) throws Error
-```
-
-###### fileContent()
-
-**Signature:**
-
-```java
-public byte[] fileContent(String fileId) throws Error
-```
-
-###### createBatch()
-
-**Signature:**
-
-```java
-public BatchObject createBatch(CreateBatchRequest req) throws Error
-```
-
-###### retrieveBatch()
-
-**Signature:**
-
-```java
-public BatchObject retrieveBatch(String batchId) throws Error
-```
-
-###### listBatches()
-
-**Signature:**
-
-```java
-public BatchListResponse listBatches(BatchListQuery query) throws Error
-```
-
-###### cancelBatch()
-
-**Signature:**
-
-```java
-public BatchObject cancelBatch(String batchId) throws Error
-```
-
-###### createResponse()
-
-**Signature:**
-
-```java
-public ResponseObject createResponse(CreateResponseRequest req) throws Error
-```
-
-###### retrieveResponse()
-
-**Signature:**
-
-```java
-public ResponseObject retrieveResponse(String id) throws Error
-```
-
-###### cancelResponse()
-
-**Signature:**
-
-```java
-public ResponseObject cancelResponse(String id) throws Error
 ```
 
 
@@ -971,7 +433,7 @@ public ResponseObject cancelResponse(String id) throws Error
 | `model` | `String` | — | Model |
 | `input` | `EmbeddingInput` | — | Input (embedding input) |
 | `encodingFormat` | `Optional<EmbeddingFormat>` | `null` | Encoding format (embedding format) |
-| `dimensions` | `Optional<int>` | `null` | Dimensions |
+| `dimensions` | `Optional<Integer>` | `null` | Dimensions |
 | `user` | `Optional<String>` | `null` | User |
 
 
@@ -986,252 +448,10 @@ public ResponseObject cancelResponse(String id) throws Error
 | `model` | `String` | — | Model |
 | `usage` | `Optional<Usage>` | `null` | Usage (usage) |
 
-##### Methods
-
-###### estimatedCost()
-
-Estimate the cost of this embedding request based on embedded pricing data.
-
-Returns `null` if:
-
-- the `model` field is not present in the embedded pricing registry, or
-- the `usage` field is absent from the response.
-
-Embedding models only charge for input tokens; output cost is zero.
-
-**Signature:**
-
-```java
-public Optional<Double> estimatedCost()
-```
-
 
 ---
 
-#### ErrorResponse
-
-Error response from an OpenAI-compatible API.
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `error` | `ApiError` | — | Error (api error) |
-
-
----
-
-#### FileBudgetConfig
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `globalLimit` | `Optional<double>` | `null` | Global limit |
-| `modelLimits` | `Optional<Map<String, Double>>` | `null` | Model limits |
-| `enforcement` | `Optional<String>` | `null` | Enforcement |
-
-
----
-
-#### FileCacheConfig
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `maxEntries` | `Optional<long>` | `null` | Maximum entries |
-| `ttlSeconds` | `Optional<long>` | `null` | Ttl seconds |
-| `backend` | `Optional<String>` | `null` | Backend |
-| `backendConfig` | `Optional<Map<String, String>>` | `null` | Backend config |
-
-
----
-
-#### FileClient
-
-File management operations (upload, list, retrieve, delete).
-
-##### Methods
-
-###### createFile()
-
-Upload a file.
-
-**Signature:**
-
-```java
-public FileObject createFile(CreateFileRequest req) throws Error
-```
-
-###### retrieveFile()
-
-Retrieve metadata for a file.
-
-**Signature:**
-
-```java
-public FileObject retrieveFile(String fileId) throws Error
-```
-
-###### deleteFile()
-
-Delete a file.
-
-**Signature:**
-
-```java
-public DeleteResponse deleteFile(String fileId) throws Error
-```
-
-###### listFiles()
-
-List files, optionally filtered by query parameters.
-
-**Signature:**
-
-```java
-public FileListResponse listFiles(FileListQuery query) throws Error
-```
-
-###### fileContent()
-
-Retrieve the raw content of a file.
-
-**Signature:**
-
-```java
-public byte[] fileContent(String fileId) throws Error
-```
-
-
----
-
-#### FileConfig
-
-TOML file representation of client configuration.
-
-All fields are optional — missing fields use defaults from `ClientConfigBuilder`.
-Convert to a builder via `FileConfig.into_builder`.
-
-## Example `liter-llm.toml`
-
-```toml
-api_key = "sk-..."
-base_url = "<https://api.openai.com/v1">
-timeout_secs = 120
-max_retries = 5
-
-[cache]
-max_entries = 512
-ttl_seconds = 600
-backend = "memory"
-
-[budget]
-global_limit = 50.0
-enforcement = "hard"
-
-[[providers]]
-name = "my-provider"
-base_url = "<https://my-llm.example.com/v1">
-model_prefixes = ["my-provider/"]
-```
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `apiKey` | `Optional<String>` | `null` | Api key |
-| `baseUrl` | `Optional<String>` | `null` | Base url |
-| `modelHint` | `Optional<String>` | `null` | Model hint |
-| `timeoutSecs` | `Optional<long>` | `null` | Timeout secs |
-| `maxRetries` | `Optional<int>` | `null` | Maximum retries |
-| `extraHeaders` | `Optional<Map<String, String>>` | `null` | Extra headers |
-| `cache` | `Optional<FileCacheConfig>` | `null` | Cache (file cache config) |
-| `budget` | `Optional<FileBudgetConfig>` | `null` | Budget (file budget config) |
-| `cooldownSecs` | `Optional<long>` | `null` | Cooldown secs |
-| `rateLimit` | `Optional<FileRateLimitConfig>` | `null` | Rate limit (file rate limit config) |
-| `healthCheckSecs` | `Optional<long>` | `null` | Health check secs |
-| `costTracking` | `Optional<boolean>` | `null` | Cost tracking |
-| `tracing` | `Optional<boolean>` | `null` | Tracing |
-| `providers` | `Optional<List<FileProviderConfig>>` | `null` | Providers |
-
-### Methods
-
-#### fromTomlFile()
-
-Load from a TOML file path.
-
-**Signature:**
-
-```java
-public static FileConfig fromTomlFile(Path path) throws Error
-```
-
-##### fromTomlStr()
-
-Parse from a TOML string.
-
-**Signature:**
-
-```java
-public static FileConfig fromTomlStr(String s) throws Error
-```
-
-###### discover()
-
-Discover `liter-llm.toml` by walking from current directory to filesystem root.
-
-Returns `Ok(None)` if no config file is found.
-
-**Signature:**
-
-```java
-public static Optional<FileConfig> discover() throws Error
-```
-
-###### intoBuilder()
-
-Convert into a `ClientConfigBuilder`,
-applying all fields that are set.
-
-Fields not present in the TOML file use the builder's defaults.
-
-**Signature:**
-
-```java
-public ClientConfigBuilder intoBuilder()
-```
-
-###### providers()
-
-Get the custom provider configurations from this file config.
-
-**Signature:**
-
-```java
-public List<FileProviderConfig> providers()
-```
-
-
----
-
-##### FileProviderConfig
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `name` | `String` | — | The name |
-| `baseUrl` | `String` | — | Base url |
-| `authHeader` | `Optional<String>` | `null` | Auth header |
-| `modelPrefixes` | `List<String>` | — | Model prefixes |
-
-
----
-
-##### FileRateLimitConfig
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `rpm` | `Optional<int>` | `null` | Rpm |
-| `tpm` | `Optional<long>` | `null` | Tpm |
-| `windowSeconds` | `Optional<long>` | `null` | Window seconds |
-
-
----
-
-##### FunctionCall
+#### FunctionCall
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -1241,19 +461,19 @@ public List<FileProviderConfig> providers()
 
 ---
 
-##### FunctionDefinition
+#### FunctionDefinition
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `name` | `String` | — | The name |
 | `description` | `Optional<String>` | `null` | Human-readable description |
 | `parameters` | `Optional<Object>` | `null` | Parameters |
-| `strict` | `Optional<boolean>` | `null` | Strict |
+| `strict` | `Optional<Boolean>` | `null` | Strict |
 
 
 ---
 
-##### FunctionMessage
+#### FunctionMessage
 
 Deprecated legacy function-role message body.
 
@@ -1265,7 +485,7 @@ Deprecated legacy function-role message body.
 
 ---
 
-##### Image
+#### Image
 
 A single generated image, returned as either a URL or base64 data.
 
@@ -1278,7 +498,7 @@ A single generated image, returned as either a URL or base64 data.
 
 ---
 
-##### ImageUrl
+#### ImageUrl
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -1288,7 +508,7 @@ A single generated image, returned as either a URL or base64 data.
 
 ---
 
-##### ImagesResponse
+#### ImagesResponse
 
 Response containing generated images.
 
@@ -1300,560 +520,24 @@ Response containing generated images.
 
 ---
 
-##### JsonSchemaFormat
+#### JsonSchemaFormat
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `name` | `String` | — | The name |
 | `description` | `Optional<String>` | `null` | Human-readable description |
 | `schema` | `Object` | — | Schema |
-| `strict` | `Optional<boolean>` | `null` | Strict |
+| `strict` | `Optional<Boolean>` | `null` | Strict |
 
 
 ---
 
-##### LiterLlmError
-
-###### Methods
-
-###### isTransient()
-
-Returns `true` for errors that are worth retrying on a different service
-or deployment (transient failures).
-
-Used by `crate.tower.fallback.FallbackService` and
-`crate.tower.router.Router` to decide whether to route to an
-alternative endpoint.
-
-**Signature:**
-
-```java
-public boolean isTransient()
-```
-
-###### errorType()
-
-Return the OpenTelemetry `error.type` string for this error variant.
-
-Used by the tracing middleware to record the `error.type` span attribute
-on failed requests per the GenAI semantic conventions.
-
-**Signature:**
-
-```java
-public String errorType()
-```
-
-###### fromStatus()
-
-Create from an HTTP status code, an API error response body, and an
-optional `Retry-After` duration already parsed from the response header.
-
-The `retry_after` value is forwarded into `LiterLlmError.RateLimited`
-so callers can honour the server-requested delay without re-parsing the
-header.
-
-**Signature:**
-
-```java
-public static LiterLlmError fromStatus(short status, String body, Duration retryAfter)
-```
+#### LiterLlmError
 
 
 ---
 
-##### LlmClient
-
-Core LLM client trait.
-
-###### Methods
-
-###### chat()
-
-Send a chat completion request.
-
-**Signature:**
-
-```java
-public ChatCompletionResponse chat(ChatCompletionRequest req) throws Error
-```
-
-###### chatStream()
-
-Send a streaming chat completion request.
-
-**Signature:**
-
-```java
-public BoxStream chatStream(ChatCompletionRequest req) throws Error
-```
-
-###### embed()
-
-Send an embedding request.
-
-**Signature:**
-
-```java
-public EmbeddingResponse embed(EmbeddingRequest req) throws Error
-```
-
-###### listModels()
-
-List available models.
-
-**Signature:**
-
-```java
-public ModelsListResponse listModels() throws Error
-```
-
-###### imageGenerate()
-
-Generate an image.
-
-**Signature:**
-
-```java
-public ImagesResponse imageGenerate(CreateImageRequest req) throws Error
-```
-
-###### speech()
-
-Generate speech audio from text.
-
-**Signature:**
-
-```java
-public byte[] speech(CreateSpeechRequest req) throws Error
-```
-
-###### transcribe()
-
-Transcribe audio to text.
-
-**Signature:**
-
-```java
-public TranscriptionResponse transcribe(CreateTranscriptionRequest req) throws Error
-```
-
-###### moderate()
-
-Check content against moderation policies.
-
-**Signature:**
-
-```java
-public ModerationResponse moderate(ModerationRequest req) throws Error
-```
-
-###### rerank()
-
-Rerank documents by relevance to a query.
-
-**Signature:**
-
-```java
-public RerankResponse rerank(RerankRequest req) throws Error
-```
-
-###### search()
-
-Perform a web/document search.
-
-**Signature:**
-
-```java
-public SearchResponse search(SearchRequest req) throws Error
-```
-
-###### ocr()
-
-Extract text from a document via OCR.
-
-**Signature:**
-
-```java
-public OcrResponse ocr(OcrRequest req) throws Error
-```
-
-
----
-
-##### LlmClientRaw
-
-Extension of `LlmClient` that returns raw request/response data
-alongside the typed response.
-
-Every `_raw` method mirrors its counterpart on `LlmClient` but wraps the
-result in a `RawExchange` that exposes the final request body (after
-`transform_request`) and the raw provider response (before
-`transform_response`). This is useful for debugging provider-specific
-transformations, capturing wire-level data, or implementing custom parsing.
-
-###### Methods
-
-###### chatRaw()
-
-Send a chat completion request and return the raw exchange.
-
-The `raw_request` field contains the final JSON body sent to the
-provider; `raw_response` contains the provider JSON before
-normalization.
-
-**Signature:**
-
-```java
-public RawExchange chatRaw(ChatCompletionRequest req) throws Error
-```
-
-###### chatStreamRaw()
-
-Send a streaming chat completion request and return the raw exchange.
-
-Only `raw_request` is available upfront — the stream itself is
-returned in `stream` and consumed incrementally.
-
-**Signature:**
-
-```java
-public RawStreamExchange chatStreamRaw(ChatCompletionRequest req) throws Error
-```
-
-###### embedRaw()
-
-Send an embedding request and return the raw exchange.
-
-**Signature:**
-
-```java
-public RawExchange embedRaw(EmbeddingRequest req) throws Error
-```
-
-###### imageGenerateRaw()
-
-Generate an image and return the raw exchange.
-
-**Signature:**
-
-```java
-public RawExchange imageGenerateRaw(CreateImageRequest req) throws Error
-```
-
-###### transcribeRaw()
-
-Transcribe audio to text and return the raw exchange.
-
-**Signature:**
-
-```java
-public RawExchange transcribeRaw(CreateTranscriptionRequest req) throws Error
-```
-
-###### moderateRaw()
-
-Check content against moderation policies and return the raw exchange.
-
-**Signature:**
-
-```java
-public RawExchange moderateRaw(ModerationRequest req) throws Error
-```
-
-###### rerankRaw()
-
-Rerank documents by relevance to a query and return the raw exchange.
-
-**Signature:**
-
-```java
-public RawExchange rerankRaw(RerankRequest req) throws Error
-```
-
-###### searchRaw()
-
-Perform a web/document search and return the raw exchange.
-
-**Signature:**
-
-```java
-public RawExchange searchRaw(SearchRequest req) throws Error
-```
-
-###### ocrRaw()
-
-Extract text from a document via OCR and return the raw exchange.
-
-**Signature:**
-
-```java
-public RawExchange ocrRaw(OcrRequest req) throws Error
-```
-
-
----
-
-##### ManagedClient
-
-A managed LLM client that wraps `DefaultClient` with optional Tower
-middleware (cache, cooldown, rate limiting, health checks, cost tracking,
-budget, hooks, tracing).
-
-Construct via `ManagedClient.new`. If the provided `ClientConfig`
-contains any middleware configuration the corresponding Tower layers are
-composed into a service stack. Otherwise requests pass straight through
-to the inner `DefaultClient`.
-
-`ManagedClient` implements `LlmClient` and can be used everywhere a
-`DefaultClient` is expected.
-
-###### Methods
-
-###### new()
-
-Build a managed client.
-
-`model_hint` guides provider auto-detection — see
-`DefaultClient.new` for details.
-
-If the config contains any middleware settings (cache, budget, hooks,
-cooldown, rate limit, health check, cost tracking, tracing) the
-corresponding Tower layers are composed into a service stack.
-Otherwise requests pass straight through to the inner client.
-
-**Errors:**
-
-Returns an error if the underlying `DefaultClient` cannot be
-constructed (e.g. invalid headers or HTTP client build failure).
-
-**Signature:**
-
-```java
-public static ManagedClient new(ClientConfig config, String modelHint) throws Error
-```
-
-###### inner()
-
-Return a reference to the underlying `DefaultClient`.
-
-**Signature:**
-
-```java
-public DefaultClient inner()
-```
-
-###### budgetState()
-
-Return the budget state handle, if budget middleware is configured.
-
-Use this to query accumulated spend at runtime.
-
-**Signature:**
-
-```java
-public Optional<BudgetState> budgetState()
-```
-
-###### hasMiddleware()
-
-Return `true` when middleware is active (requests go through the Tower
-service stack).
-
-**Signature:**
-
-```java
-public boolean hasMiddleware()
-```
-
-###### chat()
-
-**Signature:**
-
-```java
-public ChatCompletionResponse chat(ChatCompletionRequest req) throws Error
-```
-
-###### chatStream()
-
-**Signature:**
-
-```java
-public BoxStream chatStream(ChatCompletionRequest req) throws Error
-```
-
-###### embed()
-
-**Signature:**
-
-```java
-public EmbeddingResponse embed(EmbeddingRequest req) throws Error
-```
-
-###### listModels()
-
-**Signature:**
-
-```java
-public ModelsListResponse listModels() throws Error
-```
-
-###### imageGenerate()
-
-**Signature:**
-
-```java
-public ImagesResponse imageGenerate(CreateImageRequest req) throws Error
-```
-
-###### speech()
-
-**Signature:**
-
-```java
-public byte[] speech(CreateSpeechRequest req) throws Error
-```
-
-###### transcribe()
-
-**Signature:**
-
-```java
-public TranscriptionResponse transcribe(CreateTranscriptionRequest req) throws Error
-```
-
-###### moderate()
-
-**Signature:**
-
-```java
-public ModerationResponse moderate(ModerationRequest req) throws Error
-```
-
-###### rerank()
-
-**Signature:**
-
-```java
-public RerankResponse rerank(RerankRequest req) throws Error
-```
-
-###### search()
-
-**Signature:**
-
-```java
-public SearchResponse search(SearchRequest req) throws Error
-```
-
-###### ocr()
-
-**Signature:**
-
-```java
-public OcrResponse ocr(OcrRequest req) throws Error
-```
-
-###### createFile()
-
-**Signature:**
-
-```java
-public FileObject createFile(CreateFileRequest req) throws Error
-```
-
-###### retrieveFile()
-
-**Signature:**
-
-```java
-public FileObject retrieveFile(String fileId) throws Error
-```
-
-###### deleteFile()
-
-**Signature:**
-
-```java
-public DeleteResponse deleteFile(String fileId) throws Error
-```
-
-###### listFiles()
-
-**Signature:**
-
-```java
-public FileListResponse listFiles(FileListQuery query) throws Error
-```
-
-###### fileContent()
-
-**Signature:**
-
-```java
-public byte[] fileContent(String fileId) throws Error
-```
-
-###### createBatch()
-
-**Signature:**
-
-```java
-public BatchObject createBatch(CreateBatchRequest req) throws Error
-```
-
-###### retrieveBatch()
-
-**Signature:**
-
-```java
-public BatchObject retrieveBatch(String batchId) throws Error
-```
-
-###### listBatches()
-
-**Signature:**
-
-```java
-public BatchListResponse listBatches(BatchListQuery query) throws Error
-```
-
-###### cancelBatch()
-
-**Signature:**
-
-```java
-public BatchObject cancelBatch(String batchId) throws Error
-```
-
-###### createResponse()
-
-**Signature:**
-
-```java
-public ResponseObject createResponse(CreateResponseRequest req) throws Error
-```
-
-###### retrieveResponse()
-
-**Signature:**
-
-```java
-public ResponseObject retrieveResponse(String id) throws Error
-```
-
-###### cancelResponse()
-
-**Signature:**
-
-```java
-public ResponseObject cancelResponse(String id) throws Error
-```
-
-
----
-
-##### ModelObject
+#### ModelObject
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -1865,7 +549,7 @@ public ResponseObject cancelResponse(String id) throws Error
 
 ---
 
-##### ModelsListResponse
+#### ModelsListResponse
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -1875,7 +559,7 @@ public ResponseObject cancelResponse(String id) throws Error
 
 ---
 
-##### ModerationCategories
+#### ModerationCategories
 
 Boolean flags for each moderation category.
 
@@ -1896,7 +580,7 @@ Boolean flags for each moderation category.
 
 ---
 
-##### ModerationCategoryScores
+#### ModerationCategoryScores
 
 Confidence scores for each moderation category.
 
@@ -1917,7 +601,7 @@ Confidence scores for each moderation category.
 
 ---
 
-##### ModerationRequest
+#### ModerationRequest
 
 Request to classify content for policy violations.
 
@@ -1929,7 +613,7 @@ Request to classify content for policy violations.
 
 ---
 
-##### ModerationResponse
+#### ModerationResponse
 
 Response from the moderation endpoint.
 
@@ -1942,7 +626,7 @@ Response from the moderation endpoint.
 
 ---
 
-##### ModerationResult
+#### ModerationResult
 
 A single moderation classification result.
 
@@ -1955,7 +639,7 @@ A single moderation classification result.
 
 ---
 
-##### OcrImage
+#### OcrImage
 
 An image extracted from an OCR page.
 
@@ -1967,7 +651,7 @@ An image extracted from an OCR page.
 
 ---
 
-##### OcrPage
+#### OcrPage
 
 A single page of OCR output.
 
@@ -1981,7 +665,7 @@ A single page of OCR output.
 
 ---
 
-##### OcrRequest
+#### OcrRequest
 
 An OCR request.
 
@@ -1989,13 +673,13 @@ An OCR request.
 |-------|------|---------|-------------|
 | `model` | `String` | — | The model/provider to use (e.g. `"mistral/mistral-ocr-latest"`). |
 | `document` | `OcrDocument` | — | The document to process. |
-| `pages` | `Optional<List<Integer>>` | `null` | Specific pages to process (1-indexed). `None` means all pages. |
-| `includeImageBase64` | `Optional<boolean>` | `null` | Whether to include base64-encoded images of each page. |
+| `pages` | `Optional<List<Integer>>` | `null` | Specific pages to process (1-indexed). `null` means all pages. |
+| `includeImageBase64` | `Optional<Boolean>` | `null` | Whether to include base64-encoded images of each page. |
 
 
 ---
 
-##### OcrResponse
+#### OcrResponse
 
 An OCR response.
 
@@ -2008,7 +692,7 @@ An OCR response.
 
 ---
 
-##### PageDimensions
+#### PageDimensions
 
 Page dimensions in pixels.
 
@@ -2020,7 +704,7 @@ Page dimensions in pixels.
 
 ---
 
-##### RerankRequest
+#### RerankRequest
 
 Request to rerank documents by relevance to a query.
 
@@ -2029,13 +713,13 @@ Request to rerank documents by relevance to a query.
 | `model` | `String` | — | Model |
 | `query` | `String` | — | Query |
 | `documents` | `List<RerankDocument>` | — | Documents |
-| `topN` | `Optional<int>` | `null` | Top n |
-| `returnDocuments` | `Optional<boolean>` | `null` | Return documents |
+| `topN` | `Optional<Integer>` | `null` | Top n |
+| `returnDocuments` | `Optional<Boolean>` | `null` | Return documents |
 
 
 ---
 
-##### RerankResponse
+#### RerankResponse
 
 Response from the rerank endpoint.
 
@@ -2048,7 +732,7 @@ Response from the rerank endpoint.
 
 ---
 
-##### RerankResult
+#### RerankResult
 
 A single reranked document with its relevance score.
 
@@ -2061,7 +745,7 @@ A single reranked document with its relevance score.
 
 ---
 
-##### RerankResultDocument
+#### RerankResultDocument
 
 The text content of a reranked document, returned when `return_documents` is true.
 
@@ -2072,46 +756,7 @@ The text content of a reranked document, returned when `return_documents` is tru
 
 ---
 
-##### ResponseClient
-
-Responses API operations (create, retrieve, cancel).
-
-###### Methods
-
-###### createResponse()
-
-Create a new response.
-
-**Signature:**
-
-```java
-public ResponseObject createResponse(CreateResponseRequest req) throws Error
-```
-
-###### retrieveResponse()
-
-Retrieve a response by ID.
-
-**Signature:**
-
-```java
-public ResponseObject retrieveResponse(String id) throws Error
-```
-
-###### cancelResponse()
-
-Cancel an in-progress response.
-
-**Signature:**
-
-```java
-public ResponseObject cancelResponse(String id) throws Error
-```
-
-
----
-
-##### SearchRequest
+#### SearchRequest
 
 A search request.
 
@@ -2119,14 +764,14 @@ A search request.
 |-------|------|---------|-------------|
 | `model` | `String` | — | The model/provider to use (e.g. `"brave/web-search"`, `"tavily/search"`). |
 | `query` | `String` | — | The search query. |
-| `maxResults` | `Optional<int>` | `null` | Maximum number of results to return. |
+| `maxResults` | `Optional<Integer>` | `null` | Maximum number of results to return. |
 | `searchDomainFilter` | `Optional<List<String>>` | `Collections.emptyList()` | Domain filter — restrict results to specific domains. |
 | `country` | `Optional<String>` | `null` | Country code for localized results (ISO 3166-1 alpha-2). |
 
 
 ---
 
-##### SearchResponse
+#### SearchResponse
 
 A search response.
 
@@ -2138,7 +783,7 @@ A search response.
 
 ---
 
-##### SearchResult
+#### SearchResult
 
 An individual search result.
 
@@ -2152,7 +797,7 @@ An individual search result.
 
 ---
 
-##### SpecificFunction
+#### SpecificFunction
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2161,7 +806,7 @@ An individual search result.
 
 ---
 
-##### SpecificToolChoice
+#### SpecificToolChoice
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2171,7 +816,7 @@ An individual search result.
 
 ---
 
-##### StreamChoice
+#### StreamChoice
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2182,7 +827,7 @@ An individual search result.
 
 ---
 
-##### StreamDelta
+#### StreamDelta
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2195,7 +840,7 @@ An individual search result.
 
 ---
 
-##### StreamFunctionCall
+#### StreamFunctionCall
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2205,16 +850,16 @@ An individual search result.
 
 ---
 
-##### StreamOptions
+#### StreamOptions
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `includeUsage` | `Optional<boolean>` | `null` | Include usage |
+| `includeUsage` | `Optional<Boolean>` | `null` | Include usage |
 
 
 ---
 
-##### StreamToolCall
+#### StreamToolCall
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2226,7 +871,7 @@ An individual search result.
 
 ---
 
-##### SystemMessage
+#### SystemMessage
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2236,7 +881,7 @@ An individual search result.
 
 ---
 
-##### ToolCall
+#### ToolCall
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2247,7 +892,7 @@ An individual search result.
 
 ---
 
-##### ToolMessage
+#### ToolMessage
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2258,7 +903,7 @@ An individual search result.
 
 ---
 
-##### TranscriptionResponse
+#### TranscriptionResponse
 
 Response from a transcription request.
 
@@ -2266,13 +911,13 @@ Response from a transcription request.
 |-------|------|---------|-------------|
 | `text` | `String` | — | Text |
 | `language` | `Optional<String>` | `null` | Language |
-| `duration` | `Optional<double>` | `null` | Duration |
+| `duration` | `Optional<Double>` | `null` | Duration |
 | `segments` | `Optional<List<TranscriptionSegment>>` | `Collections.emptyList()` | Segments |
 
 
 ---
 
-##### TranscriptionSegment
+#### TranscriptionSegment
 
 A segment of transcribed audio with timing information.
 
@@ -2286,7 +931,7 @@ A segment of transcribed audio with timing information.
 
 ---
 
-##### Usage
+#### Usage
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2297,7 +942,7 @@ A segment of transcribed audio with timing information.
 
 ---
 
-##### UserMessage
+#### UserMessage
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2307,9 +952,9 @@ A segment of transcribed audio with timing information.
 
 ---
 
-#### Enums
+### Enums
 
-##### Message
+#### Message
 
 A chat message in a conversation.
 
@@ -2325,7 +970,7 @@ A chat message in a conversation.
 
 ---
 
-##### UserContent
+#### UserContent
 
 | Value | Description |
 |-------|-------------|
@@ -2335,7 +980,7 @@ A chat message in a conversation.
 
 ---
 
-##### ContentPart
+#### ContentPart
 
 | Value | Description |
 |-------|-------------|
@@ -2347,7 +992,7 @@ A chat message in a conversation.
 
 ---
 
-##### ImageDetail
+#### ImageDetail
 
 | Value | Description |
 |-------|-------------|
@@ -2358,11 +1003,13 @@ A chat message in a conversation.
 
 ---
 
-##### ToolType
+#### ToolType
 
-The type discriminator for tool/tool-call objects. Per the OpenAI spec this
-is always `"function"`. Using an enum enforces that constraint at the type
-level and rejects any other value on deserialization.
+The type discriminator for tool/tool-call objects.
+
+Per the OpenAI spec this is always `"function"`. Using an enum enforces
+that constraint at the type level and rejects any other value on
+deserialization.
 
 | Value | Description |
 |-------|-------------|
@@ -2371,7 +1018,7 @@ level and rejects any other value on deserialization.
 
 ---
 
-##### ToolChoice
+#### ToolChoice
 
 | Value | Description |
 |-------|-------------|
@@ -2381,7 +1028,7 @@ level and rejects any other value on deserialization.
 
 ---
 
-##### ToolChoiceMode
+#### ToolChoiceMode
 
 | Value | Description |
 |-------|-------------|
@@ -2392,7 +1039,7 @@ level and rejects any other value on deserialization.
 
 ---
 
-##### ResponseFormat
+#### ResponseFormat
 
 | Value | Description |
 |-------|-------------|
@@ -2403,7 +1050,7 @@ level and rejects any other value on deserialization.
 
 ---
 
-##### StopSequence
+#### StopSequence
 
 | Value | Description |
 |-------|-------------|
@@ -2413,7 +1060,7 @@ level and rejects any other value on deserialization.
 
 ---
 
-##### FinishReason
+#### FinishReason
 
 Why a choice stopped generating tokens.
 
@@ -2429,7 +1076,7 @@ Why a choice stopped generating tokens.
 
 ---
 
-##### ReasoningEffort
+#### ReasoningEffort
 
 Controls how much reasoning effort the model should use.
 
@@ -2442,7 +1089,7 @@ Controls how much reasoning effort the model should use.
 
 ---
 
-##### EmbeddingFormat
+#### EmbeddingFormat
 
 The format in which the embedding vectors are returned.
 
@@ -2454,7 +1101,7 @@ The format in which the embedding vectors are returned.
 
 ---
 
-##### EmbeddingInput
+#### EmbeddingInput
 
 | Value | Description |
 |-------|-------------|
@@ -2464,7 +1111,7 @@ The format in which the embedding vectors are returned.
 
 ---
 
-##### ModerationInput
+#### ModerationInput
 
 Input to the moderation endpoint — a single string or multiple strings.
 
@@ -2476,7 +1123,7 @@ Input to the moderation endpoint — a single string or multiple strings.
 
 ---
 
-##### RerankDocument
+#### RerankDocument
 
 A document to be reranked — either a plain string or an object with a text field.
 
@@ -2488,7 +1135,7 @@ A document to be reranked — either a plain string or an object with a text fie
 
 ---
 
-##### OcrDocument
+#### OcrDocument
 
 Document input for OCR — either a URL or inline base64 data.
 
@@ -2500,7 +1147,7 @@ Document input for OCR — either a URL or inline base64 data.
 
 ---
 
-##### AuthHeaderFormat
+#### AuthHeaderFormat
 
 How the API key is sent in the HTTP request.
 
@@ -2513,9 +1160,9 @@ How the API key is sent in the HTTP request.
 
 ---
 
-#### Errors
+### Errors
 
-##### LiterLlmError
+#### LiterLlmError
 
 All errors that can occur when using `liter-llm`.
 

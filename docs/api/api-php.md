@@ -135,20 +135,6 @@ public static function unregisterCustomProvider(string $name): bool
 
 ### Types
 
-#### ApiError
-
-Inner error object.
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `message` | `string` | — | Message |
-| `errorType` | `string` | — | Error type |
-| `param` | `?string` | `null` | Param |
-| `code` | `?string` | `null` | Code |
-
-
----
-
 #### AssistantMessage
 
 | Field | Type | Default | Description |
@@ -168,55 +154,6 @@ Inner error object.
 |-------|------|---------|-------------|
 | `data` | `string` | — | Base64-encoded audio data. |
 | `format` | `string` | — | Audio format (e.g., "wav", "mp3", "ogg"). |
-
-
----
-
-#### BatchClient
-
-Batch processing operations (create, list, retrieve, cancel).
-
-##### Methods
-
-###### createBatch()
-
-Create a new batch job.
-
-**Signature:**
-
-```php
-public function createBatch(CreateBatchRequest $req): BatchObject
-```
-
-###### retrieveBatch()
-
-Retrieve a batch by ID.
-
-**Signature:**
-
-```php
-public function retrieveBatch(string $batchId): BatchObject
-```
-
-###### listBatches()
-
-List batches, optionally filtered by query parameters.
-
-**Signature:**
-
-```php
-public function listBatches(BatchListQuery $query): BatchListResponse
-```
-
-###### cancelBatch()
-
-Cancel an in-progress batch.
-
-**Signature:**
-
-```php
-public function cancelBatch(string $batchId): BatchObject
-```
 
 
 ---
@@ -278,23 +215,6 @@ public function cancelBatch(string $batchId): BatchObject
 | `systemFingerprint` | `?string` | `null` | System fingerprint |
 | `serviceTier` | `?string` | `null` | Service tier |
 
-##### Methods
-
-###### estimatedCost()
-
-Estimate the cost of this response based on embedded pricing data.
-
-Returns `null` if:
-
-- the `model` field is not present in the embedded pricing registry, or
-- the `usage` field is absent from the response.
-
-**Signature:**
-
-```php
-public function estimatedCost(): ?float
-```
-
 
 ---
 
@@ -315,259 +235,6 @@ public function estimatedCost(): ?float
 | `index` | `int` | — | Index |
 | `message` | `AssistantMessage` | — | Message (assistant message) |
 | `finishReason` | `?FinishReason` | `null` | Finish reason (finish reason) |
-
-
----
-
-#### ClientConfig
-
-Configuration for an LLM client.
-
-`api_key` is stored as a `SecretString` so it is zeroed on drop and never
-printed accidentally. Access it via `secrecy::ExposeSecret`.
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `apiKey` | `string` | — | API key for authentication (stored as a secret). |
-| `baseUrl` | `?string` | `null` | Override base URL.  When set, all requests go here regardless of model name, and provider auto-detection is skipped. |
-| `timeout` | `float` | — | Request timeout. |
-| `maxRetries` | `int` | — | Maximum number of retries on 429 / 5xx responses. |
-| `credentialProvider` | `?CredentialProvider` | `null` | Optional dynamic credential provider for token-based auth (Azure AD, Vertex OAuth2) or refreshable credentials (AWS STS). When set, the client calls `resolve()` before each request to obtain a fresh credential.  When `None`, the static `api_key` is used. |
-
-##### Methods
-
-###### headers()
-
-Return the extra headers as an ordered slice of `(name, value)` pairs.
-
-**Signature:**
-
-```php
-public function headers(): array<array{string, string}>
-```
-
-###### fmt()
-
-**Signature:**
-
-```php
-public function fmt(Formatter $f): Unknown
-```
-
-
----
-
-#### ClientConfigBuilder
-
-Builder for `ClientConfig`.
-
-Construct with `ClientConfigBuilder::new` and call builder methods to
-customise the configuration, then call `ClientConfigBuilder::build` to
-obtain a `ClientConfig`.
-
-##### Methods
-
-###### baseUrl()
-
-Override the provider base URL for all requests.
-
-**Signature:**
-
-```php
-public function baseUrl(string $url): ClientConfigBuilder
-```
-
-###### timeout()
-
-Set the per-request timeout (default: 60 s).
-
-**Signature:**
-
-```php
-public function timeout(float $timeout): ClientConfigBuilder
-```
-
-###### maxRetries()
-
-Set the maximum number of retries on 429 / 5xx responses (default: 3).
-
-**Signature:**
-
-```php
-public function maxRetries(int $retries): ClientConfigBuilder
-```
-
-###### credentialProvider()
-
-Set a dynamic credential provider for token-based or refreshable auth.
-
-When configured, the client calls `resolve()` before each request
-instead of using the static `api_key` for authentication.
-
-**Signature:**
-
-```php
-public function credentialProvider(CredentialProvider $provider): ClientConfigBuilder
-```
-
-###### header()
-
-Add a custom header sent on every request.
-
-Returns an error if either `key` or `value` is not a valid HTTP header
-name / value.
-
-This method is only available when the `native-http` feature is enabled
-because header validation relies on `reqwest`'s header types.
-
-**Signature:**
-
-```php
-public function header(string $key, string $value): ClientConfigBuilder
-```
-
-###### cache()
-
-Set the response cache configuration for the Tower middleware stack.
-
-When set, bindings and advanced Rust users can read this from the
-built `ClientConfig` to construct a
-`CacheLayer`.
-
-**Signature:**
-
-```php
-public function cache(CacheConfig $config): ClientConfigBuilder
-```
-
-###### cacheStore()
-
-Set a custom cache store backend for the Tower cache middleware.
-
-When set alongside `cache`, the cache layer will use
-this store instead of the default in-memory LRU.
-
-**Signature:**
-
-```php
-public function cacheStore(CacheStore $store): ClientConfigBuilder
-```
-
-###### budget()
-
-Set the budget enforcement configuration for the Tower middleware stack.
-
-When set, bindings and advanced Rust users can read this from the
-built `ClientConfig` to construct a
-`BudgetLayer`.
-
-**Signature:**
-
-```php
-public function budget(BudgetConfig $config): ClientConfigBuilder
-```
-
-###### hook()
-
-Add a single hook to the Tower hooks middleware stack.
-
-Hooks are invoked sequentially in registration order at request
-lifecycle points (pre-request, post-response, on-error).
-
-**Signature:**
-
-```php
-public function hook(LlmHook $hook): ClientConfigBuilder
-```
-
-###### hooks()
-
-Set the full list of hooks for the Tower hooks middleware stack,
-replacing any previously registered hooks.
-
-Hooks are invoked sequentially in registration order.
-
-**Signature:**
-
-```php
-public function hooks(array<LlmHook> $hooks): ClientConfigBuilder
-```
-
-###### cooldown()
-
-Set the cooldown duration after transient errors.
-
-When set, the client rejects requests with `ServiceUnavailable` for
-the given duration after a transient error (rate limit, timeout,
-server error).
-
-**Signature:**
-
-```php
-public function cooldown(float $duration): ClientConfigBuilder
-```
-
-###### rateLimit()
-
-Set per-model rate limiting configuration.
-
-When set, requests exceeding the configured RPM or TPM limits are
-rejected with `LiterLlmError::RateLimited`.
-
-**Signature:**
-
-```php
-public function rateLimit(RateLimitConfig $config): ClientConfigBuilder
-```
-
-###### healthCheck()
-
-Set the background health check interval.
-
-When set, the client periodically probes the provider and rejects
-requests when the provider is unhealthy.
-
-**Signature:**
-
-```php
-public function healthCheck(float $interval): ClientConfigBuilder
-```
-
-###### costTracking()
-
-Enable or disable per-request cost tracking.
-
-When enabled, estimated USD cost is recorded on the current tracing
-span as `gen_ai.usage.cost`.
-
-**Signature:**
-
-```php
-public function costTracking(bool $enabled): ClientConfigBuilder
-```
-
-###### tracing()
-
-Enable or disable OpenTelemetry-compatible tracing spans.
-
-When enabled, every request is wrapped in a `gen_ai` tracing span
-with semantic convention attributes.
-
-**Signature:**
-
-```php
-public function tracing(bool $enabled): ClientConfigBuilder
-```
-
-###### build()
-
-Consume the builder and return the completed `ClientConfig`.
-
-**Signature:**
-
-```php
-public function build(): ClientConfig
-```
 
 
 ---
@@ -653,27 +320,6 @@ async closures and streaming tasks that must be `'static`.
 
 ##### Methods
 
-###### new()
-
-Build a client.
-
-`model_hint` guides provider auto-detection when no explicit
-`base_url` override is present in the config. For example, passing
-`Some("groq/llama3-70b")` selects the Groq provider. Pass `null` to
-default to OpenAI.
-
-**Errors:**
-
-Returns a wrapped `reqwest::Error` if the underlying HTTP client
-cannot be constructed. Header names and values are pre-validated by
-`ClientConfigBuilder::header`, so they are inserted directly here.
-
-**Signature:**
-
-```php
-public static function new(ClientConfig $config, string $modelHint): DefaultClient
-```
-
 ###### chat()
 
 **Signature:**
@@ -687,7 +333,7 @@ public function chat(ChatCompletionRequest $req): ChatCompletionResponse
 **Signature:**
 
 ```php
-public function chatStream(ChatCompletionRequest $req): BoxStream
+public function chatStream(ChatCompletionRequest $req): string
 ```
 
 ###### embed()
@@ -712,14 +358,6 @@ public function listModels(): ModelsListResponse
 
 ```php
 public function imageGenerate(CreateImageRequest $req): ImagesResponse
-```
-
-###### speech()
-
-**Signature:**
-
-```php
-public function speech(CreateSpeechRequest $req): string
 ```
 
 ###### transcribe()
@@ -752,182 +390,6 @@ public function rerank(RerankRequest $req): RerankResponse
 
 ```php
 public function search(SearchRequest $req): SearchResponse
-```
-
-###### ocr()
-
-**Signature:**
-
-```php
-public function ocr(OcrRequest $req): OcrResponse
-```
-
-###### chatRaw()
-
-**Signature:**
-
-```php
-public function chatRaw(ChatCompletionRequest $req): RawExchange
-```
-
-###### chatStreamRaw()
-
-**Signature:**
-
-```php
-public function chatStreamRaw(ChatCompletionRequest $req): RawStreamExchange
-```
-
-###### embedRaw()
-
-**Signature:**
-
-```php
-public function embedRaw(EmbeddingRequest $req): RawExchange
-```
-
-###### imageGenerateRaw()
-
-**Signature:**
-
-```php
-public function imageGenerateRaw(CreateImageRequest $req): RawExchange
-```
-
-###### transcribeRaw()
-
-**Signature:**
-
-```php
-public function transcribeRaw(CreateTranscriptionRequest $req): RawExchange
-```
-
-###### moderateRaw()
-
-**Signature:**
-
-```php
-public function moderateRaw(ModerationRequest $req): RawExchange
-```
-
-###### rerankRaw()
-
-**Signature:**
-
-```php
-public function rerankRaw(RerankRequest $req): RawExchange
-```
-
-###### searchRaw()
-
-**Signature:**
-
-```php
-public function searchRaw(SearchRequest $req): RawExchange
-```
-
-###### ocrRaw()
-
-**Signature:**
-
-```php
-public function ocrRaw(OcrRequest $req): RawExchange
-```
-
-###### createFile()
-
-**Signature:**
-
-```php
-public function createFile(CreateFileRequest $req): FileObject
-```
-
-###### retrieveFile()
-
-**Signature:**
-
-```php
-public function retrieveFile(string $fileId): FileObject
-```
-
-###### deleteFile()
-
-**Signature:**
-
-```php
-public function deleteFile(string $fileId): DeleteResponse
-```
-
-###### listFiles()
-
-**Signature:**
-
-```php
-public function listFiles(FileListQuery $query): FileListResponse
-```
-
-###### fileContent()
-
-**Signature:**
-
-```php
-public function fileContent(string $fileId): string
-```
-
-###### createBatch()
-
-**Signature:**
-
-```php
-public function createBatch(CreateBatchRequest $req): BatchObject
-```
-
-###### retrieveBatch()
-
-**Signature:**
-
-```php
-public function retrieveBatch(string $batchId): BatchObject
-```
-
-###### listBatches()
-
-**Signature:**
-
-```php
-public function listBatches(BatchListQuery $query): BatchListResponse
-```
-
-###### cancelBatch()
-
-**Signature:**
-
-```php
-public function cancelBatch(string $batchId): BatchObject
-```
-
-###### createResponse()
-
-**Signature:**
-
-```php
-public function createResponse(CreateResponseRequest $req): ResponseObject
-```
-
-###### retrieveResponse()
-
-**Signature:**
-
-```php
-public function retrieveResponse(string $id): ResponseObject
-```
-
-###### cancelResponse()
-
-**Signature:**
-
-```php
-public function cancelResponse(string $id): ResponseObject
 ```
 
 
@@ -986,252 +448,10 @@ public function cancelResponse(string $id): ResponseObject
 | `model` | `string` | — | Model |
 | `usage` | `?Usage` | `null` | Usage (usage) |
 
-##### Methods
-
-###### estimatedCost()
-
-Estimate the cost of this embedding request based on embedded pricing data.
-
-Returns `null` if:
-
-- the `model` field is not present in the embedded pricing registry, or
-- the `usage` field is absent from the response.
-
-Embedding models only charge for input tokens; output cost is zero.
-
-**Signature:**
-
-```php
-public function estimatedCost(): ?float
-```
-
 
 ---
 
-#### ErrorResponse
-
-Error response from an OpenAI-compatible API.
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `error` | `ApiError` | — | Error (api error) |
-
-
----
-
-#### FileBudgetConfig
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `globalLimit` | `?float` | `null` | Global limit |
-| `modelLimits` | `?array<string, float>` | `null` | Model limits |
-| `enforcement` | `?string` | `null` | Enforcement |
-
-
----
-
-#### FileCacheConfig
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `maxEntries` | `?int` | `null` | Maximum entries |
-| `ttlSeconds` | `?int` | `null` | Ttl seconds |
-| `backend` | `?string` | `null` | Backend |
-| `backendConfig` | `?array<string, string>` | `null` | Backend config |
-
-
----
-
-#### FileClient
-
-File management operations (upload, list, retrieve, delete).
-
-##### Methods
-
-###### createFile()
-
-Upload a file.
-
-**Signature:**
-
-```php
-public function createFile(CreateFileRequest $req): FileObject
-```
-
-###### retrieveFile()
-
-Retrieve metadata for a file.
-
-**Signature:**
-
-```php
-public function retrieveFile(string $fileId): FileObject
-```
-
-###### deleteFile()
-
-Delete a file.
-
-**Signature:**
-
-```php
-public function deleteFile(string $fileId): DeleteResponse
-```
-
-###### listFiles()
-
-List files, optionally filtered by query parameters.
-
-**Signature:**
-
-```php
-public function listFiles(FileListQuery $query): FileListResponse
-```
-
-###### fileContent()
-
-Retrieve the raw content of a file.
-
-**Signature:**
-
-```php
-public function fileContent(string $fileId): string
-```
-
-
----
-
-#### FileConfig
-
-TOML file representation of client configuration.
-
-All fields are optional — missing fields use defaults from `ClientConfigBuilder`.
-Convert to a builder via `FileConfig::into_builder`.
-
-## Example `liter-llm.toml`
-
-```toml
-api_key = "sk-..."
-base_url = "<https://api.openai.com/v1">
-timeout_secs = 120
-max_retries = 5
-
-[cache]
-max_entries = 512
-ttl_seconds = 600
-backend = "memory"
-
-[budget]
-global_limit = 50.0
-enforcement = "hard"
-
-[[providers]]
-name = "my-provider"
-base_url = "<https://my-llm.example.com/v1">
-model_prefixes = ["my-provider/"]
-```
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `apiKey` | `?string` | `null` | Api key |
-| `baseUrl` | `?string` | `null` | Base url |
-| `modelHint` | `?string` | `null` | Model hint |
-| `timeoutSecs` | `?int` | `null` | Timeout secs |
-| `maxRetries` | `?int` | `null` | Maximum retries |
-| `extraHeaders` | `?array<string, string>` | `null` | Extra headers |
-| `cache` | `?FileCacheConfig` | `null` | Cache (file cache config) |
-| `budget` | `?FileBudgetConfig` | `null` | Budget (file budget config) |
-| `cooldownSecs` | `?int` | `null` | Cooldown secs |
-| `rateLimit` | `?FileRateLimitConfig` | `null` | Rate limit (file rate limit config) |
-| `healthCheckSecs` | `?int` | `null` | Health check secs |
-| `costTracking` | `?bool` | `null` | Cost tracking |
-| `tracing` | `?bool` | `null` | Tracing |
-| `providers` | `?array<FileProviderConfig>` | `null` | Providers |
-
-### Methods
-
-#### fromTomlFile()
-
-Load from a TOML file path.
-
-**Signature:**
-
-```php
-public static function fromTomlFile(Path $path): FileConfig
-```
-
-##### fromTomlStr()
-
-Parse from a TOML string.
-
-**Signature:**
-
-```php
-public static function fromTomlStr(string $s): FileConfig
-```
-
-###### discover()
-
-Discover `liter-llm.toml` by walking from current directory to filesystem root.
-
-Returns `Ok(None)` if no config file is found.
-
-**Signature:**
-
-```php
-public static function discover(): ?FileConfig
-```
-
-###### intoBuilder()
-
-Convert into a `ClientConfigBuilder`,
-applying all fields that are set.
-
-Fields not present in the TOML file use the builder's defaults.
-
-**Signature:**
-
-```php
-public function intoBuilder(): ClientConfigBuilder
-```
-
-###### providers()
-
-Get the custom provider configurations from this file config.
-
-**Signature:**
-
-```php
-public function providers(): array<FileProviderConfig>
-```
-
-
----
-
-##### FileProviderConfig
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `name` | `string` | — | The name |
-| `baseUrl` | `string` | — | Base url |
-| `authHeader` | `?string` | `null` | Auth header |
-| `modelPrefixes` | `array<string>` | — | Model prefixes |
-
-
----
-
-##### FileRateLimitConfig
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `rpm` | `?int` | `null` | Rpm |
-| `tpm` | `?int` | `null` | Tpm |
-| `windowSeconds` | `?int` | `null` | Window seconds |
-
-
----
-
-##### FunctionCall
+#### FunctionCall
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -1241,7 +461,7 @@ public function providers(): array<FileProviderConfig>
 
 ---
 
-##### FunctionDefinition
+#### FunctionDefinition
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -1253,7 +473,7 @@ public function providers(): array<FileProviderConfig>
 
 ---
 
-##### FunctionMessage
+#### FunctionMessage
 
 Deprecated legacy function-role message body.
 
@@ -1265,7 +485,7 @@ Deprecated legacy function-role message body.
 
 ---
 
-##### Image
+#### Image
 
 A single generated image, returned as either a URL or base64 data.
 
@@ -1278,7 +498,7 @@ A single generated image, returned as either a URL or base64 data.
 
 ---
 
-##### ImageUrl
+#### ImageUrl
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -1288,7 +508,7 @@ A single generated image, returned as either a URL or base64 data.
 
 ---
 
-##### ImagesResponse
+#### ImagesResponse
 
 Response containing generated images.
 
@@ -1300,7 +520,7 @@ Response containing generated images.
 
 ---
 
-##### JsonSchemaFormat
+#### JsonSchemaFormat
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -1312,548 +532,12 @@ Response containing generated images.
 
 ---
 
-##### LiterLlmError
-
-###### Methods
-
-###### isTransient()
-
-Returns `true` for errors that are worth retrying on a different service
-or deployment (transient failures).
-
-Used by `crate::tower::fallback::FallbackService` and
-`crate::tower::router::Router` to decide whether to route to an
-alternative endpoint.
-
-**Signature:**
-
-```php
-public function isTransient(): bool
-```
-
-###### errorType()
-
-Return the OpenTelemetry `error.type` string for this error variant.
-
-Used by the tracing middleware to record the `error.type` span attribute
-on failed requests per the GenAI semantic conventions.
-
-**Signature:**
-
-```php
-public function errorType(): string
-```
-
-###### fromStatus()
-
-Create from an HTTP status code, an API error response body, and an
-optional `Retry-After` duration already parsed from the response header.
-
-The `retry_after` value is forwarded into `LiterLlmError::RateLimited`
-so callers can honour the server-requested delay without re-parsing the
-header.
-
-**Signature:**
-
-```php
-public static function fromStatus(int $status, string $body, float $retryAfter): LiterLlmError
-```
+#### LiterLlmError
 
 
 ---
 
-##### LlmClient
-
-Core LLM client trait.
-
-###### Methods
-
-###### chat()
-
-Send a chat completion request.
-
-**Signature:**
-
-```php
-public function chat(ChatCompletionRequest $req): ChatCompletionResponse
-```
-
-###### chatStream()
-
-Send a streaming chat completion request.
-
-**Signature:**
-
-```php
-public function chatStream(ChatCompletionRequest $req): BoxStream
-```
-
-###### embed()
-
-Send an embedding request.
-
-**Signature:**
-
-```php
-public function embed(EmbeddingRequest $req): EmbeddingResponse
-```
-
-###### listModels()
-
-List available models.
-
-**Signature:**
-
-```php
-public function listModels(): ModelsListResponse
-```
-
-###### imageGenerate()
-
-Generate an image.
-
-**Signature:**
-
-```php
-public function imageGenerate(CreateImageRequest $req): ImagesResponse
-```
-
-###### speech()
-
-Generate speech audio from text.
-
-**Signature:**
-
-```php
-public function speech(CreateSpeechRequest $req): string
-```
-
-###### transcribe()
-
-Transcribe audio to text.
-
-**Signature:**
-
-```php
-public function transcribe(CreateTranscriptionRequest $req): TranscriptionResponse
-```
-
-###### moderate()
-
-Check content against moderation policies.
-
-**Signature:**
-
-```php
-public function moderate(ModerationRequest $req): ModerationResponse
-```
-
-###### rerank()
-
-Rerank documents by relevance to a query.
-
-**Signature:**
-
-```php
-public function rerank(RerankRequest $req): RerankResponse
-```
-
-###### search()
-
-Perform a web/document search.
-
-**Signature:**
-
-```php
-public function search(SearchRequest $req): SearchResponse
-```
-
-###### ocr()
-
-Extract text from a document via OCR.
-
-**Signature:**
-
-```php
-public function ocr(OcrRequest $req): OcrResponse
-```
-
-
----
-
-##### LlmClientRaw
-
-Extension of `LlmClient` that returns raw request/response data
-alongside the typed response.
-
-Every `_raw` method mirrors its counterpart on `LlmClient` but wraps the
-result in a `RawExchange` that exposes the final request body (after
-`transform_request`) and the raw provider response (before
-`transform_response`). This is useful for debugging provider-specific
-transformations, capturing wire-level data, or implementing custom parsing.
-
-###### Methods
-
-###### chatRaw()
-
-Send a chat completion request and return the raw exchange.
-
-The `raw_request` field contains the final JSON body sent to the
-provider; `raw_response` contains the provider JSON before
-normalization.
-
-**Signature:**
-
-```php
-public function chatRaw(ChatCompletionRequest $req): RawExchange
-```
-
-###### chatStreamRaw()
-
-Send a streaming chat completion request and return the raw exchange.
-
-Only `raw_request` is available upfront — the stream itself is
-returned in `stream` and consumed incrementally.
-
-**Signature:**
-
-```php
-public function chatStreamRaw(ChatCompletionRequest $req): RawStreamExchange
-```
-
-###### embedRaw()
-
-Send an embedding request and return the raw exchange.
-
-**Signature:**
-
-```php
-public function embedRaw(EmbeddingRequest $req): RawExchange
-```
-
-###### imageGenerateRaw()
-
-Generate an image and return the raw exchange.
-
-**Signature:**
-
-```php
-public function imageGenerateRaw(CreateImageRequest $req): RawExchange
-```
-
-###### transcribeRaw()
-
-Transcribe audio to text and return the raw exchange.
-
-**Signature:**
-
-```php
-public function transcribeRaw(CreateTranscriptionRequest $req): RawExchange
-```
-
-###### moderateRaw()
-
-Check content against moderation policies and return the raw exchange.
-
-**Signature:**
-
-```php
-public function moderateRaw(ModerationRequest $req): RawExchange
-```
-
-###### rerankRaw()
-
-Rerank documents by relevance to a query and return the raw exchange.
-
-**Signature:**
-
-```php
-public function rerankRaw(RerankRequest $req): RawExchange
-```
-
-###### searchRaw()
-
-Perform a web/document search and return the raw exchange.
-
-**Signature:**
-
-```php
-public function searchRaw(SearchRequest $req): RawExchange
-```
-
-###### ocrRaw()
-
-Extract text from a document via OCR and return the raw exchange.
-
-**Signature:**
-
-```php
-public function ocrRaw(OcrRequest $req): RawExchange
-```
-
-
----
-
-##### ManagedClient
-
-A managed LLM client that wraps `DefaultClient` with optional Tower
-middleware (cache, cooldown, rate limiting, health checks, cost tracking,
-budget, hooks, tracing).
-
-Construct via `ManagedClient::new`. If the provided `ClientConfig`
-contains any middleware configuration the corresponding Tower layers are
-composed into a service stack. Otherwise requests pass straight through
-to the inner `DefaultClient`.
-
-`ManagedClient` implements `LlmClient` and can be used everywhere a
-`DefaultClient` is expected.
-
-###### Methods
-
-###### new()
-
-Build a managed client.
-
-`model_hint` guides provider auto-detection — see
-`DefaultClient::new` for details.
-
-If the config contains any middleware settings (cache, budget, hooks,
-cooldown, rate limit, health check, cost tracking, tracing) the
-corresponding Tower layers are composed into a service stack.
-Otherwise requests pass straight through to the inner client.
-
-**Errors:**
-
-Returns an error if the underlying `DefaultClient` cannot be
-constructed (e.g. invalid headers or HTTP client build failure).
-
-**Signature:**
-
-```php
-public static function new(ClientConfig $config, string $modelHint): ManagedClient
-```
-
-###### inner()
-
-Return a reference to the underlying `DefaultClient`.
-
-**Signature:**
-
-```php
-public function inner(): DefaultClient
-```
-
-###### budgetState()
-
-Return the budget state handle, if budget middleware is configured.
-
-Use this to query accumulated spend at runtime.
-
-**Signature:**
-
-```php
-public function budgetState(): ?BudgetState
-```
-
-###### hasMiddleware()
-
-Return `true` when middleware is active (requests go through the Tower
-service stack).
-
-**Signature:**
-
-```php
-public function hasMiddleware(): bool
-```
-
-###### chat()
-
-**Signature:**
-
-```php
-public function chat(ChatCompletionRequest $req): ChatCompletionResponse
-```
-
-###### chatStream()
-
-**Signature:**
-
-```php
-public function chatStream(ChatCompletionRequest $req): BoxStream
-```
-
-###### embed()
-
-**Signature:**
-
-```php
-public function embed(EmbeddingRequest $req): EmbeddingResponse
-```
-
-###### listModels()
-
-**Signature:**
-
-```php
-public function listModels(): ModelsListResponse
-```
-
-###### imageGenerate()
-
-**Signature:**
-
-```php
-public function imageGenerate(CreateImageRequest $req): ImagesResponse
-```
-
-###### speech()
-
-**Signature:**
-
-```php
-public function speech(CreateSpeechRequest $req): string
-```
-
-###### transcribe()
-
-**Signature:**
-
-```php
-public function transcribe(CreateTranscriptionRequest $req): TranscriptionResponse
-```
-
-###### moderate()
-
-**Signature:**
-
-```php
-public function moderate(ModerationRequest $req): ModerationResponse
-```
-
-###### rerank()
-
-**Signature:**
-
-```php
-public function rerank(RerankRequest $req): RerankResponse
-```
-
-###### search()
-
-**Signature:**
-
-```php
-public function search(SearchRequest $req): SearchResponse
-```
-
-###### ocr()
-
-**Signature:**
-
-```php
-public function ocr(OcrRequest $req): OcrResponse
-```
-
-###### createFile()
-
-**Signature:**
-
-```php
-public function createFile(CreateFileRequest $req): FileObject
-```
-
-###### retrieveFile()
-
-**Signature:**
-
-```php
-public function retrieveFile(string $fileId): FileObject
-```
-
-###### deleteFile()
-
-**Signature:**
-
-```php
-public function deleteFile(string $fileId): DeleteResponse
-```
-
-###### listFiles()
-
-**Signature:**
-
-```php
-public function listFiles(FileListQuery $query): FileListResponse
-```
-
-###### fileContent()
-
-**Signature:**
-
-```php
-public function fileContent(string $fileId): string
-```
-
-###### createBatch()
-
-**Signature:**
-
-```php
-public function createBatch(CreateBatchRequest $req): BatchObject
-```
-
-###### retrieveBatch()
-
-**Signature:**
-
-```php
-public function retrieveBatch(string $batchId): BatchObject
-```
-
-###### listBatches()
-
-**Signature:**
-
-```php
-public function listBatches(BatchListQuery $query): BatchListResponse
-```
-
-###### cancelBatch()
-
-**Signature:**
-
-```php
-public function cancelBatch(string $batchId): BatchObject
-```
-
-###### createResponse()
-
-**Signature:**
-
-```php
-public function createResponse(CreateResponseRequest $req): ResponseObject
-```
-
-###### retrieveResponse()
-
-**Signature:**
-
-```php
-public function retrieveResponse(string $id): ResponseObject
-```
-
-###### cancelResponse()
-
-**Signature:**
-
-```php
-public function cancelResponse(string $id): ResponseObject
-```
-
-
----
-
-##### ModelObject
+#### ModelObject
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -1865,7 +549,7 @@ public function cancelResponse(string $id): ResponseObject
 
 ---
 
-##### ModelsListResponse
+#### ModelsListResponse
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -1875,7 +559,7 @@ public function cancelResponse(string $id): ResponseObject
 
 ---
 
-##### ModerationCategories
+#### ModerationCategories
 
 Boolean flags for each moderation category.
 
@@ -1896,7 +580,7 @@ Boolean flags for each moderation category.
 
 ---
 
-##### ModerationCategoryScores
+#### ModerationCategoryScores
 
 Confidence scores for each moderation category.
 
@@ -1917,7 +601,7 @@ Confidence scores for each moderation category.
 
 ---
 
-##### ModerationRequest
+#### ModerationRequest
 
 Request to classify content for policy violations.
 
@@ -1929,7 +613,7 @@ Request to classify content for policy violations.
 
 ---
 
-##### ModerationResponse
+#### ModerationResponse
 
 Response from the moderation endpoint.
 
@@ -1942,7 +626,7 @@ Response from the moderation endpoint.
 
 ---
 
-##### ModerationResult
+#### ModerationResult
 
 A single moderation classification result.
 
@@ -1955,7 +639,7 @@ A single moderation classification result.
 
 ---
 
-##### OcrImage
+#### OcrImage
 
 An image extracted from an OCR page.
 
@@ -1967,7 +651,7 @@ An image extracted from an OCR page.
 
 ---
 
-##### OcrPage
+#### OcrPage
 
 A single page of OCR output.
 
@@ -1981,7 +665,7 @@ A single page of OCR output.
 
 ---
 
-##### OcrRequest
+#### OcrRequest
 
 An OCR request.
 
@@ -1989,13 +673,13 @@ An OCR request.
 |-------|------|---------|-------------|
 | `model` | `string` | — | The model/provider to use (e.g. `"mistral/mistral-ocr-latest"`). |
 | `document` | `OcrDocument` | — | The document to process. |
-| `pages` | `?array<int>` | `null` | Specific pages to process (1-indexed). `None` means all pages. |
+| `pages` | `?array<int>` | `null` | Specific pages to process (1-indexed). `null` means all pages. |
 | `includeImageBase64` | `?bool` | `null` | Whether to include base64-encoded images of each page. |
 
 
 ---
 
-##### OcrResponse
+#### OcrResponse
 
 An OCR response.
 
@@ -2008,7 +692,7 @@ An OCR response.
 
 ---
 
-##### PageDimensions
+#### PageDimensions
 
 Page dimensions in pixels.
 
@@ -2020,7 +704,7 @@ Page dimensions in pixels.
 
 ---
 
-##### RerankRequest
+#### RerankRequest
 
 Request to rerank documents by relevance to a query.
 
@@ -2035,7 +719,7 @@ Request to rerank documents by relevance to a query.
 
 ---
 
-##### RerankResponse
+#### RerankResponse
 
 Response from the rerank endpoint.
 
@@ -2048,7 +732,7 @@ Response from the rerank endpoint.
 
 ---
 
-##### RerankResult
+#### RerankResult
 
 A single reranked document with its relevance score.
 
@@ -2061,7 +745,7 @@ A single reranked document with its relevance score.
 
 ---
 
-##### RerankResultDocument
+#### RerankResultDocument
 
 The text content of a reranked document, returned when `return_documents` is true.
 
@@ -2072,46 +756,7 @@ The text content of a reranked document, returned when `return_documents` is tru
 
 ---
 
-##### ResponseClient
-
-Responses API operations (create, retrieve, cancel).
-
-###### Methods
-
-###### createResponse()
-
-Create a new response.
-
-**Signature:**
-
-```php
-public function createResponse(CreateResponseRequest $req): ResponseObject
-```
-
-###### retrieveResponse()
-
-Retrieve a response by ID.
-
-**Signature:**
-
-```php
-public function retrieveResponse(string $id): ResponseObject
-```
-
-###### cancelResponse()
-
-Cancel an in-progress response.
-
-**Signature:**
-
-```php
-public function cancelResponse(string $id): ResponseObject
-```
-
-
----
-
-##### SearchRequest
+#### SearchRequest
 
 A search request.
 
@@ -2126,7 +771,7 @@ A search request.
 
 ---
 
-##### SearchResponse
+#### SearchResponse
 
 A search response.
 
@@ -2138,7 +783,7 @@ A search response.
 
 ---
 
-##### SearchResult
+#### SearchResult
 
 An individual search result.
 
@@ -2152,7 +797,7 @@ An individual search result.
 
 ---
 
-##### SpecificFunction
+#### SpecificFunction
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2161,7 +806,7 @@ An individual search result.
 
 ---
 
-##### SpecificToolChoice
+#### SpecificToolChoice
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2171,7 +816,7 @@ An individual search result.
 
 ---
 
-##### StreamChoice
+#### StreamChoice
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2182,7 +827,7 @@ An individual search result.
 
 ---
 
-##### StreamDelta
+#### StreamDelta
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2195,7 +840,7 @@ An individual search result.
 
 ---
 
-##### StreamFunctionCall
+#### StreamFunctionCall
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2205,7 +850,7 @@ An individual search result.
 
 ---
 
-##### StreamOptions
+#### StreamOptions
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2214,7 +859,7 @@ An individual search result.
 
 ---
 
-##### StreamToolCall
+#### StreamToolCall
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2226,7 +871,7 @@ An individual search result.
 
 ---
 
-##### SystemMessage
+#### SystemMessage
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2236,7 +881,7 @@ An individual search result.
 
 ---
 
-##### ToolCall
+#### ToolCall
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2247,7 +892,7 @@ An individual search result.
 
 ---
 
-##### ToolMessage
+#### ToolMessage
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2258,7 +903,7 @@ An individual search result.
 
 ---
 
-##### TranscriptionResponse
+#### TranscriptionResponse
 
 Response from a transcription request.
 
@@ -2272,7 +917,7 @@ Response from a transcription request.
 
 ---
 
-##### TranscriptionSegment
+#### TranscriptionSegment
 
 A segment of transcribed audio with timing information.
 
@@ -2286,7 +931,7 @@ A segment of transcribed audio with timing information.
 
 ---
 
-##### Usage
+#### Usage
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2297,7 +942,7 @@ A segment of transcribed audio with timing information.
 
 ---
 
-##### UserMessage
+#### UserMessage
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
@@ -2307,9 +952,9 @@ A segment of transcribed audio with timing information.
 
 ---
 
-#### Enums
+### Enums
 
-##### Message
+#### Message
 
 A chat message in a conversation.
 
@@ -2325,7 +970,7 @@ A chat message in a conversation.
 
 ---
 
-##### UserContent
+#### UserContent
 
 | Value | Description |
 |-------|-------------|
@@ -2335,7 +980,7 @@ A chat message in a conversation.
 
 ---
 
-##### ContentPart
+#### ContentPart
 
 | Value | Description |
 |-------|-------------|
@@ -2347,7 +992,7 @@ A chat message in a conversation.
 
 ---
 
-##### ImageDetail
+#### ImageDetail
 
 | Value | Description |
 |-------|-------------|
@@ -2358,11 +1003,13 @@ A chat message in a conversation.
 
 ---
 
-##### ToolType
+#### ToolType
 
-The type discriminator for tool/tool-call objects. Per the OpenAI spec this
-is always `"function"`. Using an enum enforces that constraint at the type
-level and rejects any other value on deserialization.
+The type discriminator for tool/tool-call objects.
+
+Per the OpenAI spec this is always `"function"`. Using an enum enforces
+that constraint at the type level and rejects any other value on
+deserialization.
 
 | Value | Description |
 |-------|-------------|
@@ -2371,7 +1018,7 @@ level and rejects any other value on deserialization.
 
 ---
 
-##### ToolChoice
+#### ToolChoice
 
 | Value | Description |
 |-------|-------------|
@@ -2381,7 +1028,7 @@ level and rejects any other value on deserialization.
 
 ---
 
-##### ToolChoiceMode
+#### ToolChoiceMode
 
 | Value | Description |
 |-------|-------------|
@@ -2392,7 +1039,7 @@ level and rejects any other value on deserialization.
 
 ---
 
-##### ResponseFormat
+#### ResponseFormat
 
 | Value | Description |
 |-------|-------------|
@@ -2403,7 +1050,7 @@ level and rejects any other value on deserialization.
 
 ---
 
-##### StopSequence
+#### StopSequence
 
 | Value | Description |
 |-------|-------------|
@@ -2413,7 +1060,7 @@ level and rejects any other value on deserialization.
 
 ---
 
-##### FinishReason
+#### FinishReason
 
 Why a choice stopped generating tokens.
 
@@ -2429,7 +1076,7 @@ Why a choice stopped generating tokens.
 
 ---
 
-##### ReasoningEffort
+#### ReasoningEffort
 
 Controls how much reasoning effort the model should use.
 
@@ -2442,7 +1089,7 @@ Controls how much reasoning effort the model should use.
 
 ---
 
-##### EmbeddingFormat
+#### EmbeddingFormat
 
 The format in which the embedding vectors are returned.
 
@@ -2454,7 +1101,7 @@ The format in which the embedding vectors are returned.
 
 ---
 
-##### EmbeddingInput
+#### EmbeddingInput
 
 | Value | Description |
 |-------|-------------|
@@ -2464,7 +1111,7 @@ The format in which the embedding vectors are returned.
 
 ---
 
-##### ModerationInput
+#### ModerationInput
 
 Input to the moderation endpoint — a single string or multiple strings.
 
@@ -2476,7 +1123,7 @@ Input to the moderation endpoint — a single string or multiple strings.
 
 ---
 
-##### RerankDocument
+#### RerankDocument
 
 A document to be reranked — either a plain string or an object with a text field.
 
@@ -2488,7 +1135,7 @@ A document to be reranked — either a plain string or an object with a text fie
 
 ---
 
-##### OcrDocument
+#### OcrDocument
 
 Document input for OCR — either a URL or inline base64 data.
 
@@ -2500,7 +1147,7 @@ Document input for OCR — either a URL or inline base64 data.
 
 ---
 
-##### AuthHeaderFormat
+#### AuthHeaderFormat
 
 How the API key is sent in the HTTP request.
 
@@ -2513,9 +1160,9 @@ How the API key is sent in the HTTP request.
 
 ---
 
-#### Errors
+### Errors
 
-##### LiterLlmError
+#### LiterLlmError
 
 All errors that can occur when using `liter-llm`.
 
