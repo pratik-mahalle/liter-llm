@@ -2410,6 +2410,7 @@ dependencies = [
 name = "liter-llm-wasm"
 version = "1.2.2"
 dependencies = [
+ "futures-util",
  "js-sys",
  "liter-llm",
  "serde-wasm-bindgen",

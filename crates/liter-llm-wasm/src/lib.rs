@@ -3547,7 +3547,7 @@ impl WasmModelObject {
 /// Default client implementation backed by `reqwest`.
 ///
 /// The provider is resolved at construction time from `model_hint` (or
-/// defaults to OpenAI).  However, individual requests can override the
+/// defaults to OpenAI). However, individual requests can override the
 /// provider when their model string contains a prefix that clearly
 /// identifies a different provider (e.g. `"anthropic/claude-3"` will
 /// route to Anthropic even if the client was built without a hint).
@@ -3578,7 +3578,7 @@ impl WasmDefaultClient {
 
     #[allow(clippy::missing_errors_doc)]
     #[wasm_bindgen(js_name = "chatStream")]
-    pub async fn chat_stream(&self, _req: WasmChatCompletionRequest) -> Result<String, JsValue> {
+    pub async fn chat_stream(&self, req: WasmChatCompletionRequest) -> Result<JsValue, JsValue> {
         use futures_util::StreamExt;
         let core_req: liter_llm::ChatCompletionRequest = req.into();
         let stream = self
@@ -3586,14 +3586,13 @@ impl WasmDefaultClient {
             .chat_stream(core_req)
             .await
             .map_err(|e| JsValue::from_str(&e.to_string()))?;
-        let chunks: Vec<ChatCompletionChunk> = stream
+        let chunks: Vec<liter_llm::ChatCompletionChunk> = stream
             .collect::<Vec<_>>()
             .await
             .into_iter()
             .collect::<std::result::Result<Vec<_>, _>>()
-            .map(|v| v.into_iter().map(ChatCompletionChunk::from).collect())
             .map_err(|e| JsValue::from_str(&e.to_string()))?;
-        serde_json::to_string(&chunks).map_err(|e| JsValue::from_str(&e.to_string()))
+        serde_wasm_bindgen::to_value(&chunks).map_err(|e| JsValue::from_str(&e.to_string()))
     }
 
     #[allow(clippy::missing_errors_doc)]
@@ -4053,7 +4052,7 @@ pub fn create_client_from_json(json: String) -> Result<WasmDefaultClient, JsValu
 /// Register a custom provider in the global runtime registry.
 ///
 /// The provider will be checked **before** all built-in providers during model
-/// detection.  If a provider with the same `name` already exists it is replaced.
+/// detection. If a provider with the same `name` already exists it is replaced.
 ///
 /// # Errors
 ///

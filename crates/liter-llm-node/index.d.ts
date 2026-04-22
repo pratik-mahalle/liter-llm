@@ -190,7 +190,7 @@ export interface JsCustomProviderConfig {
  * Default client implementation backed by `reqwest`.
  *
  * The provider is resolved at construction time from `model_hint` (or
- * defaults to OpenAI).  However, individual requests can override the
+ * defaults to OpenAI). However, individual requests can override the
  * provider when their model string contains a prefix that clearly
  * identifies a different provider (e.g. `"anthropic/claude-3"` will
  * route to Anthropic even if the client was built without a hint).
@@ -679,7 +679,7 @@ export interface JsUserMessage {
  * Register a custom provider in the global runtime registry.
  *
  * The provider will be checked **before** all built-in providers during model
- * detection.  If a provider with the same `name` already exists it is replaced.
+ * detection. If a provider with the same `name` already exists it is replaced.
  *
  * # Errors
  *

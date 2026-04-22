@@ -242,7 +242,6 @@ tasks:
     desc: Run full alef pipeline (extract + generate + stubs + scaffold + readme + docs + e2e)
     cmds:
       - alef all
-      - task: generate:docs:sync
 
   alef:verify:
     desc: Check bindings are up-to-date (CI)
@@ -253,38 +252,25 @@ tasks:
     desc: Regenerate all generated code
     cmds:
       - alef all
-      - task: generate:docs:sync
 
   generate:docs:
     desc: Generate API reference documentation
     cmds:
       - alef docs
-      - task: generate:docs:sync
-
-  generate:docs:sync:
-    desc: Sync API reference docs from docs/reference/ to docs/api/
-    internal: true
-    cmds:
-      - cp docs/reference/api-*.md docs/api/
-      - cp docs/reference/types.md docs/api/
-      - cp docs/reference/errors.md docs/api/
-      - cp docs/reference/configuration.md docs/api/
 
   generate:docs:check:
     desc: Validate API reference docs are up-to-date (CI)
     cmds:
       - alef docs
-      - task: generate:docs:sync
       - task: generate:docs:normalize
-      - git diff --exit-code docs/reference/ docs/api/api-*.md docs/api/types.md docs/api/errors.md docs/api/configuration.md
+      - git diff --exit-code docs/reference/
 
   generate:docs:normalize:
     desc: Normalize generated docs to match pre-commit formatting
     internal: true
     cmds:
       - |
-        for f in docs/reference/*.md docs/api/*.md; do
-          # Strip trailing whitespace and ensure single final newline (matches end-of-file-fixer)
+        for f in docs/reference/*.md; do
           sed -i'' -e 's/[[:space:]]*$//' "$f"
           printf '%s\n' "$(cat "$f")" > "$f"
         done

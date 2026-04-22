@@ -77,7 +77,7 @@ impl SystemMessage {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 #[pyclass(frozen, from_py_object)]
 pub struct UserMessage {
     #[pyo3(get)]
@@ -469,7 +469,7 @@ impl Usage {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 #[pyclass(frozen, from_py_object)]
 pub struct ChatCompletionRequest {
     #[pyo3(get)]
@@ -835,7 +835,7 @@ impl StreamFunctionCall {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 #[pyclass(frozen, from_py_object)]
 pub struct EmbeddingRequest {
     #[pyo3(get)]
@@ -1166,7 +1166,7 @@ impl TranscriptionSegment {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 #[pyclass(frozen, from_py_object)]
 pub struct ModerationRequest {
     #[pyo3(get)]
@@ -1355,7 +1355,7 @@ impl ModerationCategoryScores {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 #[pyclass(frozen, from_py_object)]
 pub struct RerankRequest {
     #[pyo3(get)]
@@ -1550,7 +1550,7 @@ impl SearchResult {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 #[pyclass(frozen, from_py_object)]
 pub struct OcrRequest {
     /// The model/provider to use (e.g. `"mistral/mistral-ocr-latest"`).
@@ -1878,7 +1878,7 @@ impl DefaultClient {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 #[pyclass(frozen, from_py_object)]
 pub struct CustomProviderConfig {
     /// Unique name for this provider (e.g., "my-provider").

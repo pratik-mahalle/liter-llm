@@ -419,6 +419,40 @@ html {
 	color: #323040;
 }
 
+[data-md-color-scheme="slate"] .md-typeset details:not([class]),
+[data-md-color-scheme="slate"] .md-typeset details:not([class]) > summary,
+[data-md-color-scheme="slate"] .md-typeset details:not([class]) p,
+[data-md-color-scheme="slate"] .md-typeset details:not([class]) li,
+[data-md-color-scheme="slate"] .md-typeset details:not([class]) strong {
+	color: rgba(255, 255, 255, 0.9);
+}
+
+.md-typeset details:not([class])[open] {
+	padding-bottom: 0.6rem;
+}
+
+[data-md-color-scheme="slate"] .md-typeset .admonition > .admonition-title,
+[data-md-color-scheme="slate"] .md-typeset details > summary {
+	margin: 0 0 0.6rem 0;
+	padding-top: 0.6rem;
+	padding-bottom: 0.6rem;
+	padding-left: 2.4rem;
+	padding-right: 1rem;
+	color: rgba(255, 255, 255, 0.9);
+}
+
+[data-md-color-scheme="slate"] .md-typeset .admonition > .admonition-title::before,
+[data-md-color-scheme="slate"] .md-typeset details > summary::before {
+	top: 0.6rem;
+	bottom: 0.6rem;
+	left: 1rem;
+}
+
+[data-md-color-scheme="slate"] .md-typeset details > summary::after {
+	top: 0.6rem;
+	right: 1rem;
+}
+
 [data-md-color-scheme="slate"] .md-typeset .admonition.note,
 [data-md-color-scheme="slate"] .md-typeset details.note {
 	border: 2px solid #2558ff;
@@ -997,15 +1031,68 @@ strong {
 }
 
 .md-footer__inner.md-grid {
-	display: none;
+	background-color: #323040;
+	max-width: 100%;
+	width: 100%;
+	padding-left: 2rem;
+	padding-right: 2rem;
+}
+
+.md-footer__link {
+	color: rgba(255, 255, 255, 0.7);
+	transition: color 0.2s;
+}
+
+.md-footer__link:hover {
+	color: #fff;
+}
+
+[data-md-color-scheme="default"] .md-footer__link:hover .md-footer__title {
+	color: #da2ae0;
+}
+
+[data-md-color-scheme="slate"] .md-footer__link:hover .md-footer__title {
+	color: #58fbda;
+}
+
+.md-footer__inner .md-footer__button.md-icon svg {
+	fill: none;
+	stroke: rgba(255, 255, 255, 0.7);
+}
+
+.md-footer-meta__inner.md-grid {
+	max-width: 100%;
+	width: 100%;
+	padding-left: 2rem;
+	padding-right: 2rem;
 }
 
 .md-footer-meta {
 	background-color: #323040;
 }
 
+.md-copyright {
+	color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.md-copyright__highlight {
+	color: rgba(255, 255, 255, 0.9) !important;
+}
+
+[data-md-color-scheme="default"] .md-copyright a {
+	color: #da2ae0 !important;
+}
+
+[data-md-color-scheme="slate"] .md-copyright a {
+	color: #58fbda !important;
+}
+
 .md-social {
 	padding: 0.4rem 0;
+}
+
+.md-social__link {
+	color: rgba(255, 255, 255, 0.7) !important;
 }
 
 .md-nav__link {
@@ -1326,12 +1413,12 @@ nav.md-nav--secondary > .md-nav__list > .md-nav__item > .md-nav > .md-nav__list 
 	fill: #58fbda;
 }
 
-[data-md-color-scheme="default"] .md-social__link svg {
-	fill: #da2ae0;
+[data-md-color-scheme="default"] .md-social__link {
+	color: #da2ae0 !important;
 }
 
-[data-md-color-scheme="slate"] .md-social__link svg {
-	fill: #58fbda;
+[data-md-color-scheme="slate"] .md-social__link {
+	color: #58fbda !important;
 }
 
 [data-md-color-scheme="default"] .md-header__button svg {
@@ -1347,7 +1434,12 @@ nav.md-nav--secondary > .md-nav__list > .md-nav__item > .md-nav > .md-nav__list 
 }
 
 [data-md-color-scheme="default"] .md-top svg {
-	fill: #323040;
+	color: #da2ae0;
+}
+
+[data-md-color-scheme="default"] .md-top svg circle {
+	fill: #000000;
+	stroke: #000000;
 }
 
 [data-md-color-scheme="default"] .md-top:hover {
@@ -1363,7 +1455,12 @@ nav.md-nav--secondary > .md-nav__list > .md-nav__item > .md-nav > .md-nav__list 
 }
 
 [data-md-color-scheme="slate"] .md-top svg {
-	fill: #000000 !important;
+	color: #58fbda;
+}
+
+[data-md-color-scheme="slate"] .md-top svg circle {
+	fill: #000000;
+	stroke: #000000;
 }
 
 .benchmark-dashboard {
@@ -1737,14 +1834,16 @@ body:has(.full-width-iframe) article {
 	font-size: 1rem;
 }
 
-/* Language icon color — black in light mode */
-.md-typeset .install-cards .lg svg {
-	fill: #1a1926 !important;
+/* Language icon color — pink accent in light mode */
+.md-typeset .install-cards .lg svg,
+.md-typeset .install-cards .lg svg path {
+	fill: #da2ae0;
 }
 
-/* Language icon color — white in dark mode */
-[data-md-color-scheme="slate"] .md-typeset .install-cards .lg svg {
-	fill: #ffffff !important;
+/* Language icon color — teal accent in dark mode */
+[data-md-color-scheme="slate"] .md-typeset .install-cards .lg svg,
+[data-md-color-scheme="slate"] .md-typeset .install-cards .lg svg path {
+	fill: #58fbda;
 }
 
 .md-typeset .install-cards .highlight {
@@ -1888,99 +1987,15 @@ body:has(.full-width-iframe) article {
 	margin-right: 3px;
 }
 
-/* ── Hero banner — centered logo image ── */
+/* Homepage hero banner */
 .hero-banner {
-	text-align: center;
-	margin: 2rem auto 1.5rem;
-	max-width: 320px;
+	margin: 0 -0.8rem 1rem;
+	border-radius: 12px;
+	overflow: hidden;
 }
 
 .hero-banner img {
 	width: 100%;
 	display: block;
-	border-radius: 0;
-	margin: 0 auto;
-}
-
-[data-md-color-scheme="slate"] .hero-banner img {
-	filter: brightness(1.1);
-}
-
-/* ── kreuzberg.dev family cards ── */
-.home-family {
-	display: grid;
-	grid-template-columns: repeat(3, 1fr);
-	gap: 1rem;
-	margin: 1.25rem 0 1.5rem;
-}
-
-@media (max-width: 720px) {
-	.home-family {
-		grid-template-columns: 1fr;
-	}
-}
-
-.home-family__card {
-	display: flex;
-	flex-direction: column;
-	gap: 0.45rem;
-	padding: 1.25rem 1.4rem 1.15rem;
-	border: 1px solid rgba(0, 0, 0, 0.08);
 	border-radius: 12px;
-	text-decoration: none !important;
-	background: var(--md-default-bg-color--dark);
-	transition:
-		box-shadow 0.2s ease,
-		border-color 0.2s ease,
-		transform 0.2s ease;
-}
-
-[data-md-color-scheme="slate"] .home-family__card {
-	background: rgba(255, 255, 255, 0.03);
-	border-color: rgba(255, 255, 255, 0.07);
-}
-
-.home-family__card:hover {
-	border-color: var(--md-accent-fg-color);
-	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-	transform: translateY(-2px);
-}
-
-[data-md-color-scheme="slate"] .home-family__card:hover {
-	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-}
-
-.home-family__card .twemoji svg,
-.home-family__card .md-icon svg {
-	fill: #da2ae0;
-	width: 1.4rem;
-	height: 1.4rem;
-}
-
-[data-md-color-scheme="slate"] .home-family__card .twemoji svg,
-[data-md-color-scheme="slate"] .home-family__card .md-icon svg {
-	fill: #58fbda;
-}
-
-.home-family__card strong {
-	display: block;
-	font-size: 0.92rem;
-	font-weight: 700;
-	color: var(--md-default-fg-color);
-	margin-top: 0.1rem;
-}
-
-.home-family__card span {
-	display: block;
-	font-size: 0.83rem;
-	color: var(--md-default-fg-color--light);
-	line-height: 1.5;
-}
-
-[data-md-color-scheme="slate"] .home-family__card strong {
-	color: #ffffff;
-}
-
-[data-md-color-scheme="slate"] .home-family__card span {
-	color: rgba(255, 255, 255, 0.6);
 }
