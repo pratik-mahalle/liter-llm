@@ -17,6 +17,7 @@ ruby_files = Dir.chdir(__dir__) do
       ext/**/Cargo.*
       lib/**/*.rb
       sig/**/*.rbs
+      Steepfile
     ],
     File::FNM_DOTMATCH
   )
