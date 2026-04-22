@@ -275,7 +275,19 @@ tasks:
     cmds:
       - alef docs
       - task: generate:docs:sync
+      - task: generate:docs:normalize
       - git diff --exit-code docs/reference/ docs/api/api-*.md docs/api/types.md docs/api/errors.md docs/api/configuration.md
+
+  generate:docs:normalize:
+    desc: Normalize generated docs to match pre-commit formatting
+    internal: true
+    cmds:
+      - |
+        for f in docs/reference/*.md docs/api/*.md; do
+          # Strip trailing whitespace and ensure single final newline (matches end-of-file-fixer)
+          sed -i'' -e 's/[[:space:]]*$//' "$f"
+          printf '%s\n' "$(cat "$f")" > "$f"
+        done
 
   generate:readme:
     desc: Generate package READMEs

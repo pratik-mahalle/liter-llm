@@ -51,7 +51,7 @@ pub enum AuthHeaderFormat {
 /// Register a custom provider in the global runtime registry.
 ///
 /// The provider will be checked **before** all built-in providers during model
-/// detection.  If a provider with the same `name` already exists it is replaced.
+/// detection. If a provider with the same `name` already exists it is replaced.
 ///
 /// # Errors
 ///
