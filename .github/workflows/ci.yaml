@@ -237,11 +237,12 @@ jobs:
         shell: bash
 
       - name: Install alef
-        run: cargo install --git https://github.com/kreuzberg-dev/alef alef-cli
+        run: cargo install --git https://github.com/kreuzberg-dev/alef --tag v0.5.3 alef-cli
         shell: bash
 
       - name: Verify alef-generated code is up-to-date
-        run: alef verify --exit-code
+        # Exclude WASM: v0.5.3 generates broken streaming code, manually fixed in-tree
+        run: alef verify --exit-code --lang python,node,ruby,php,ffi,go,java,csharp,elixir
         shell: bash
 
       - name: Verify API reference docs are up-to-date
